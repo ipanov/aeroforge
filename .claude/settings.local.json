@@ -5,7 +5,9 @@
       "Read(//tmp/ocp-viewer-mcp/**)",
       "Bash(pip install:*)",
       "Bash(claude mcp:*)",
-      "Bash(python -c \":*)"
+      "Bash(python -c \":*)",
+      "Bash(python src/cad/hardware/battery.py)",
+      "Bash(PYTHONPATH=. python src/cad/hardware/battery.py)"
     ]
   }
 }

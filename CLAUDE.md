@@ -1,5 +1,15 @@
 # AeroForge - AI-Enabled RC Sailplane Design System
 
+## MANDATORY: Automation Rule
+
+**The user NEVER types commands or runs scripts manually.** Claude does everything:
+- Run all Python scripts, tests, builds, exports
+- Execute all git operations
+- Run all tools and viewers
+- The user only reviews results and gives design direction
+
+When running Python scripts from this project, always use: `cd D:/Repos/aeroforge && PYTHONPATH=. python <script>`
+
 ## MANDATORY: Specification Consistency Rule
 
 **When ANY design parameter changes, you MUST update ALL references immediately.**
