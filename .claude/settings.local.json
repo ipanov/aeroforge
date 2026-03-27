@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//tmp/**)",
+      "Read(//tmp/ocp-viewer-mcp/**)",
+      "Bash(pip install:*)",
+      "Bash(claude mcp:*)",
+      "Bash(python -c \":*)"
+    ]
+  }
+}
