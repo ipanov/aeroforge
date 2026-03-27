@@ -13,9 +13,12 @@ or derive from it. If there's ever a conflict, specifications.md wins.
 ### Wingspan
 - `docs/specifications.md` — primary definition
 - `CLAUDE.md` — quick reference table
+- `README.md` — current specifications table
 - `docs/slicer_pipeline.md` — panel sizing table
+- `src/core/specs.py` — `WingSpec.wingspan`
 - `src/cad/wing/` — any wing generator code using span constants
 - `tests/test_wing.py` — test fixtures using span values
+- `tests/test_spec_consistency.py` — consistency checks
 
 ### Chord (root/tip)
 - `docs/specifications.md` — primary definition
