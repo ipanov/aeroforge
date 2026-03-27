@@ -55,15 +55,32 @@ Final airfoil selection subject to xfoil/CFD analysis at actual Reynolds numbers
 No hand-cut carbon. Carbon tube slides through printed holes. Spruce glues into slots.
 
 ### Printed Structure
-| Part | Material | Wall Thickness | Print Mode |
-|------|----------|---------------|------------|
-| Wing skins | LW-PLA | 0.5-0.6mm | Vase/2-perimeter |
-| D-box (LE to 30% chord) | LW-PLA | 0.6-0.8mm | Structural shell for torsion |
-| Ribs | PLA | 1.2-1.6mm | Complex lattice/lightened |
-| Servo mounts | PLA or PETG | 1.6-2.0mm | Structural |
-| Motor mount | PLA or PETG | 2.0-3.0mm | High stress |
-| Fuselage pod | LW-PLA + PLA ribs | 0.6-1.2mm | Shell + internal structure |
-| Tail surfaces | LW-PLA | 0.5-0.6mm | Lightweight |
+| Part | Material | Wall Thickness | Print Mode | Printer |
+|------|----------|---------------|------------|---------|
+| Wing skins | LW-PLA | 0.5-0.6mm | Vase/2-perimeter, 230°C | A1 or P1S |
+| D-box (LE to 30% chord) | LW-PLA | 0.6-0.8mm | Structural shell for torsion | A1 or P1S |
+| Ribs/formers | **CF-PLA** | 1.0-1.2mm | Lattice/lightened, 30% infill | A1/P1S + hardened nozzle |
+| Servo mounts | **CF-PETG** | 1.6-2.0mm | Impact-resistant | P1S preferred |
+| Motor mount | **CF-PETG** | 2.0-3.0mm | High stress, vibration | P1S preferred |
+| Fuselage shell | LW-PLA | 0.6mm | Lightweight outer | A1 or P1S |
+| Fuselage bulkheads | CF-PLA or PETG | 1.2-1.6mm | Internal structure | A1 or P1S |
+| Tail surfaces | LW-PLA | 0.5-0.6mm | Lightweight | A1 or P1S |
+| Hinges | **TPU 95A** | 0.6-0.8mm | Flexible living hinge | A1 or P1S |
+
+### Material Properties
+| Material | Density (g/cm³) | Tensile (MPa) | Stiffness (GPa) | Cost (€/kg) | Nozzle |
+|----------|----------------|---------------|-----------------|-------------|--------|
+| LW-PLA (foamed 230°C) | 0.7-0.85 | 20-35 | 1.5-2.5 | 30-45 | Brass OK |
+| PLA | 1.24 | 50-65 | 3.5-4.0 | 15-25 | Brass OK |
+| CF-PLA | 1.25-1.30 | 55-70 | 5.5-8.0 | 30-50 | **Hardened steel** |
+| CF-PETG | 1.30-1.35 | 50-65 | 4.5-6.5 | 35-55 | **Hardened steel** |
+| PETG | 1.27 | 45-55 | 2.0-2.5 | 18-28 | Brass OK |
+| TPU 95A | 1.20-1.25 | 25-50 | flexible | 25-40 | Brass OK |
+
+**Nozzle note**: Buy one hardened steel 0.4mm nozzle per printer (~€10-15). CF filaments destroy brass nozzles.
+
+**LW-PLA brands** (in order of quality): ColorFabb LW-PLA > Polymaker PolyLite LW-PLA > eSUN eLW-PLA.
+Available via 3DJake.com (ships to Balkans), Bambu Lab Store, Amazon.de.
 
 ### Key Structural Notes
 - Every rib is unique (different airfoil, different chord, different lightening pattern)
@@ -77,20 +94,20 @@ No hand-cut carbon. Carbon tube slides through printed holes. Spruce glues into 
 ### Fixed Components (Owner's Inventory)
 | Component | Weight | Dimensions | Notes |
 |-----------|--------|------------|-------|
-| **Battery (3S 1300mAh racing LiPo)** | ~115g | ~72x35x23mm | Fixed constraint, two available |
+| **Battery (3S 1300mAh 75C racing LiPo)** | ~155g (165g w/ XT60) | ~78x38x28mm | Fixed constraint, two available |
 | **Receiver (Turnigy 9X V2 8ch)** | 18g | 52x35x15mm | Fixed constraint, large |
 
 ### Electronics Budget
 | Component | Weight (g) | Notes |
 |-----------|-----------|-------|
-| Battery (3S 1300mAh) | 115 | Fixed |
+| Battery (3S 1300mAh 75C + XT60) | 165 | Fixed (155g pack + 10g connector) |
 | Receiver (Turnigy 9X V2) | 18 | Fixed |
 | Servos (6x 9g class) | 54 | Ailerons x2, flaps x2, elevator, rudder |
 | Motor (TBD - ideal KV) | 50-60 | Will order optimal motor last |
 | ESC (20-30A) | 15-20 | |
 | Folding prop + spinner | 15-20 | |
 | Wiring, connectors, extensions | 20-25 | Includes wing connectors |
-| **Electronics total** | **~290-310** | |
+| **Electronics total** | **~330-350** | |
 
 ### Airframe Budget
 | Component | Weight (g) | Notes |
@@ -106,10 +123,12 @@ No hand-cut carbon. Carbon tube slides through printed holes. Spruce glues into 
 ### Total
 | | Min | Target | Max |
 |--|-----|--------|-----|
-| **AUW** | 630g | 700-750g | 850g |
-| **Wing loading** | 19 g/dm² | 22-23 g/dm² | 26 g/dm² |
+| **AUW** | 680g | 750-800g | 900g |
+| **Wing loading** | 21 g/dm² | 23-25 g/dm² | 28 g/dm² |
 
-Wing loading of 20-23 g/dm² is competitive for casual F5J and excellent for thermal soaring.
+Wing loading of 23-25 g/dm² is adequate for thermal soaring and casual F5J competition.
+The heavier racing battery (155g vs typical 45g F5J packs) is the main weight driver.
+Consider a lighter 2S 850mAh pack (~52g) as an alternative for pure gliding sessions.
 
 ## Control System
 

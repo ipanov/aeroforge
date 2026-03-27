@@ -70,8 +70,8 @@ Even the smallest screw is a component.
 | Airfoil | AG24 (root) → AG03 (tip), blended continuously |
 | Main spar | 8mm carbon tube (off-shelf) |
 | Rear spar | 5mm spruce strip |
-| Target AUW | 700-850g |
-| Battery | 3S 1300mAh racing LiPo (~115g, FIXED) |
+| Target AUW | 750-850g |
+| Battery | 3S 1300mAh 75C racing LiPo (~155g pack, ~165g w/XT60, FIXED) |
 | Receiver | Turnigy 9X V2 8ch (18g, FIXED) |
 | Controls | Full-house + crow braking, 6 servos |
 | Printer | Bambu A1 / P1S (256x256x256mm bed) |

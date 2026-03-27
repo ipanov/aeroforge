@@ -159,16 +159,24 @@ class EmpennageSpec(BaseModel):
 # ── Electronics (Fixed Constraints) ──────────────────────────────
 
 class BatterySpec(BaseModel):
-    """Battery specification - FIXED, owner's inventory."""
-    name: str = "Racing 3S 1300mAh"
+    """Battery specification - FIXED, owner's inventory.
+
+    Racing 3S 1300mAh 75C LiPo. Typical brands: Tattu, GNB, CNHL, Turnigy.
+    Dimensions are envelope max across common brands (for battery bay sizing).
+    Owner has XT60 connectors soldered on.
+    """
+    name: str = "Racing 3S 1300mAh 75C"
     cells: int = 3
     voltage: float = 11.1              # nominal
     capacity_mah: int = 1300
-    weight: float = 115.0              # grams (approximate, racing LiPo)
-    length: float = 72.0               # mm
-    width: float = 35.0                # mm
-    height: float = 23.0               # mm
+    c_rating: int = 75
+    weight: float = 155.0              # grams (pack only, typical racing 75C)
+    weight_with_connector: float = 165.0  # grams (with XT60 + leads)
+    length: float = 78.0               # mm (typical, design bay for 80mm)
+    width: float = 38.0                # mm (typical, design bay for 40mm)
+    height: float = 28.0               # mm (typical, design bay for 30mm)
     connector: str = "XT60"
+    connector_weight: float = 10.0     # grams (XT60 + 14AWG leads)
 
 
 class ReceiverSpec(BaseModel):
