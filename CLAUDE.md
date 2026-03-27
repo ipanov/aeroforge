@@ -1,5 +1,23 @@
 # AeroForge - AI-Enabled RC Sailplane Design System
 
+## MANDATORY: Specification Consistency Rule
+
+**When ANY design parameter changes, you MUST update ALL references immediately.**
+
+This is the #1 project rule. Never leave outdated information anywhere. Never require
+the user to remind you. This is automatic and deterministic.
+
+Workflow:
+1. Update `docs/specifications.md` FIRST (single source of truth)
+2. Consult `docs/spec_registry.md` to find ALL other references
+3. Update every listed file (docs, code, tests, component specs)
+4. Recalculate dependent values (weight budget, wing loading, Reynolds, CG)
+5. Mark affected 3D models as needing regeneration
+6. Report transparently: list every file and value that changed
+
+If you create a new file that references any design parameter, add it to
+`docs/spec_registry.md` so future changes propagate to it.
+
 ## Project Mission
 
 Design a **groundbreaking 3D-printed RC sailplane** using AI-driven complexity
@@ -50,7 +68,7 @@ Even the smallest screw is a component.
 | Root chord | 200mm |
 | Tip chord | 110mm |
 | Airfoil | AG24 (root) → AG03 (tip), blended continuously |
-| Main spar | 10mm carbon tube (off-shelf) |
+| Main spar | 8mm carbon tube (off-shelf) |
 | Rear spar | 5mm spruce strip |
 | Target AUW | 700-850g |
 | Battery | 3S 1300mAh racing LiPo (~115g, FIXED) |

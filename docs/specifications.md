@@ -49,7 +49,7 @@ Final airfoil selection subject to xfoil/CFD analysis at actual Reynolds numbers
 ### Spars
 | Spar | Material | Size | Source | Role |
 |------|----------|------|--------|------|
-| **Main spar** | Pultruded carbon tube | 10mm OD (off-shelf) | HobbyKing/AliExpress | Primary bending |
+| **Main spar** | Pultruded carbon tube | 8mm OD (off-shelf) | HobbyKing/AliExpress | Primary bending |
 | **Rear spar** | Spruce strip | ~5x3mm | Local (Macedonia) | Torsion + TE support |
 
 No hand-cut carbon. Carbon tube slides through printed holes. Spruce glues into slots.
