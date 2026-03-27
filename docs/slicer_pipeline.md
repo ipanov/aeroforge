@@ -40,11 +40,14 @@ orca-slicer --slice 0 \
 - Embeds units (mm), multi-material support, smaller files
 - Build123d: `export_3mf()` native support
 
-## Wing Panel Sizing
+## Wing Panel Sizing (AeroForge: 2.1m wingspan)
 
-| Wingspan | Panels/half | Panel span | Total panels |
-|----------|------------|------------|-------------|
-| 1.0m | 2 | 250mm | 4 |
-| 1.5m | 3 | 250mm | 6 |
-| 1.8m | 4 | 225mm | 8 |
-| 2.0m | 4 | 250mm | 8 |
+6 panels total (3 per half-wing), each ~350mm span.
+350mm fits comfortably on the 256mm bed printed at slight angle or with
+chord axis along the shorter dimension (chord 110-200mm < 256mm).
+
+| Panel | Span | Chord Range | Content |
+|-------|------|-------------|---------|
+| Root (Panel 1) | ~350mm | 200→177mm | Flap, 2 servos |
+| Mid (Panel 2) | ~350mm | 177→132mm | Flap/aileron transition |
+| Tip (Panel 3) | ~350mm | 132→110mm | Aileron, wingtip cap |
