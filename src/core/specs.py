@@ -38,10 +38,10 @@ class AirfoilStation(BaseModel):
 
 class WingSpec(BaseModel):
     """Wing geometry specification."""
-    wingspan: float = 2100.0           # mm total wingspan
-    root_chord: float = 200.0          # mm
-    tip_chord: float = 110.0           # mm
-    panels_per_half: int = 3           # 3 panels per half = 6 total
+    wingspan: float = 2560.0           # mm total wingspan (5x256mm panels per half)
+    root_chord: float = 210.0          # mm
+    tip_chord: float = 115.0           # mm
+    panels_per_half: int = 5           # 5 panels per half = 10 total (256mm each, exact bed fit)
     sweep_angle: float = 0.0           # degrees (TBD, AI-optimized)
     dihedral_angle: float = 0.0        # degrees (TBD, AI-optimized)
     washout_tip: float = 0.0           # degrees (TBD, AI-optimized, negative = nose down)
@@ -200,10 +200,28 @@ class FlightMode(BaseModel):
     description: str = ""
 
 
+class ServoSelection(BaseModel):
+    """Servo selection per position."""
+    aileron: str = "JX PDI-1109MG"     # 10g, 2.5 kg-cm, $6
+    flap: str = "JX PDI-933MG"         # 13g, 3.5 kg-cm, $7
+    elevator: str = "JX PDI-1109MG"    # 10g, 2.5 kg-cm, $6
+    rudder: str = "JX PDI-1109MG"      # 10g, 2.5 kg-cm, $6
+
+    @property
+    def total_weight(self) -> float:
+        """Total servo weight (2x aileron + 2x flap + elevator + rudder)."""
+        return 2 * 10.0 + 2 * 13.0 + 10.0 + 10.0  # 66g
+
+    @property
+    def total_cost_usd(self) -> float:
+        return 2 * 6 + 2 * 7 + 6 + 6  # $38
+
+
 class ControlSpec(BaseModel):
     """Control surfaces and mixing specification."""
     servo_count: int = 6
-    servo_weight: float = 9.0          # grams each (9g class)
+    servo_weight: float = 11.0         # grams average (mix of 10g and 13g)
+    servos: ServoSelection = Field(default_factory=ServoSelection)
 
     aileron_chord_ratio: float = 0.22  # aileron as fraction of wing chord
     aileron_span_start: float = 0.55   # fraction of half-span where aileron starts
@@ -257,9 +275,9 @@ class SailplaneSpec(BaseModel):
         esc_est = 17.0
         prop_est = 17.0
         wiring_est = 22.0
-        servo_total = self.controls.servo_count * self.controls.servo_weight
-        return (self.battery.weight + self.receiver.weight + servo_total +
-                motor_est + esc_est + prop_est + wiring_est)
+        servo_total = self.controls.servos.total_weight
+        return (self.battery.weight_with_connector + self.receiver.weight +
+                servo_total + motor_est + esc_est + prop_est + wiring_est)
 
     @property
     def wing_loading_at_auw(self) -> dict[str, float]:

@@ -4,26 +4,26 @@
 
 | Parameter | Value | Notes |
 |-----------|-------|-------|
-| **Wingspan** | 2100mm (2.1m) | 3 panels per half-wing |
-| **Root chord** | 200mm | At fuselage centerline |
-| **Tip chord** | 110mm | Taper ratio ~0.55 |
-| **Wing area** | ~32.5 dm² | Trapezoidal approximation |
-| **Aspect ratio** | ~13.6 | High AR for thermal efficiency |
+| **Wingspan** | 2560mm (2.56m) | 5 panels per half-wing, 256mm each |
+| **Root chord** | 210mm | At fuselage centerline |
+| **Tip chord** | 115mm | Taper ratio ~0.55 |
+| **Wing area** | ~41.6 dm² | Trapezoidal approximation |
+| **Aspect ratio** | ~15.8 | High AR for thermal efficiency |
 | **Sweep** | TBD (AI-optimized) | Slight sweep likely for CG |
 | **Dihedral** | TBD (AI-optimized) | Continuous polyhedral possible |
 | **Twist (washout)** | TBD (AI-optimized) | Continuously varying, not linear |
 
 ## Wing Panel Layout
 
-6 panels total, 3 per half-wing, each ~350mm span.
+10 panels total, 5 per half-wing, each 256mm span (exact Bambu bed fit).
 
 ```
- Tip ◄──── Panel 3 ────┬──── Panel 2 ────┬──── Panel 1 ────► Root
-          (~350mm)      │    (~350mm)      │    (~350mm)
-          Aileron       │  Aileron/Flap    │    Flap
-          AG03-blend    │  AG-blend        │    AG24-blend
-                        │                  │
-                        joint              joint         fuselage
+Tip ◄── P5 ──┬── P4 ──┬── P3 ──┬── P2 ──┬── P1 ──► Root
+     256mm   │ 256mm  │ 256mm  │ 256mm  │ 256mm
+     Aileron │Aileron │ Flap   │ Flap   │ Flap
+     AG03    │AG-blend│AG-blend│AG-blend│ AG24
+             │        │        │        │
+            joint    joint    joint    joint    fuselage
 ```
 
 Each panel slides onto the carbon spar tube. Panels are unique - different airfoil
@@ -33,11 +33,11 @@ profile at every rib station, different chord (taper), different twist angle.
 
 | Station | Airfoil | Chord | Thickness | Reynolds (8 m/s) |
 |---------|---------|-------|-----------|------------------|
-| Root (0%) | AG24 | 200mm | ~9.0% (18mm) | ~107,000 |
-| 25% span | AG24→AG09 blend | 177mm | ~9.1% | ~94,000 |
-| 50% span | AG09 | 155mm | ~9.2% | ~83,000 |
-| 75% span | AG09→AG03 blend | 132mm | ~8.8% | ~71,000 |
-| Tip (100%) | AG03 | 110mm | ~8.4% | ~59,000 |
+| Root (0%) | AG24 | 210mm | ~9.0% (19mm) | ~112,000 |
+| 25% span | AG24→AG09 blend | 186mm | ~9.1% | ~99,000 |
+| 50% span | AG09 | 162mm | ~9.2% | ~87,000 |
+| 75% span | AG09→AG03 blend | 139mm | ~8.8% | ~74,000 |
+| Tip (100%) | AG03 | 115mm | ~8.4% | ~61,000 |
 
 Blending is continuous - every rib has a unique, interpolated airfoil profile.
 This is a key advantage over commercial kits limited to 2-3 stations.
@@ -123,12 +123,12 @@ Available via 3DJake.com (ships to Balkans), Bambu Lab Store, Amazon.de.
 ### Total
 | | Min | Target | Max |
 |--|-----|--------|-----|
-| **AUW** | 680g | 750-800g | 900g |
-| **Wing loading** | 21 g/dm² | 23-25 g/dm² | 28 g/dm² |
+| **AUW** | 700g | 750-800g | 900g |
+| **Wing loading** | 17 g/dm² | 18-19 g/dm² | 22 g/dm² |
 
-Wing loading of 23-25 g/dm² is adequate for thermal soaring and casual F5J competition.
-The heavier racing battery (155g vs typical 45g F5J packs) is the main weight driver.
-Consider a lighter 2S 850mAh pack (~52g) as an alternative for pure gliding sessions.
+Wing loading of 18-19 g/dm² is competitive with commercial F5J kits (~18-25 g/dm²).
+The larger wingspan (2.56m) properly accommodates the heavy racing battery.
+Higher Reynolds numbers (112,000 at root) let AG airfoils perform near their optimum.
 
 ## Control System
 

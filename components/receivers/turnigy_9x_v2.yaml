@@ -1,0 +1,38 @@
+# Turnigy 9X V2 8-Channel Receiver
+# FIXED CONSTRAINT - owner's inventory
+
+name: "Turnigy 9X V2 8ch Receiver"
+type: off_shelf
+category: electronics
+status: inventory
+
+electrical:
+  channels: 8
+  frequency: 2.4  # GHz
+  protocol: AFHDS
+  firmware: V2
+  voltage_range: "4.5-6.5V"
+  antenna: wire (internal)
+
+physical:
+  length: 52.0  # mm
+  width: 35.0   # mm
+  height: 15.0  # mm
+  weight: 18.0  # grams
+  connector: servo pins (3-pin headers)
+
+mounting:
+  # Servo tape or foam mounting in receiver shelf
+  bay_length: 55.0   # mm (with clearance)
+  bay_width: 38.0    # mm
+  bay_height: 18.0   # mm
+
+notes: |
+  Large receiver for this class of sailplane.
+  8 channels sufficient for full-house + motor + flight mode switch.
+  Consider iA6C (41x25x10mm, 7.9g) if weight/space becomes critical.
+  But 9X V2 has better range which matters for sailplane at altitude.
+
+procurement:
+  source: inventory
+  price_usd: 0  # Already owned

@@ -1,0 +1,60 @@
+# Racing 3S 1300mAh 75C LiPo Battery
+# FIXED CONSTRAINT - owner's inventory (2 units)
+# XT60 connector soldered on leads
+
+name: "Racing 3S 1300mAh 75C"
+type: off_shelf
+category: electronics
+status: inventory  # Already owned
+
+electrical:
+  cells: 3
+  chemistry: LiPo
+  voltage_nominal: 11.1  # V
+  voltage_charged: 12.6  # V
+  capacity_mah: 1300
+  c_rating: 75
+  max_continuous_current: 97.5  # A (75C x 1.3Ah)
+  connector: XT60
+  balance_connector: JST-XH 4-pin
+
+physical:
+  # Envelope dimensions (max across common brands: Tattu, GNB, CNHL)
+  length: 78.0  # mm
+  width: 38.0   # mm
+  height: 28.0  # mm
+  weight_pack: 155.0   # grams (pack only)
+  weight_total: 165.0  # grams (with XT60 + 14AWG leads)
+  lead_length: 100.0   # mm approximate
+
+design_bay:
+  # Dimensions for the battery bay in the fuselage pod
+  # Includes clearance for foam padding and velcro strap
+  length: 82.0  # mm (+2mm each side)
+  width: 42.0   # mm (+2mm each side)
+  height: 32.0  # mm (+2mm top for strap)
+  cg_travel: 20.0  # mm fore-aft adjustment range
+
+brands:
+  - name: Tattu R-Line
+    weight: 155
+    dims: "78x39x28"
+    price_usd: 18-22
+  - name: GNB
+    weight: 150
+    dims: "78x37x27"
+    price_usd: 12-16
+  - name: CNHL MiniStar
+    weight: 147
+    dims: "76x37x27"
+    price_usd: 11-14
+  - name: Turnigy Graphene
+    weight: 148
+    dims: "75x35x28"
+    price_usd: 15-19
+
+notes: |
+  Owner has 2 units, brand unknown, sitting several years.
+  XT60 connectors already soldered on.
+  Velcro strap (Macedonian "chichak traka") for retention.
+  Battery is the heaviest single component - CG adjustment critical.

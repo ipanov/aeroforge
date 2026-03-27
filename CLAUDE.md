@@ -63,10 +63,10 @@ Even the smallest screw is a component.
 
 | Parameter | Value |
 |-----------|-------|
-| Wingspan | 2.1m |
-| Panels | 6 (3 per half, ~350mm each) |
-| Root chord | 200mm |
-| Tip chord | 110mm |
+| Wingspan | 2.56m |
+| Panels | 10 (5 per half, 256mm each - exact bed fit) |
+| Root chord | 210mm |
+| Tip chord | 115mm |
 | Airfoil | AG24 (root) → AG03 (tip), blended continuously |
 | Main spar | 8mm carbon tube (off-shelf) |
 | Rear spar | 5mm spruce strip |

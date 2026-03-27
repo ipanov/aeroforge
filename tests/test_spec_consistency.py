@@ -43,9 +43,11 @@ class TestSpecVsDocumentation:
 
     def test_wingspan_in_claude_md(self):
         text = _read_file("CLAUDE.md")
-        assert str(int(SAILPLANE.wing.wingspan)) in text or \
-               f"{SAILPLANE.wing.wingspan/1000:.1f}m" in text, \
-               f"CLAUDE.md doesn't contain wingspan {SAILPLANE.wing.wingspan}mm"
+        ws = SAILPLANE.wing.wingspan
+        assert str(int(ws)) in text or \
+               f"{ws/1000:.1f}m" in text or \
+               f"{ws/1000:.2f}m" in text, \
+               f"CLAUDE.md doesn't contain wingspan {ws}mm"
 
     def test_wingspan_in_specifications(self):
         text = _read_file("docs/specifications.md")

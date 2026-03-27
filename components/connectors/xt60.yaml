@@ -1,0 +1,42 @@
+# XT60 Connector (Amass standard)
+# Soldered on battery leads
+
+name: "XT60 Connector"
+type: off_shelf
+category: electronics
+status: inventory
+
+physical:
+  # Male connector (on battery side)
+  male:
+    body_length: 16.0  # mm
+    body_width: 8.0     # mm
+    body_height: 15.8   # mm
+    pin_diameter: 3.5   # mm
+    pin_spacing: 8.0    # mm center-to-center
+    pin_protrusion: 6.5 # mm
+    solder_cup_length: 7.0  # mm
+    weight: 5.0         # grams (connector only)
+
+  # Female connector (on ESC/airframe side)
+  female:
+    body_length: 16.0
+    body_width: 8.0
+    body_height: 15.8
+    socket_depth: 6.5
+    solder_cup_length: 7.0
+    weight: 5.0
+
+  # Mated pair
+  mated_length: 32.0   # mm
+  weight_pair: 10.0     # grams
+
+electrical:
+  current_continuous: 60  # A
+  current_burst: 80       # A
+  voltage_max: 500        # V
+  insertion_force: 15     # N
+
+notes: |
+  Standard RC power connector. Already soldered on battery leads.
+  Routing channel in fuselage: 16 x 9 mm cross-section minimum.

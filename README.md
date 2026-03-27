@@ -30,10 +30,10 @@ optimally shaped, every internal structure can be topology-optimized.
 
 | Parameter | Value |
 |-----------|-------|
-| Wingspan | 2.1m |
-| Wing panels | 6 (3 per half, ~350mm each) |
-| Root chord | 200mm |
-| Tip chord | 110mm |
+| Wingspan | 2.56m |
+| Wing panels | 10 (5 per half, 256mm each - exact bed fit) |
+| Root chord | 210mm |
+| Tip chord | 115mm |
 | Airfoil | AG24 (root) → AG09 (mid) → AG03 (tip), blended continuously |
 | Main spar | 8mm pultruded carbon tube |
 | Rear spar | 5x3mm spruce strip |

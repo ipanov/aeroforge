@@ -1,0 +1,31 @@
+# JX PDI-933MG - Digital Metal Gear Micro Servo (High Torque)
+# Use for: flaps (need higher torque for crow braking)
+
+name: "JX PDI-933MG"
+type: off_shelf
+category: electronics
+status: to_buy
+
+physical:
+  length: 23.0  # mm
+  width: 12.0   # mm
+  height: 25.5  # mm
+  weight: 13.0  # grams
+  wire_length: 180  # mm
+  connector: JR
+  spline: 20T
+
+performance:
+  torque_4_8v: 2.8  # kg-cm
+  torque_6_0v: 3.5  # kg-cm
+  speed_4_8v: 0.12  # sec/60°
+  speed_6_0v: 0.10  # sec/60°
+  gear: metal
+  motor: coreless
+  type: digital
+  voltage_range: "4.8-6.0V"
+
+procurement:
+  source: aliexpress
+  price_usd: 6-8
+  notes: "Highest torque in 9g class. Essential for flap crow braking."
