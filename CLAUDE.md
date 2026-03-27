@@ -5,65 +5,94 @@
 Design a **groundbreaking 3D-printed RC sailplane** that rivals commercial kits (F5J, Insight, Bowser) in performance while being:
 - **Cheaper** - leverage 3D printing with consumer printers (Bambu A1/P1S)
 - **Faster to manufacture** - parametric design optimized for printability
-- **AI-designed** - cutting-edge Text2Cut/Sketch2Cut workflow
+- **AI-designed** - Text2CAD workflow: natural language to parametric 3D model
 
-## Core Architecture
+## Architecture
+
+### Two-Engine System
+- **Build123d** (Python, headless) - ALL 3D modeling, parametric design, assemblies
+- **FreeCAD 1.0+** (headless via FreeCADCmd) - FEM analysis (CalculiX), CFD (OpenFOAM), visualization
+- Both share the OpenCascade (OCCT) kernel. STEP files are the lossless interchange format.
 
 ### Dependency Graph System
-- **Parametric components** with automatic update propagation
+- **NetworkX DAG** for component dependency tracking
+- **Pydantic models** for validated component specifications
+- **Topological sort** for update ordering
 - **CRUD operations** on component hierarchy
 - **Validation hooks** at every deterministic step
-- **Topological sort** for update ordering
+- When a component changes -> all dependents update automatically
 
 ### Component Model
 ```
-Component (base class)
-├── OffShelfComponent  (servos, motors, screws - from datasheets)
-├── CustomComponent    (designed parts - from Text2Cut)
+Component (base class - Pydantic model)
+├── OffShelfComponent  (servos, motors, screws - from datasheets, fixed dims)
+├── CustomComponent    (designed parts - parametric, from Text2CAD)
 └── Assembly           (components + sub-assemblies + constraints)
 ```
 
-When a component changes → all dependents update automatically.
+Every component has: mass, center of gravity, inertia tensor, local coordinate system, bounding box.
+Even the smallest screw is a component.
+
+### Design Philosophy
+- **Top-down design** (concept first) but **bottom-up construction** (build small parts first)
+- Assembly hierarchy: components -> sub-assemblies -> assemblies -> top assembly
+- Same workflow for all assembly levels
 
 ## Tech Stack
 
 ### Core CAD
-- **Build123d** - Python-native parametric CAD (VS Code native)
-- **FreeCAD 1.0+** - FEM analysis, visualization, technical drawings
+- **Build123d 0.10+** - Python-native parametric CAD (headless, VS Code with OCP Viewer)
+- **NetworkX** - Dependency graph (DAG) management
+- **Pydantic** - Component spec validation
 
-### Analysis
-- **OpenFOAM** - CFD for aerodynamics
-- **FreeCAD FEM** - Structural analysis (CalculiX)
-- **xfoil** - 2D airfoil analysis
+### Analysis (via FreeCAD 1.0.2 headless)
+- **FreeCAD FEM** - Structural analysis (CalculiX solver)
+- **CfdOF/OpenFOAM** - CFD for aerodynamics
+- **xfoil** - 2D airfoil analysis (quick iteration)
+- FreeCAD path: C:\Users\ilija\AppData\Local\Programs\FreeCAD 1.0
 
 ### Manufacturing
 - **Target printers**: Bambu A1, Bambu P1S
 - **Materials**: PLA, LW-PLA (lightweight), TPU (flexible parts)
 - **Export**: STL, 3MF for slicing
 
+### MCP Servers
+- **context7** - Library documentation (Build123d, FreeCAD API)
+- **freecad-mcp** (neka-nat) - FreeCAD RPC for headless FEM/CFD [to install]
+- **ocp-viewer-mcp** (dmilad) - Visual feedback from Build123d [to install]
+
 ### Radio/Components
 - **Transmitter**: Turnigy 9X
 - **Servos**: Micro digital servos (9g class)
 - **Flight modes**: Launch, Cruise, Speed, Thermal, Landing (crow)
+- **Controls**: Full-house (ailerons, flaps, elevator, rudder)
 
 ## Project Structure
 
 ```
-clearskies/
+aeroforge/
 ├── src/
+│   ├── core/                   # Component framework & DAG
+│   │   ├── component.py        # Base Component, OffShelf, Custom classes
+│   │   ├── assembly.py         # Assembly with constraints
+│   │   ├── dag.py              # Dependency graph (NetworkX)
+│   │   └── validation.py       # Validation hooks
 │   ├── cad/                    # Build123d parametric models
 │   │   ├── airfoils/           # Airfoil generators (NACA, AG series)
 │   │   ├── wing/               # Wing sections, spars, skins
 │   │   ├── fuselage/           # Pod, boom, nose
 │   │   ├── tail/               # V-tail, T-tail, conventional
-│   │   └── components/         # Servo mounts, control horns, etc.
-│   ├── cfd/                    # OpenFOAM cases
-│   ├── fem/                    # Structural analysis
-│   └── text2cut/               # AI workflow pipeline
-├── components/                 # Off-the-shelf component specs
-│   ├── servos/                 # Dimensions, weights, torque
-│   ├── motors/                 # Motors, props
-│   └── electronics/            # ESC, receiver, battery
+│   │   └── hardware/           # Servo mounts, control horns, hinges
+│   ├── analysis/               # FreeCAD headless wrappers
+│   │   ├── fem.py              # FEM setup & results
+│   │   ├── cfd.py              # CFD setup & results
+│   │   └── xfoil.py            # 2D airfoil analysis
+│   └── text2cad/               # AI workflow pipeline
+├── components/                 # Off-the-shelf component specs (YAML)
+│   ├── servos/
+│   ├── motors/
+│   ├── electronics/
+│   └── hardware/               # Screws, rods, bearings
 ├── docs/                       # Design documentation
 ├── exports/                    # STL, STEP, 3MF files for printing
 └── tests/                      # Validation tests
@@ -71,7 +100,7 @@ clearskies/
 
 ## Design Constraints
 
-### Target Specifications (Initial)
+### Target Specifications
 - **Wingspan**: 1.5m - 2m (modular for printing)
 - **Weight**: < 800g (goal: 500-600g with LW-PLA)
 - **Wing loading**: 20-30 g/dm²
@@ -79,32 +108,19 @@ clearskies/
 - **Control surfaces**: Full-house (ailerons, flaps, elevator, rudder)
 - **Flight modes**: Launch, Cruise, Speed, Thermal, Crow landing
 
-### Component Inventory (User's Equipment)
-- Turnigy 9X transmitter
-- Micro servos (9g class)
-- Various motors and ESCs (to be catalogued)
-
-## AI Workflow Philosophy
-
-This project explores **Text2Cut** - using natural language descriptions to generate parametric 3D models:
-
-1. **Describe** → Natural language design intent
-2. **Generate** → Build123d Python code with constraints
-3. **Validate** → CFD/FEM analysis automatically
-4. **Iterate** → AI suggests improvements
-5. **Export** → Print-ready meshes
-
 ## Coding Conventions
 
-- Python 3.11+
+- Python 3.10+
 - Type hints required
 - Docstrings for all modules/classes
 - Parametric values as constants at module top
 - All dimensions in mm, weights in grams
+- Pydantic models for all component specs
+- NetworkX for all dependency relationships
 
 ## Git Workflow
 
 - `main` - stable, tested designs
-- `develop` - work in progress
-- Feature branches for major changes
+- Feature branches for changes
 - GitHub Issues for task tracking
+- PR reviews via pr-review-toolkit plugin

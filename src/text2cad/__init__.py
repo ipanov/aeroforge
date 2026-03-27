@@ -1,4 +1,4 @@
-"""Text2Cut - AI-Enabled Design Pipeline.
+"""Text2CAD - AI-Enabled Design Pipeline.
 
 This module provides the natural language to parametric model workflow:
 
@@ -41,8 +41,8 @@ class DesignRequest:
     printer_constraints: Optional[dict] = None
 
 
-class Text2CutPipeline:
-    """Main Text2Cut pipeline orchestrator."""
+class Text2CADPipeline:
+    """Main Text2CAD pipeline orchestrator."""
 
     def __init__(self):
         self.design_rules = self._load_design_rules()

@@ -1,4 +1,4 @@
-"""Pytest configuration for ClearSkies tests."""
+"""Pytest configuration for AeroForge tests."""
 
 import sys
 from pathlib import Path
