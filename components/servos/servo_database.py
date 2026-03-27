@@ -40,7 +40,7 @@ class ServoSpec:
     connector: str = "JR"
 
 
-# Common 9g class servos
+# Common 9g class servos (plastic gear)
 SERVO_DATABASE: Dict[str, ServoSpec] = {
     "towerpro_sg90": ServoSpec(
         name="SG90",
@@ -93,6 +93,132 @@ SERVO_DATABASE: Dict[str, ServoSpec] = {
         speed_6_0v=0.12,
         weight=9.0,
         wire_length=200,
+    ),
+}
+
+
+# =============================================================================
+# METAL GEAR MICRO SERVOS - Budget candidates for RC sailplane
+# =============================================================================
+# Gear types: MG = metal gear, SG = steel gear, TG = titanium gear
+# All dimensions in mm, weight in grams, torque in kg-cm, speed in sec/60deg
+#
+# PRICE TIERS (AliExpress approximate, single unit):
+#   $ = under $5    $$ = $5-15    $$$ = $15-30    $$$$ = $30+
+
+METAL_GEAR_SERVO_DATABASE: Dict[str, ServoSpec] = {
+
+    # --- TIER 1: Ultra-budget ($2-5 on AliExpress) ---
+
+    "towerpro_mg90s": ServoSpec(
+        name="MG90S",
+        brand="TowerPro",
+        length=22.5,
+        width=12.0,
+        height=35.5,       # NOTE: tall due to metal gear stack
+        torque_4_8v=1.8,
+        torque_6_0v=2.2,
+        speed_4_8v=0.10,
+        speed_6_0v=0.08,
+        weight=13.4,
+        wire_length=250,
+        connector="JR",
+    ),
+
+    "emax_es08ma_ii": ServoSpec(
+        name="ES08MA II",
+        brand="EMAX",
+        length=23.0,
+        width=11.5,
+        height=24.0,
+        torque_4_8v=1.6,
+        torque_6_0v=2.0,
+        speed_4_8v=0.12,
+        speed_6_0v=0.10,
+        weight=12.0,
+        wire_length=250,
+        connector="JR",
+    ),
+
+    # --- TIER 2: Mid-budget digital ($6-10 on AliExpress) ---
+
+    "jx_pdi_1109mg": ServoSpec(
+        name="PDI-1109MG",
+        brand="JX",
+        length=23.2,
+        width=12.0,
+        height=25.5,
+        torque_4_8v=2.2,
+        torque_6_0v=2.5,
+        speed_4_8v=0.12,
+        speed_6_0v=0.10,
+        weight=10.0,
+        wire_length=180,
+        connector="JR",
+    ),
+
+    "jx_pdi_933mg": ServoSpec(
+        name="PDI-933MG",
+        brand="JX",
+        length=23.0,
+        width=12.0,
+        height=25.5,
+        torque_4_8v=2.8,
+        torque_6_0v=3.5,
+        speed_4_8v=0.12,
+        speed_6_0v=0.10,
+        weight=13.0,
+        wire_length=180,
+        connector="JR",
+    ),
+
+    # --- TIER 3: Glider-specific slim wing servos ($15-30) ---
+
+    "jx_pdi_hv0903mg": ServoSpec(
+        name="PDI-HV0903MG",
+        brand="JX",
+        length=23.5,
+        width=8.1,          # 8mm slim wing profile
+        height=24.3,
+        torque_4_8v=1.5,    # rated at 6V/7.4V primarily
+        torque_6_0v=2.0,
+        speed_4_8v=0.12,    # estimated; rated 0.09s at 6V
+        speed_6_0v=0.09,
+        weight=9.0,
+        wire_length=150,
+        connector="JR",
+    ),
+
+    "ptk_7308mg_d": ServoSpec(
+        name="7308MG-D",
+        brand="PTK",
+        length=23.5,
+        width=8.0,          # 8mm slim wing profile
+        height=16.8,
+        torque_4_8v=1.8,    # estimated from voltage curve
+        torque_6_0v=2.5,
+        speed_4_8v=0.14,    # estimated from voltage curve
+        speed_6_0v=0.083,
+        weight=8.0,
+        wire_length=150,
+        connector="JR",
+    ),
+
+    # --- TIER 4: Premium budget (KST alternative, $30-35) ---
+
+    "kst_x08_v6": ServoSpec(
+        name="X08 V6.0",
+        brand="KST",
+        length=23.5,
+        width=8.0,          # 8mm slim wing profile
+        height=16.8,
+        torque_4_8v=1.4,    # rated at 4.2V=1.4, 6V=2.2, 8.4V=2.8
+        torque_6_0v=2.2,
+        speed_4_8v=0.18,    # rated at 4.2V=0.18, 6V=0.15, 8.4V=0.09
+        speed_6_0v=0.15,
+        weight=8.0,
+        wire_length=150,
+        connector="JR",
     ),
 }
 

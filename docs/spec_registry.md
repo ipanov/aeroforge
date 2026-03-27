@@ -81,6 +81,17 @@ or derive from it. If there's ever a conflict, specifications.md wins.
 - `docs/specifications.md` — performance table
 - No code references yet
 
+### Bill of Materials
+- `src/core/bom.py` — BOM data model and generator
+- `docs/bom.md` — auto-generated BOM markdown (to be created)
+- `docs/specifications.md` — weight budget tables must match BOM totals
+- `CLAUDE.md` — target AUW must match BOM total mass
+- `README.md` — cost estimate must match BOM total cost
+
+### Consumables & Assembly Materials
+- `docs/bom.md` — CA glue, epoxy, Velcro, zip ties, covering film
+- Not in specs.py (not parametric), but tracked in BOM
+
 ## How to Use This Registry
 
 When changing ANY parameter:
