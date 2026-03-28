@@ -96,6 +96,15 @@ or derive from it. If there's ever a conflict, specifications.md wins.
 - `docs/bom.md` — CA glue, epoxy, Velcro, zip ties, covering film
 - Not in specs.py (not parametric), but tracked in BOM
 
+### Enforcement Hooks
+- `hooks/cad_post_execute.py` — PostToolUse: auto-screenshot + error detection
+- `hooks/cad_pre_execute.py` — PreToolUse: block scaling, oversized code
+- `hooks/cad_pre_commit.py` — PreCommit: require validation screenshots
+- `hooks/freecad_rpc_helper.py` — FreeCAD RPC connection helper
+- `.claude/settings.json` — Hook wiring configuration
+- `cad-progress.md` — Session state tracking
+- `tests/test_spar_geometry.py` — Spar dimensional assertions
+
 ## How to Use This Registry
 
 When changing ANY parameter:

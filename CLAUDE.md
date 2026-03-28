@@ -56,6 +56,32 @@ When running Python scripts from this project, always use: `cd D:/Repos/aeroforg
 - Validation reports are printed to console, not saved (the passing test is the record)
 - The `.gitignore` excludes SVG/PNG from git - they are local-only working files
 
+## MANDATORY: Enforcement Hooks (Deterministic, Cannot Skip)
+
+Three hooks enforce quality automatically:
+
+1. **PostToolUse** (`hooks/cad_post_execute.py`): After every FreeCAD execute_code:
+   - Checks output for errors → BLOCKS if found (exit 2)
+   - Takes auto-screenshot → saves to exports/validation/
+   - Prints all object dimensions
+
+2. **PreToolUse** (`hooks/cad_pre_execute.py`): Before every FreeCAD execute_code:
+   - BLOCKS .scale() operations (destroys dimensions)
+   - BLOCKS code > 500 lines (forces incremental building)
+
+3. **PreCommit** (`hooks/cad_pre_commit.py`): Before every git commit:
+   - BLOCKS .FCBak and temp_* files
+   - BLOCKS geometry commits without recent validation screenshots
+
+These hooks are DETERMINISTIC — they run automatically and cannot be overridden.
+CLAUDE.md rules are ADVISORY — they guide behavior but can be missed.
+
+### Dual Quality Gates
+
+Every component must pass BOTH gates independently:
+- **Testing gate:** Dimensional assertions via pytest + FreeCAD RPC (deterministic)
+- **Validation gate:** Visual comparison of screenshots to reference (semantic)
+
 ## MANDATORY: Specification Consistency Rule
 
 **When ANY design parameter changes, you MUST update ALL references immediately.**
