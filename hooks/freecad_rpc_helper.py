@@ -138,7 +138,7 @@ else:
     def take_validation_screenshots(
         self,
         component_name: str,
-        output_dir: str,
+        output_dir: str = "exports/validation",
     ) -> list[str]:
         """Take screenshots from 4 standard views for validation.
 
