@@ -20,6 +20,16 @@
             "command": "python hooks/cad_pre_execute.py"
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python hooks/cad_pre_commit.py",
+            "if": "Bash(git commit*)"
+          }
+        ]
       }
     ]
   }
