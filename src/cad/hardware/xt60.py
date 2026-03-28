@@ -1,37 +1,18 @@
 """XT60 Male Connector - Off-the-shelf component.
 
-The XT60 (by Amass) is a keyed, polarized power connector.
-Sold separately - user solders it onto battery leads.
-
-Physical description (from datasheets and measurement):
-- Rectangular nylon housing, keyed (one corner chamfered for polarity)
-- Two gold-plated brass pins protrude from the FRONT (mating end)
-- Two tubular solder cups at the REAR for wire attachment
-- Housing has a slight lip/flange around the mating face
-
 Coordinate system:
-- X-axis = main axis (pin direction, wire direction) - LONGEST
-- Y-axis = across the two pins (pin spacing direction)
-- Z-axis = height
 - Origin = center of mating face
-- +X = toward solder cups (rear), -X = toward pins (front/mating)
+- X-axis = longitudinal (main axis). -X = pins protrude, +X = solder cups
+- Y-axis = lateral (across the two pins)
+- Z-axis = up
 
-Connection points:
-- "mating_face": center of front face, -X direction (mates with female XT60)
-- "solder_positive": center of positive solder cup, +X direction
-- "solder_negative": center of negative solder cup, +X direction
-
-Dimensions (Amass XT60, measured/datasheet):
-- Housing: 15.8mm (X, depth) x 15.8mm (Z, height) x 8.0mm (Y, width across pins)
-  Note: housing is roughly square in the YZ cross-section
-- Pin diameter: 3.5mm
-- Pin protrusion from housing face: 6.5mm
-- Pin spacing: 8.0mm center-to-center (Y-axis)
-- Solder cup length: 7.0mm (extending from rear of housing)
-- Solder cup inner diameter: ~2.0mm (accepts up to 12AWG stripped wire)
-- Solder cup outer diameter: ~3.5mm
-- Overall length (pins to solder cup tips): 15.8 + 6.5 + 7.0 ≈ 29.3mm
-- Weight: ~5g
+Real XT60 anatomy:
+- Yellow nylon housing, roughly 16x8x16mm
+- One corner chamfered for polarity keying (positive side)
+- Two 3.5mm gold pins protrude ~6.5mm from the FRONT face (mating end)
+- Two hollow solder cups extend ~7mm from the REAR face (wire end)
+- Pins spaced ~7.5mm center-to-center
+- Total length from pin tips to solder cup ends: ~29mm
 
 Run via Claude: cd D:/Repos/aeroforge && PYTHONPATH=. python src/cad/hardware/xt60.py
 """
@@ -41,133 +22,83 @@ from ocp_vscode import show
 
 # ── Dimensions (all mm) ──────────────────────────────────────────
 
-HOUSING_DEPTH = 15.8     # X - from mating face to rear face
-HOUSING_WIDTH = 8.0      # Y - across the two pins
-HOUSING_HEIGHT = 15.8    # Z - roughly square cross-section
+HOUSING_DEPTH = 15.8     # X dimension
+HOUSING_WIDTH = 8.0      # Y dimension (across pins)
+HOUSING_HEIGHT = 15.8    # Z dimension
 
 PIN_DIAMETER = 3.5
-PIN_PROTRUSION = 6.5     # How far pins stick out from mating face (-X direction)
-PIN_SPACING = 8.0        # Center-to-center in Y
+PIN_LENGTH = 6.5         # Protrusion from front face
+PIN_SPACING_Y = 4.5      # Center-to-center in Y (pins must fit inside 8mm housing)
 
-SOLDER_CUP_LENGTH = 7.0  # Extends from rear face (+X direction)
+SOLDER_CUP_LENGTH = 7.0
 SOLDER_CUP_OD = 3.5
 SOLDER_CUP_ID = 2.0
 
-KEY_CHAMFER = 2.5        # Corner chamfer for polarity keying
+KEY_CHAMFER = 2.5
 
 # Colors
-COLOR_HOUSING = Color(0.95, 0.85, 0.0)    # Yellow nylon
-COLOR_PIN = Color(0.85, 0.72, 0.0)        # Gold-plated brass
-COLOR_SOLDER_CUP = Color(0.75, 0.65, 0.0) # Brass solder cup
+COLOR_HOUSING = Color(0.95, 0.85, 0.0)
+COLOR_PIN = Color(0.85, 0.72, 0.0)
+COLOR_SOLDER_CUP = Color(0.75, 0.65, 0.0)
 
 
 def build_xt60_housing() -> Part:
-    """XT60 housing - keyed rectangular nylon body.
-
-    Origin at center of mating face. +X = toward rear/solder cups.
-    """
+    """Keyed rectangular housing. Origin at center of mating face, body extends in +X."""
     with BuildPart() as housing:
-        # Main rectangular body, origin at center, extending in +X
         Box(HOUSING_DEPTH, HOUSING_WIDTH, HOUSING_HEIGHT,
             align=(Align.MIN, Align.CENTER, Align.CENTER))
 
-        # Keying chamfer: cut one corner to prevent reverse insertion
-        # The positive pin side (Y>0) at top (Z>0) gets the chamfer
-        with BuildPart(mode=Mode.SUBTRACT):
-            with Locations([(HOUSING_DEPTH / 2, HOUSING_WIDTH / 2, HOUSING_HEIGHT / 2)]):
-                Box(HOUSING_DEPTH + 1, KEY_CHAMFER * 2, KEY_CHAMFER * 2,
-                    align=(Align.CENTER, Align.MAX, Align.MAX))
-                # Rotate 45 degrees to create the chamfer
-        # Simpler approach: just chamfer the edge
-        try:
-            # Find the top-right edge along X and chamfer it
-            edges_to_chamfer = (
-                housing.edges()
-                .filter_by(Axis.X)
-                .filter_by(lambda e: e.center().Y > 0 and e.center().Z > 0)
-            )
-            if edges_to_chamfer:
-                chamfer(edges_to_chamfer, length=KEY_CHAMFER)
-        except Exception:
-            pass  # Chamfer may fail on some edge configurations
+        # Pin holes through the housing (for visual accuracy)
+        for y_offset in [PIN_SPACING_Y / 2, -PIN_SPACING_Y / 2]:
+            with Locations([(HOUSING_DEPTH / 2, y_offset, 0)]):
+                Cylinder(PIN_DIAMETER / 2 + 0.2, HOUSING_DEPTH,
+                         rotation=(0, 90, 0), mode=Mode.SUBTRACT)
 
-        # Slight fillet on remaining long edges for realism
-        try:
-            fillet(housing.edges().filter_by(Axis.X), radius=0.5)
-        except Exception:
-            pass
+    # Chamfer for keying (positive corner)
+    try:
+        key_edges = housing.edges().filter_by(Axis.X).group_by(Axis.Y)[-1].group_by(Axis.Z)[-1]
+        chamfer(key_edges, length=KEY_CHAMFER)
+    except Exception:
+        pass
 
     return housing.part
 
 
-def build_xt60_pins() -> tuple[Part, Part]:
-    """Two gold-plated brass pins protruding from mating face.
-
-    Pins extend in -X direction from the mating face (origin).
-    """
-    with BuildPart() as pin_pos:
-        # Positive pin (Y > 0)
-        with Locations([(0, PIN_SPACING / 2, 0)]):
-            Cylinder(radius=PIN_DIAMETER / 2, height=PIN_PROTRUSION,
-                     rotation=(0, 90, 0),  # Align along X
-                     align=(Align.CENTER, Align.CENTER, Align.MIN))
-
-    with BuildPart() as pin_neg:
-        # Negative pin (Y < 0)
-        with Locations([(0, -PIN_SPACING / 2, 0)]):
-            Cylinder(radius=PIN_DIAMETER / 2, height=PIN_PROTRUSION,
-                     rotation=(0, 90, 0),
-                     align=(Align.CENTER, Align.CENTER, Align.MIN))
-
-    # Move pins to protrude from mating face in -X direction
-    pin_pos_moved = pin_pos.part.moved(Location((-PIN_PROTRUSION, 0, 0)))
-    pin_neg_moved = pin_neg.part.moved(Location((-PIN_PROTRUSION, 0, 0)))
-
-    return pin_pos_moved, pin_neg_moved
+def _make_pin(y_pos: float) -> Part:
+    """Single pin protruding from mating face in -X direction."""
+    with BuildPart() as pin:
+        with Locations([(- PIN_LENGTH / 2, y_pos, 0)]):
+            Cylinder(PIN_DIAMETER / 2, PIN_LENGTH, rotation=(0, 90, 0))
+    return pin.part
 
 
-def build_xt60_solder_cups() -> tuple[Part, Part]:
-    """Two solder cups extending from rear face in +X direction.
-
-    These are hollow tubes where stripped wire is inserted and soldered.
-    """
-    with BuildPart() as cup_pos:
-        with Locations([(HOUSING_DEPTH, PIN_SPACING / 2, 0)]):
-            Cylinder(radius=SOLDER_CUP_OD / 2, height=SOLDER_CUP_LENGTH,
-                     rotation=(0, -90, 0),
-                     align=(Align.CENTER, Align.CENTER, Align.MIN))
-            # Hollow out the cup
-            Cylinder(radius=SOLDER_CUP_ID / 2, height=SOLDER_CUP_LENGTH + 1,
-                     rotation=(0, -90, 0),
-                     align=(Align.CENTER, Align.CENTER, Align.MIN),
-                     mode=Mode.SUBTRACT)
-
-    with BuildPart() as cup_neg:
-        with Locations([(HOUSING_DEPTH, -PIN_SPACING / 2, 0)]):
-            Cylinder(radius=SOLDER_CUP_OD / 2, height=SOLDER_CUP_LENGTH,
-                     rotation=(0, -90, 0),
-                     align=(Align.CENTER, Align.CENTER, Align.MIN))
-            Cylinder(radius=SOLDER_CUP_ID / 2, height=SOLDER_CUP_LENGTH + 1,
-                     rotation=(0, -90, 0),
-                     align=(Align.CENTER, Align.CENTER, Align.MIN),
-                     mode=Mode.SUBTRACT)
-
-    return cup_pos.part, cup_neg.part
+def _make_solder_cup(y_pos: float) -> Part:
+    """Single hollow solder cup extending from rear face in +X direction."""
+    x_center = HOUSING_DEPTH + SOLDER_CUP_LENGTH / 2
+    with BuildPart() as cup:
+        with Locations([(x_center, y_pos, 0)]):
+            Cylinder(SOLDER_CUP_OD / 2, SOLDER_CUP_LENGTH, rotation=(0, 90, 0))
+            Cylinder(SOLDER_CUP_ID / 2, SOLDER_CUP_LENGTH + 0.1,
+                     rotation=(0, 90, 0), mode=Mode.SUBTRACT)
+    return cup.part
 
 
 def build_xt60_male() -> dict[str, tuple]:
-    """Build complete XT60 male connector with all sub-parts.
+    """Complete XT60 male connector.
 
-    Returns dict of {name: (part, color)} for display and validation.
-
-    Connection points (for assembly use):
-        mating_face: (0, 0, 0) facing -X
-        solder_positive: (HOUSING_DEPTH + SOLDER_CUP_LENGTH, PIN_SPACING/2, 0) facing +X
-        solder_negative: (HOUSING_DEPTH + SOLDER_CUP_LENGTH, -PIN_SPACING/2, 0) facing +X
+    Connection points (local frame):
+        mating_face:     (0, 0, 0) normal = -X
+        pin_positive:    (-PIN_LENGTH, +PIN_SPACING_Y/2, 0)
+        pin_negative:    (-PIN_LENGTH, -PIN_SPACING_Y/2, 0)
+        solder_positive: (HOUSING_DEPTH + SOLDER_CUP_LENGTH, +PIN_SPACING_Y/2, 0)
+        solder_negative: (HOUSING_DEPTH + SOLDER_CUP_LENGTH, -PIN_SPACING_Y/2, 0)
+        rear_face:       (HOUSING_DEPTH, 0, 0)
     """
     housing = build_xt60_housing()
-    pin_pos, pin_neg = build_xt60_pins()
-    cup_pos, cup_neg = build_xt60_solder_cups()
+    pin_pos = _make_pin(PIN_SPACING_Y / 2)
+    pin_neg = _make_pin(-PIN_SPACING_Y / 2)
+    cup_pos = _make_solder_cup(PIN_SPACING_Y / 2)
+    cup_neg = _make_solder_cup(-PIN_SPACING_Y / 2)
 
     return {
         "XT60 Housing": (housing, COLOR_HOUSING),
@@ -178,17 +109,14 @@ def build_xt60_male() -> dict[str, tuple]:
     }
 
 
-# ── Connection Points (for assembly system) ──────────────────────
-
 def get_xt60_connection_points() -> dict[str, tuple[float, float, float]]:
-    """Named connection points for assembling XT60 with other components.
-
-    Returns dict of {point_name: (x, y, z)} in the connector's local frame.
-    """
+    """Named connection points for assembly."""
     return {
         "mating_face": (0, 0, 0),
-        "solder_positive": (HOUSING_DEPTH + SOLDER_CUP_LENGTH, PIN_SPACING / 2, 0),
-        "solder_negative": (HOUSING_DEPTH + SOLDER_CUP_LENGTH, -PIN_SPACING / 2, 0),
+        "pin_positive_tip": (-PIN_LENGTH, PIN_SPACING_Y / 2, 0),
+        "pin_negative_tip": (-PIN_LENGTH, -PIN_SPACING_Y / 2, 0),
+        "solder_positive": (HOUSING_DEPTH + SOLDER_CUP_LENGTH, PIN_SPACING_Y / 2, 0),
+        "solder_negative": (HOUSING_DEPTH + SOLDER_CUP_LENGTH, -PIN_SPACING_Y / 2, 0),
         "rear_face": (HOUSING_DEPTH, 0, 0),
     }
 
@@ -202,9 +130,9 @@ if __name__ == "__main__":
         colors=[c for p, c in parts.values()],
     )
 
-    print("XT60 Male Connector")
-    print(f"  Housing: {HOUSING_DEPTH}x{HOUSING_WIDTH}x{HOUSING_HEIGHT}mm")
-    print(f"  Pin protrusion: {PIN_PROTRUSION}mm")
-    print(f"  Solder cup length: {SOLDER_CUP_LENGTH}mm")
-    print(f"  Overall length: {PIN_PROTRUSION + HOUSING_DEPTH + SOLDER_CUP_LENGTH:.1f}mm")
-    print(f"  Connection points: {get_xt60_connection_points()}")
+    # Self-validation
+    for name, (part, color) in parts.items():
+        bb = part.bounding_box()
+        print(f"{name}: X=[{bb.min.X:.1f},{bb.max.X:.1f}] Y=[{bb.min.Y:.1f},{bb.max.Y:.1f}] Z=[{bb.min.Z:.1f},{bb.max.Z:.1f}]")
+
+    print(f"\nConnection points: {get_xt60_connection_points()}")
