@@ -10,22 +10,51 @@
 
 When running Python scripts from this project, always use: `cd D:/Repos/aeroforge && PYTHONPATH=. python <script>`
 
-## MANDATORY: Visual Validation Protocol
+## MANDATORY: Component/Assembly Creation Protocol
 
-**NEVER commit geometry without visual validation.** (See incident #001)
+**NEVER commit geometry without completing ALL steps.** (See incident #001)
 
-For EVERY Build123d component or assembly:
-1. **Before coding**: Search for reference images of the real component
-2. **Model as assembly**: Even a battery+connector is an assembly. Use joints/constraints,
-   NOT manual `Location()` offsets
-3. **After generating**: Run the script, capture OCP viewer output
-4. **Validate**: Check orientations, connections, spatial relationships
-5. **Compare to reference**: Does it look like the real thing?
-6. **Fix before committing**: Never commit unvalidated geometry
+### Step 1: Research (BEFORE any code)
+- Search for reference images/photos of the real component
+- Identify sub-parts (even a battery is pack + wires + connectors)
+- Note how sub-parts connect: exit points, orientations, axes
+- Note real-world colors and materials
 
-Off-the-shelf components are assemblies too: a battery has a pack body, power leads
-(red+black wires), balance lead, and connectors. Each sub-part has an orientation
-and connection point to the parent.
+### Step 2: Model as Assembly
+- Every multi-part object is an Assembly, not a monolithic Part
+- Each sub-part is a separate Component with its own local frame
+- Use joints and constraints for positioning (NOT manual `Location()` offsets)
+- Define connection points on each sub-part (wire exit face, connector mating face)
+
+### Step 3: Run Validation
+- Run `validate_geometry()` from `src/core/visual_validation.py`
+- This performs automated checks: bounding box, connections, axis alignment
+- Exports SVG orthographic views (front, top, side) to `exports/validation/`
+- Review the SVG projections - do they match the reference?
+
+### Step 4: Visual Check
+- Run the script to display in OCP viewer
+- Compare the 3D view against reference photos
+- Check: Are sub-parts connected? Are orientations correct? Does it look real?
+
+### Step 5: Fix or Approve
+- If validation fails or visual check reveals issues: fix and re-run from Step 3
+- Iterate until the geometry matches the real component
+- Only then commit
+
+### Error Handling
+- If a geometry check fails: fix the geometry, not the check
+- If visual comparison shows misalignment: trace back to which joint/constraint is wrong
+- Document any non-obvious design decisions in the component docstring
+- If unsure about real-world geometry: search for more reference images, don't guess
+
+### Validation Artifacts
+- SVG views are exported to `exports/validation/{component_name}_{view}.svg`
+- Screenshots to `exports/validation/{component_name}_screenshot.png`
+- **Keep final validation artifacts** (they serve as visual documentation)
+- **Delete intermediate/failed artifacts** once the component passes validation
+- Validation reports are printed to console, not saved (the passing test is the record)
+- The `.gitignore` excludes SVG/PNG from git - they are local-only working files
 
 ## MANDATORY: Specification Consistency Rule
 
