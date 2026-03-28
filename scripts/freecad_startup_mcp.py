@@ -79,7 +79,7 @@ def configure_and_start_mcp():
         from FreeCADMCP.rpc_server import rpc_server
 
         # Start server (it runs in its own thread internally)
-        rpc_server.start_rpc_server(host="localhost", port=port)
+        rpc_server.start_rpc_server(port=port)
         time.sleep(2)  # Give server time to start
 
         log(f"  ✓ Started RPC server on port {port}")
