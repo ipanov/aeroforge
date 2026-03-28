@@ -46,8 +46,15 @@ or derive from it. If there's ever a conflict, specifications.md wins.
 - `src/cad/wing/` — spar hole dimensions in rib generator
 - `components/` — off-shelf spar specs if defined
 
+### Motor / Propeller / Spinner
+- `docs/specifications.md` — weight budget (motor 50-60g, prop+spinner 15-20g)
+- `docs/motor_propeller_research.md` — full motor/prop/spinner research and recommendations
+- `CLAUDE.md` — quick reference (motor TBD)
+- `src/cad/hardware/` — motor mount dimensions depend on motor OD (28mm)
+
 ### Weight Budget
 - `docs/specifications.md` — full weight budget tables
+- `docs/motor_propeller_research.md` — power system weight breakdown
 - `CLAUDE.md` — target AUW
 - `components/servos/servo_database.py` — servo weights
 - `src/core/validation.py` — mass validation thresholds
