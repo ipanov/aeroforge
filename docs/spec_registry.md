@@ -108,7 +108,8 @@ or derive from it. If there's ever a conflict, specifications.md wins.
 - `hooks/cad_pre_execute.py` — PreToolUse: block scaling, oversized code
 - `hooks/cad_pre_commit.py` — PreCommit: require validation screenshots
 - `hooks/freecad_rpc_helper.py` — FreeCAD RPC connection helper
-- `.claude/settings.json` — Hook wiring configuration
+- `.claude/settings.json` — Hook wiring configuration (PostToolUse, PreToolUse)
+- `.git/hooks/pre-commit` — Git pre-commit hook wiring for cad_pre_commit.py
 - `cad-progress.md` — Session state tracking
 - `tests/test_spar_geometry.py` — Spar dimensional assertions
 
