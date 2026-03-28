@@ -7,7 +7,9 @@
       "Bash(claude mcp:*)",
       "Bash(python -c \":*)",
       "Bash(python src/cad/hardware/battery.py)",
-      "Bash(PYTHONPATH=. python src/cad/hardware/battery.py)"
+      "Bash(PYTHONPATH=. python src/cad/hardware/battery.py)",
+      "Bash(python -c \"import ocp_vscode; print\\(dir\\(ocp_vscode\\)\\)\")",
+      "Bash(python:*)"
     ]
   }
 }

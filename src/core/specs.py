@@ -258,7 +258,7 @@ class PrintSpec(BaseModel):
 
 class SailplaneSpec(BaseModel):
     """Top-level sailplane specification. THE single source of truth."""
-    name: str = "AeroForge v0.1"
+    name: str = "Iva"
     wing: WingSpec = Field(default_factory=WingSpec)
     spar: SparSpec = Field(default_factory=SparSpec)
     fuselage: FuselageSpec = Field(default_factory=FuselageSpec)

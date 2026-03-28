@@ -10,6 +10,23 @@
 
 When running Python scripts from this project, always use: `cd D:/Repos/aeroforge && PYTHONPATH=. python <script>`
 
+## MANDATORY: Visual Validation Protocol
+
+**NEVER commit geometry without visual validation.** (See incident #001)
+
+For EVERY Build123d component or assembly:
+1. **Before coding**: Search for reference images of the real component
+2. **Model as assembly**: Even a battery+connector is an assembly. Use joints/constraints,
+   NOT manual `Location()` offsets
+3. **After generating**: Run the script, capture OCP viewer output
+4. **Validate**: Check orientations, connections, spatial relationships
+5. **Compare to reference**: Does it look like the real thing?
+6. **Fix before committing**: Never commit unvalidated geometry
+
+Off-the-shelf components are assemblies too: a battery has a pack body, power leads
+(red+black wires), balance lead, and connectors. Each sub-part has an orientation
+and connection point to the parent.
+
 ## MANDATORY: Specification Consistency Rule
 
 **When ANY design parameter changes, you MUST update ALL references immediately.**
