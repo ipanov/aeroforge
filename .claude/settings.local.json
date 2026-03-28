@@ -9,7 +9,15 @@
       "Bash(python src/cad/hardware/battery.py)",
       "Bash(PYTHONPATH=. python src/cad/hardware/battery.py)",
       "Bash(python -c \"import ocp_vscode; print\\(dir\\(ocp_vscode\\)\\)\")",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "WebSearch",
+      "WebFetch(domain:cdn.sparkfun.com)",
+      "WebFetch(domain:components101.com)",
+      "WebFetch(domain:done.land)",
+      "Bash(PYTHONPATH=. python src/cad/hardware/xt60.py)",
+      "WebFetch(domain:grabcad.com)",
+      "Bash(mkdir -p components/reference_models)",
+      "Bash(curl -sL \"https://raw.githubusercontent.com/KiCad/kicad-packages3D/master/Connector_AMASS.3dshapes/AMASS_XT60-M_1x02_P7.2mm_Vertical.step\" -o components/reference_models/xt60_male_kicad.step)"
     ]
   }
 }
