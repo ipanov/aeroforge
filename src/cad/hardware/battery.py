@@ -1,27 +1,19 @@
 """3S 1300mAh Racing LiPo Battery Pack - Off-the-shelf component.
 
-Reference: Tattu 1300mAh 3S 45C (GrabCAD model + photo)
-See: components/reference_models/tattu_1300_reference.png
-
-From the reference image:
-- Black rectangular body with rounded edges (heat-shrink wrap)
-- Gold/yellow label on top face with specs text
-- XT60 connector sits directly at one end (short leads, ~20mm)
-- Power leads (red+black) exit from the TOP of one end, loop tightly
-  up to the XT60 which sits on top of the battery
-- Balance lead (white JST-XH) exits from the SIDE near the same end,
-  near the bottom edge
-- Overall very compact - connector doesn't dangle on long wires
-
-NOTE: User has soldered XT60 connectors themselves, so leads may be
-longer. But the bare pack wire exits are the same.
+Reference: components/reference_models/tattu_1300_reference.png
 
 Coordinate system:
 - Origin = center of battery body
-- X = longest dimension (78mm)
-- Y = width (38mm)
-- Z = height (28mm), label on +Z face
+- X = longest (78mm), Y = width (38mm), Z = height (28mm)
+- Label on +Z face (top)
 - Wire exit end = +X
+
+Joints:
+- "wire_exit_pos": where positive power lead exits (+X end, upper area)
+- "wire_exit_neg": where negative power lead exits (+X end, upper area)
+- "balance_exit": where balance lead exits (+X end, side)
+- "bottom": bottom face center (for battery tray mounting)
+- "top": top face center
 
 Run via Claude: cd D:/Repos/aeroforge && PYTHONPATH=. python src/cad/hardware/battery.py
 """
@@ -33,137 +25,96 @@ from src.core.specs import SAILPLANE
 
 SPEC = SAILPLANE.battery
 
-# Wire dimensions
-POWER_WIRE_OD = 3.5       # 14AWG with silicone
-POWER_WIRE_SPACING = 5.0  # between red and black centers
-POWER_LEAD_LENGTH = 25.0  # short leads to XT60 area
+POWER_WIRE_SPACING = 5.0  # mm between red/black wire centers
 
-# Colors
 COLOR_PACK = Color(0.08, 0.08, 0.08)
-COLOR_LABEL = Color(0.75, 0.65, 0.0)        # Gold label
-COLOR_WIRE_RED = Color(0.85, 0.05, 0.05)
-COLOR_WIRE_BLACK = Color(0.06, 0.06, 0.06)
-COLOR_BALANCE = Color(0.9, 0.9, 0.9)
-COLOR_JST = Color(0.92, 0.92, 0.92)
+COLOR_LABEL = Color(0.75, 0.65, 0.0)
 
 
-def build_battery_body() -> Part:
-    """Battery cell pack - rounded block with heat-shrink wrap."""
-    with BuildPart() as body:
-        Box(SPEC.length, SPEC.width, SPEC.height)
-        fillet(body.edges(), radius=1.5)
-    return body.part
+class BatteryPack(Compound):
+    """3S 1300mAh LiPo battery pack (bare, without XT60).
 
-
-def build_label() -> Part:
-    """Gold label/sticker on top face."""
-    with BuildPart() as label:
-        with Locations([(0, 0, SPEC.height / 2)]):
-            Box(SPEC.length * 0.65, SPEC.width * 0.85, 0.15,
-                align=(Align.CENTER, Align.CENTER, Align.MIN))
-    return label.part
-
-
-def _power_lead(y_offset: float) -> Part:
-    """Short power lead exiting from +X end, curving upward."""
-    x0 = SPEC.length / 2
-    z0 = SPEC.height / 2 - 5  # exits near top of +X face
-    pts = [
-        Vector(x0, y_offset, z0),
-        Vector(x0 + 8, y_offset, z0 + 8),
-        Vector(x0 + 15, y_offset, z0 + 14),
-        Vector(x0 + POWER_LEAD_LENGTH, y_offset, z0 + 16),
-    ]
-    path = Spline(*pts)
-    with BuildPart() as wire:
-        with BuildSketch(Plane(origin=pts[0], z_dir=path % 0)):
-            Circle(POWER_WIRE_OD / 2)
-        sweep(path=path)
-    return wire.part
-
-
-def build_balance_lead() -> Part:
-    """Balance ribbon exiting from side of +X end, near bottom."""
-    x0 = SPEC.length / 2
-    y0 = SPEC.width / 2  # exits from the +Y side face
-    z0 = -SPEC.height / 2 + 5  # near bottom
-    pts = [
-        Vector(x0 - 5, y0, z0),
-        Vector(x0 - 5, y0 + 8, z0 - 2),
-        Vector(x0 - 10, y0 + 15, z0 - 5),
-    ]
-    path = Spline(*pts)
-    with BuildPart() as ribbon:
-        with BuildSketch(Plane(origin=pts[0], z_dir=path % 0)):
-            Rectangle(6, 2)
-        sweep(path=path)
-    return ribbon.part
-
-
-def build_jst_connector() -> Part:
-    """JST-XH 4-pin at end of balance lead."""
-    x0 = SPEC.length / 2 - 12
-    y0 = SPEC.width / 2 + 17
-    z0 = -SPEC.height / 2
-    with BuildPart() as jst:
-        with Locations([(x0, y0, z0)]):
-            Box(10, 6, 4)
-    return jst.part
-
-
-def build_battery_pack() -> dict[str, tuple]:
-    """Complete battery pack with leads.
-
-    Connection points:
-        power_positive_end: tip of red wire (for XT60 solder joint)
-        power_negative_end: tip of black wire
-        balance_connector: JST-XH location
-        bottom_center: battery tray mounting
+    Simplified but dimensionally accurate body with joints
+    at all connection/mounting points.
     """
-    parts = {
-        "Battery Pack": (build_battery_body(), COLOR_PACK),
-        "Label": (build_label(), COLOR_LABEL),
-    }
 
-    try:
-        parts["Power Lead (+)"] = (_power_lead(POWER_WIRE_SPACING / 2), COLOR_WIRE_RED)
-        parts["Power Lead (-)"] = (_power_lead(-POWER_WIRE_SPACING / 2), COLOR_WIRE_BLACK)
-    except Exception as e:
-        print(f"  Power leads: {e}")
+    def __init__(self):
+        with BuildPart() as bp:
+            Box(SPEC.length, SPEC.width, SPEC.height)
+            fillet(bp.edges(), radius=1.5)
 
-    try:
-        parts["Balance Lead"] = (build_balance_lead(), COLOR_BALANCE)
-        parts["JST-XH"] = (build_jst_connector(), COLOR_JST)
-    except Exception as e:
-        print(f"  Balance: {e}")
+            # Label area on top (thin raised patch)
+            with Locations([(0, 0, SPEC.height / 2)]):
+                Box(SPEC.length * 0.65, SPEC.width * 0.85, 0.15,
+                    align=(Align.CENTER, Align.CENTER, Align.MIN))
 
-    return parts
+            # === JOINTS ===
+
+            # Power lead exits: top area of +X face
+            # Wires exit pointing in +X direction
+            RigidJoint("wire_exit_pos",
+                       joint_location=Location(
+                           (SPEC.length / 2, POWER_WIRE_SPACING / 2, SPEC.height / 2 - 5)))
+            RigidJoint("wire_exit_neg",
+                       joint_location=Location(
+                           (SPEC.length / 2, -POWER_WIRE_SPACING / 2, SPEC.height / 2 - 5)))
+
+            # Balance lead exit: side of +X end, near bottom
+            RigidJoint("balance_exit",
+                       joint_location=Location(
+                           (SPEC.length / 2 - 5, SPEC.width / 2, -SPEC.height / 2 + 5),
+                           (0, 0, 90)))  # points in +Y direction
+
+            # Mounting points
+            RigidJoint("bottom",
+                       joint_location=Location((0, 0, -SPEC.height / 2)))
+            RigidJoint("top",
+                       joint_location=Location((0, 0, SPEC.height / 2)))
+
+        super().__init__(bp.part.wrapped, label="battery_3s_1300", joints=bp.joints)
+        self.color = COLOR_PACK
 
 
-def get_battery_connection_points() -> dict[str, tuple[float, float, float]]:
-    """Connection points for assembly."""
-    x_end = SPEC.length / 2 + POWER_LEAD_LENGTH
-    z_top = SPEC.height / 2 + 11  # where wire tips end up (above battery)
-    return {
-        "power_positive_end": (x_end, POWER_WIRE_SPACING / 2, z_top),
-        "power_negative_end": (x_end, -POWER_WIRE_SPACING / 2, z_top),
-        "balance_connector": (SPEC.length / 2 - 12, SPEC.width / 2 + 17, -SPEC.height / 2),
-        "bottom_center": (0, 0, -SPEC.height / 2),
-    }
+class BatteryWithXT60(Compound):
+    """Complete battery assembly: pack + XT60 connector.
+
+    The XT60 is connected to the battery's wire exit points.
+    In reality there are short power leads between them, but
+    for bay sizing the connector position relative to the pack
+    is what matters.
+    """
+
+    def __init__(self):
+        from src.cad.hardware.xt60 import XT60Male
+
+        battery = BatteryPack()
+        xt60 = XT60Male()
+
+        # Connect XT60 solder_positive to battery wire_exit_pos
+        # This positions the XT60 at the wire exit end of the battery
+        battery.joints["wire_exit_pos"].connect_to(xt60.joints["solder_positive"])
+
+        super().__init__(label="battery_with_xt60", children=[battery, xt60])
+
+        # Expose battery joints for further assembly (e.g., into fuselage)
+        RigidJoint("bottom", to_part=self,
+                   joint_location=Location((0, 0, -SPEC.height / 2)))
+        RigidJoint("top", to_part=self,
+                   joint_location=Location((0, 0, SPEC.height / 2)))
 
 
 if __name__ == "__main__":
-    parts = build_battery_pack()
+    # Show bare battery pack
+    battery = BatteryPack()
+    print(f"Battery Pack:")
+    print(f"  Size: {SPEC.length}x{SPEC.width}x{SPEC.height}mm")
+    print(f"  Joints: {list(battery.joints.keys())}")
 
-    show(
-        *[p for p, c in parts.values()],
-        names=list(parts.keys()),
-        colors=[c for p, c in parts.values()],
-    )
+    # Show battery + XT60 assembly
+    assembly = BatteryWithXT60()
+    bb = assembly.bounding_box()
+    print(f"\nBattery + XT60 Assembly:")
+    print(f"  Bounding box: {bb.max.X-bb.min.X:.1f} x {bb.max.Y-bb.min.Y:.1f} x {bb.max.Z-bb.min.Z:.1f}mm")
+    print(f"  Joints: {list(assembly.joints.keys())}")
 
-    for name, (part, color) in parts.items():
-        bb = part.bounding_box()
-        print(f"{name}: {bb.max.X-bb.min.X:.1f} x {bb.max.Y-bb.min.Y:.1f} x {bb.max.Z-bb.min.Z:.1f}mm")
-
-    print(f"\nConnection points: {get_battery_connection_points()}")
-    print(f"Weight: {SPEC.weight}g ({SPEC.weight_with_connector}g with XT60)")
+    show(assembly, names=["Battery + XT60 Assembly"])

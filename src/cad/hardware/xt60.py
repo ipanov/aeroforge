@@ -1,20 +1,18 @@
 """XT60 Male Connector - Off-the-shelf component.
 
-Uses the KiCad/Amass reference STEP model for accurate geometry.
-The model is imported from components/reference_models/xt60_male_kicad.step.
+Uses KiCad/Amass reference STEP model for accurate geometry.
+Defines joints at connection points for constraint-based assembly.
 
-Reference model dimensions (from KiCad Amass library):
-  15.9 x 8.1 x 20.5mm (X x Y x Z in KiCad orientation)
+Coordinate system (after import and centering):
+- Origin at center of mating face
+- X = longitudinal (pin direction)
+- +X = toward rear (solder cups / wire attachment)
+- -X = toward front (pins protrude)
 
-We re-orient to our standard coordinate system:
-  X = longitudinal (pin direction, the direction wires come out)
-  Y = lateral
-  Z = up
-
-Connection points:
-  solder_positive: rear face, positive solder cup entry
-  solder_negative: rear face, negative solder cup entry
-  mating_face: front face center
+Joints:
+- "mating_face": front face center, for mating with female XT60
+- "solder_positive": positive solder cup entry, for red wire connection
+- "solder_negative": negative solder cup entry, for black wire connection
 
 Run via Claude: cd D:/Repos/aeroforge && PYTHONPATH=. python src/cad/hardware/xt60.py
 """
@@ -26,54 +24,56 @@ from ocp_vscode import show
 
 REFERENCE_STEP = Path(__file__).parent.parent.parent.parent / "components" / "reference_models" / "xt60_male_kicad.step"
 
-# Pin spacing from KiCad model (7.2mm per the filename)
-PIN_SPACING_Y = 7.2  # mm center-to-center
+PIN_SPACING_Y = 7.2  # mm center-to-center (from KiCad filename)
 
-# Color
-COLOR_XT60 = Color(0.95, 0.85, 0.0)  # Yellow
+COLOR_XT60 = Color(0.95, 0.85, 0.0)
 
 
-def build_xt60_male() -> Part:
-    """Import the accurate XT60 male STEP model.
+class XT60Male(Compound):
+    """XT60 male connector with joints for assembly.
 
-    Returns the geometry centered and oriented in our coordinate system.
+    Imported from KiCad Amass reference STEP model.
     """
-    ref = import_step(str(REFERENCE_STEP))
 
-    # Center it so origin is at the mating face center
-    bb = ref.bounding_box()
-    center_y = (bb.min.Y + bb.max.Y) / 2
-    center_z = (bb.min.Z + bb.max.Z) / 2
+    def __init__(self):
+        ref = import_step(str(REFERENCE_STEP))
 
-    # Move so mating face (min X, where pins are) is at origin
-    centered = ref.moved(Location((-bb.min.X, -center_y, -center_z)))
+        # Center: origin at mating face center
+        bb = ref.bounding_box()
+        center_y = (bb.min.Y + bb.max.Y) / 2
+        center_z = (bb.min.Z + bb.max.Z) / 2
+        depth = bb.max.X - bb.min.X  # ~15.9mm
 
-    return centered
+        centered = ref.moved(Location((-bb.min.X, -center_y, -center_z)))
 
+        # Initialize Compound with geometry
+        super().__init__(centered.wrapped, label="XT60_male")
+        self.color = COLOR_XT60
 
-def get_xt60_connection_points() -> dict[str, tuple[float, float, float]]:
-    """Named connection points for assembly.
+        # Define joints
+        # Mating face: front, pins protrude in -X
+        RigidJoint("mating_face", to_part=self,
+                   joint_location=Location((0, 0, 0)))
 
-    Based on reference model dimensions.
-    """
-    ref = import_step(str(REFERENCE_STEP))
-    bb = ref.bounding_box()
-    depth = bb.max.X - bb.min.X  # ~15.9mm
+        # Solder cups: rear face, where wires attach
+        # Wire comes in along -X direction (into the cup)
+        RigidJoint("solder_positive", to_part=self,
+                   joint_location=Location((depth, PIN_SPACING_Y / 2, 0), (0, 180, 0)))
 
-    return {
-        "mating_face": (0, 0, 0),
-        "solder_positive": (depth, PIN_SPACING_Y / 2, 0),
-        "solder_negative": (depth, -PIN_SPACING_Y / 2, 0),
-        "rear_face": (depth, 0, 0),
-    }
+        RigidJoint("solder_negative", to_part=self,
+                   joint_location=Location((depth, -PIN_SPACING_Y / 2, 0), (0, 180, 0)))
+
+        # Rear face center (for general attachment)
+        RigidJoint("rear_face", to_part=self,
+                   joint_location=Location((depth, 0, 0)))
 
 
 if __name__ == "__main__":
-    xt60 = build_xt60_male()
+    xt60 = XT60Male()
 
     bb = xt60.bounding_box()
-    show(xt60, names=["XT60 Male (Amass reference)"], colors=[COLOR_XT60])
+    show(xt60, names=["XT60 Male"])
 
-    print(f"XT60 Male Connector (from KiCad Amass STEP)")
+    print(f"XT60 Male Connector")
     print(f"  Size: {bb.max.X-bb.min.X:.1f} x {bb.max.Y-bb.min.Y:.1f} x {bb.max.Z-bb.min.Z:.1f}mm")
-    print(f"  Connection points: {get_xt60_connection_points()}")
+    print(f"  Joints: {list(xt60.joints.keys())}")

@@ -21,7 +21,9 @@
       "Read(//c/Users/ilija/Downloads/**)",
       "Bash(ls -lt /c/Users/ilija/Downloads/*.zip)",
       "Read(//c/Users/ilija//**)",
-      "Read(//d//**)"
+      "Read(//d//**)",
+      "Bash(PYTHONPATH=. python src/cad/hardware/servo.py)",
+      "Bash(pytest tests/ -q)"
     ]
   }
 }

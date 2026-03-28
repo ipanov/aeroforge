@@ -1,80 +1,128 @@
-"""Micro Servo Models - Build123d.
+"""Micro Servo Models - Build123d Compound with joints.
 
-JX PDI-1109MG (ailerons, elevator, rudder) and JX PDI-933MG (flaps).
-Accurate external dimensions for bay/pocket design and collision checking.
+JX PDI-1109MG (ailerons, elevator, rudder) - 10g
+JX PDI-933MG (flaps) - 13g
 
-Run via Claude: PYTHONPATH=. python src/cad/hardware/servo.py
+Coordinate system:
+- Origin = center of servo body
+- X = length (23mm), Y = width (12mm), Z = height (25.5mm)
+- Output shaft on +Z top, offset toward +X
+- Mounting tabs at ~60% height
+
+Joints:
+- "bottom": bottom face center (for mounting in pocket)
+- "shaft": output shaft top (for horn/arm attachment)
+- "mount_left", "mount_right": screw hole centers on mounting tabs
+
+Run via Claude: cd D:/Repos/aeroforge && PYTHONPATH=. python src/cad/hardware/servo.py
 """
 
 from build123d import *
-from ocp_vscode import show, Color
+from ocp_vscode import show
 
-# Realistic component colors
-COLOR_SERVO_BODY = Color(0.15, 0.18, 0.35)   # Dark blue (JX servo color)
-COLOR_SERVO_SHAFT = Color(0.7, 0.7, 0.7)     # Silver aluminum
-COLOR_RECEIVER = Color(0.1, 0.1, 0.1)         # Black
-
-
-def build_servo(
-    length: float = 23.2,
-    width: float = 12.0,
-    height: float = 25.5,
-    tab_thickness: float = 1.5,
-    tab_width: float = 5.0,
-    shaft_diameter: float = 5.0,
-    shaft_height: float = 4.0,
-) -> Part:
-    """Build a generic micro servo model."""
-    with BuildPart() as servo:
-        # Main body
-        Box(length, width, height)
-
-        # Mounting tabs
-        tab_z = height * 0.3
-        with Locations([(0, 0, tab_z)]):
-            Box(length + tab_width * 2, width, tab_thickness,
-                align=(Align.CENTER, Align.CENTER, Align.CENTER))
-
-        # Mounting screw holes in tabs
-        with Locations([
-            (length / 2 + tab_width / 2, 0, tab_z),
-            (-length / 2 - tab_width / 2, 0, tab_z),
-        ]):
-            Hole(radius=1.0, depth=tab_thickness)
-
-        # Output shaft on top
-        with Locations([(length / 4, 0, height / 2)]):
-            Cylinder(radius=shaft_diameter / 2, height=shaft_height,
-                     align=(Align.CENTER, Align.CENTER, Align.MIN))
-
-    return servo.part
+COLOR_SERVO = Color(0.12, 0.15, 0.30)   # Dark blue JX servo
+COLOR_SHAFT = Color(0.75, 0.75, 0.75)   # Silver output shaft
+COLOR_RX = Color(0.1, 0.1, 0.1)         # Black receiver
 
 
-def build_jx_1109mg() -> Part:
-    """JX PDI-1109MG - 10g, 2.5 kg-cm, metal gear (ailerons/elevator/rudder)."""
-    return build_servo(length=23.2, width=12.0, height=25.5)
+class MicroServo(Compound):
+    """Generic micro servo with mounting tabs and output shaft."""
+
+    def __init__(self, length=23.2, width=12.0, height=25.5,
+                 tab_thickness=1.5, tab_extension=5.0,
+                 shaft_diameter=5.0, shaft_height=4.0,
+                 label_name="servo"):
+
+        with BuildPart() as bp:
+            # Main body
+            Box(length, width, height)
+
+            # Mounting tabs (flanges)
+            tab_z = height * 0.3 - height / 2  # 60% from bottom, in local coords
+            with Locations([(0, 0, tab_z)]):
+                Box(length + tab_extension * 2, width, tab_thickness)
+
+            # Mounting screw holes
+            for x_sign in [1, -1]:
+                with Locations([(x_sign * (length / 2 + tab_extension / 2), 0, tab_z)]):
+                    Hole(radius=1.0, depth=tab_thickness + 0.1)
+
+            # Output shaft cylinder on top
+            shaft_x = length / 4  # offset toward +X like real servos
+            with Locations([(shaft_x, 0, height / 2)]):
+                Cylinder(shaft_diameter / 2, shaft_height,
+                         align=(Align.CENTER, Align.CENTER, Align.MIN))
+
+            # === JOINTS ===
+
+            # Bottom face - for mounting into servo pocket
+            RigidJoint("bottom",
+                       joint_location=Location((0, 0, -height / 2)))
+
+            # Shaft top - for control horn attachment
+            RigidJoint("shaft",
+                       joint_location=Location((shaft_x, 0, height / 2 + shaft_height)))
+
+            # Mounting screw holes
+            RigidJoint("mount_left",
+                       joint_location=Location(
+                           (-length / 2 - tab_extension / 2, 0, tab_z)))
+            RigidJoint("mount_right",
+                       joint_location=Location(
+                           (length / 2 + tab_extension / 2, 0, tab_z)))
+
+        super().__init__(bp.part.wrapped, label=label_name, joints=bp.joints)
+        self.color = COLOR_SERVO
 
 
-def build_jx_933mg() -> Part:
-    """JX PDI-933MG - 13g, 3.5 kg-cm, metal gear high torque (flaps)."""
-    return build_servo(length=23.0, width=12.0, height=25.5)
+class JX_PDI_1109MG(MicroServo):
+    """JX PDI-1109MG: 10g, 2.5 kg-cm, for ailerons/elevator/rudder."""
+    def __init__(self):
+        super().__init__(length=23.2, width=12.0, height=25.5,
+                         label_name="JX_PDI_1109MG")
 
 
-def build_turnigy_9x_receiver() -> Part:
+class JX_PDI_933MG(MicroServo):
+    """JX PDI-933MG: 13g, 3.5 kg-cm, for flaps (high torque)."""
+    def __init__(self):
+        super().__init__(length=23.0, width=12.0, height=25.5,
+                         label_name="JX_PDI_933MG")
+
+
+class Turnigy9XReceiver(Compound):
     """Turnigy 9X V2 8ch Receiver - 18g, 52x35x15mm."""
-    with BuildPart() as rx:
-        Box(52, 35, 15)
-        fillet(rx.edges().filter_by(Axis.Z), radius=2.0)
-    return rx.part
+
+    def __init__(self):
+        with BuildPart() as bp:
+            Box(52, 35, 15)
+            fillet(bp.edges().filter_by(Axis.Z), radius=2.0)
+
+            RigidJoint("bottom", joint_location=Location((0, 0, -7.5)))
+            RigidJoint("top", joint_location=Location((0, 0, 7.5)))
+
+        super().__init__(bp.part.wrapped, label="Turnigy_9X_Rx", joints=bp.joints)
+        self.color = COLOR_RX
 
 
 if __name__ == "__main__":
-    servo_1109 = build_jx_1109mg()
-    servo_933 = build_jx_933mg().moved(Location((40, 0, 0)))
-    receiver = build_turnigy_9x_receiver().moved(Location((85, 0, 0)))
+    servo_a = JX_PDI_1109MG()
+    servo_f = JX_PDI_933MG()
+    rx = Turnigy9XReceiver()
+
+    # Place side by side for viewing
+    servo_f_pos = JX_PDI_933MG()
+    servo_a.joints["bottom"].connect_to(servo_f_pos.joints["bottom"])
+    # That would stack them - instead just show separately
+    servo_f_show = JX_PDI_933MG()
+    rx_show = Turnigy9XReceiver()
 
     show(
-        servo_1109, servo_933, receiver,
+        servo_a,
+        servo_f_show.moved(Location((40, 0, 0))),
+        rx_show.moved(Location((85, 0, 0))),
         names=["JX 1109MG (10g)", "JX 933MG (13g)", "Turnigy 9X Rx (18g)"],
-        colors=[COLOR_SERVO_BODY, COLOR_SERVO_BODY, COLOR_RECEIVER],
     )
+
+    print(f"JX 1109MG joints: {list(servo_a.joints.keys())}")
+    print(f"JX 933MG joints: {list(servo_f_show.joints.keys())}")
+    print(f"Receiver joints: {list(rx_show.joints.keys())}")
