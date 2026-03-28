@@ -29,6 +29,7 @@ or derive from it. If there's ever a conflict, specifications.md wins.
 
 ### Airfoil Selection
 - `docs/specifications.md` — airfoil table with stations
+- `docs/aerodynamics_research.md` — AG series analysis, Re-based recommendations (Section 2)
 - `CLAUDE.md` — quick reference
 - `src/cad/airfoils/__init__.py` — AIRFOIL_DATABASE, generator functions
 - `tests/test_airfoils.py` — test data
@@ -57,11 +58,13 @@ or derive from it. If there's ever a conflict, specifications.md wins.
 
 ### Material Properties
 - `docs/specifications.md` — material table
+- `docs/aerodynamics_research.md` — LW-PLA foaming parameters, wall thicknesses (Section 10)
 - `src/core/component.py` — MATERIAL_DENSITY dict, Material enum
 - `src/core/validation.py` — if material-specific validation exists
 
 ### Flight Modes / Control
 - `docs/specifications.md` — flight mode table, channel assignments
+- `docs/aerodynamics_research.md` — flap configurations and deflection angles (Section 6)
 - `src/text2cad/` — if flight mode definitions exist in code
 
 ### Print Bed Size
@@ -75,6 +78,7 @@ or derive from it. If there's ever a conflict, specifications.md wins.
 
 ### Empennage Dimensions
 - `docs/specifications.md` — empennage section
+- `docs/aerodynamics_research.md` — tail volume coefficients, tail config comparison (Section 9)
 - `src/cad/tail/__init__.py` — TailSectionSpec defaults
 
 ### Performance Targets

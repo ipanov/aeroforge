@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "freecad": {
+      "command": "uvx",
+      "args": [
+        "--python", "3.12",
+        "freecad-mcp"
+      ]
+    }
+  },
+  "_comment": "FreeCAD MCP server connects to FreeCAD GUI via XML-RPC on port 9875",
+  "_comment2": "Launch FreeCAD first, enable MCP Addon workbench, click 'Start RPC Server'",
+  "_comment3": "OCP viewer for Build123d is configured separately in VS Code extension settings"
+}

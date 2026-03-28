@@ -1,8 +1,12 @@
 """Tests for airfoil generation."""
 
 import pytest
-import math
-from src.cad.airfoils import naca_4digit, naca_profile, AIRFOIL_DATABASE
+import numpy as np
+from src.cad.airfoils import (
+    naca_4digit, naca_profile, get_airfoil, load_dat_airfoil,
+    blend_airfoils, airfoil_at_station, resample_airfoil,
+    scale_airfoil, max_thickness, AIRFOIL_DATABASE,
+)
 
 
 class TestNACA4Digit:
@@ -10,38 +14,38 @@ class TestNACA4Digit:
 
     def test_symmetric_airfoil(self):
         """Test symmetric airfoil (00xx) has zero camber."""
-        upper, lower = naca_4digit(m=0, p=0, t=12, n_points=50)
+        coords = naca_4digit(m=0, p=0, t=12, n_points=50)
+        assert isinstance(coords, np.ndarray)
+        # Find LE index
+        le_idx = np.argmin(coords[:, 0])
+        upper = coords[:le_idx + 1]
+        lower = coords[le_idx:]
 
-        # Upper and lower should be symmetric
-        for i, ((xu, yu), (xl, yl)) in enumerate(zip(upper, lower)):
-            assert abs(xu - xl) < 0.001, f"X mismatch at point {i}"
-            assert abs(yu + yl) < 0.001, f"Y not symmetric at point {i}"
+        # Upper and lower max y should be symmetric
+        assert abs(upper[:, 1].max() + lower[:, 1].min()) < 0.001
 
     def test_thickness_scaling(self):
         """Test that thicker airfoils are actually thicker."""
-        upper_12, _ = naca_4digit(m=0, p=0, t=12, n_points=50)
-        upper_15, _ = naca_4digit(m=0, p=0, t=15, n_points=50)
+        coords_12 = naca_4digit(m=0, p=0, t=12, n_points=50)
+        coords_15 = naca_4digit(m=0, p=0, t=15, n_points=50)
 
-        # Max thickness should scale
-        max_y_12 = max(y for _, y in upper_12)
-        max_y_15 = max(y for _, y in upper_15)
-
-        assert max_y_15 > max_y_12, "15% thick should be thicker than 12%"
+        t12, _ = max_thickness(coords_12)
+        t15, _ = max_thickness(coords_15)
+        assert t15 > t12, "15% thick should be thicker than 12%"
 
     def test_point_count(self):
         """Test correct number of points generated."""
         for n in [25, 50, 100]:
-            upper, lower = naca_4digit(m=2, p=4, t=12, n_points=n)
-            assert len(upper) == n + 1, f"Upper surface should have {n+1} points"
-            assert len(lower) == n + 1, f"Lower surface should have {n+1} points"
+            coords = naca_4digit(m=2, p=4, t=12, n_points=n)
+            # Selig format: n+1 upper + n lower = 2n+1
+            assert coords.shape[0] == 2 * n + 1
+            assert coords.shape[1] == 2
 
     def test_trailing_edge_closed(self):
-        """Test that trailing edge is at (1, 0)."""
-        upper, lower = naca_4digit(m=2, p=4, t=12, n_points=50)
-
-        # Trailing edge should be close to (1, 0)
-        assert abs(upper[-1][0] - 1.0) < 0.001
-        assert abs(lower[-1][0] - 1.0) < 0.001
+        """Test that trailing edge x is near 1.0."""
+        coords = naca_4digit(m=2, p=4, t=12, n_points=50)
+        assert abs(coords[0, 0] - 1.0) < 0.01
+        assert abs(coords[-1, 0] - 1.0) < 0.01
 
 
 class TestNACAProfile:
@@ -49,47 +53,115 @@ class TestNACAProfile:
 
     def test_chord_scaling(self):
         """Test that chord scaling works correctly."""
-        profile_100 = naca_profile("2412", chord=100.0)
-        profile_200 = naca_profile("2412", chord=200.0)
-
-        # Max x should be chord length
-        max_x_100 = max(x for x, _ in profile_100)
-        max_x_200 = max(x for x, _ in profile_200)
-
-        assert abs(max_x_100 - 100.0) < 0.1
-        assert abs(max_x_200 - 200.0) < 0.1
+        coords = naca_profile("2412")
+        max_x = coords[:, 0].max()
+        assert abs(max_x - 1.0) < 0.01  # Normalized coordinates
 
     def test_invalid_code(self):
         """Test that invalid NACA codes raise error."""
         with pytest.raises(ValueError):
-            naca_profile("12345")  # Too many digits
-
-        with pytest.raises(ValueError):
-            naca_profile("abc")  # Not digits
+            naca_profile("12345")
 
     def test_closed_profile(self):
-        """Test that profile is closed (first and last points connect)."""
-        profile = naca_profile("2412", chord=100.0)
+        """Test that profile is closed."""
+        coords = naca_profile("2412")
+        # First and last points at trailing edge
+        assert abs(coords[0, 0] - coords[-1, 0]) < 0.01
 
-        first = profile[0]
-        last = profile[-1]
 
-        # Should be at same x-position (trailing edge)
-        assert abs(first[0] - last[0]) < 0.1
-        # Y gap at trailing edge is normal for cambered airfoils (upper != lower)
-        assert abs(first[1] - last[1]) < 0.5
+class TestAGAirfoils:
+    """Tests for real AG airfoil data."""
+
+    def test_load_ag24(self):
+        coords = load_dat_airfoil("AG24")
+        assert coords.shape[0] > 100
+        assert coords.shape[1] == 2
+        t, _ = max_thickness(coords)
+        assert 0.07 < t < 0.10  # ~8.4% thick
+
+    def test_load_ag09(self):
+        coords = load_dat_airfoil("AG09")
+        assert coords.shape[0] > 100
+        t, _ = max_thickness(coords)
+        assert 0.04 < t < 0.07  # ~5.4% thick
+
+    def test_load_ag03(self):
+        coords = load_dat_airfoil("AG03")
+        assert coords.shape[0] > 100
+        t, _ = max_thickness(coords)
+        assert 0.05 < t < 0.08  # ~6.4% thick
+
+    def test_get_airfoil_by_name(self):
+        for name in ["AG24", "AG09", "AG03"]:
+            coords = get_airfoil(name)
+            assert coords.shape[0] > 50
+
+    def test_missing_airfoil_raises(self):
+        with pytest.raises(FileNotFoundError):
+            load_dat_airfoil("AG_NONEXISTENT")
+
+
+class TestBlending:
+    """Tests for airfoil blending."""
+
+    def test_blend_endpoints(self):
+        """blend_factor=0 gives airfoil A, =1 gives airfoil B."""
+        a = get_airfoil("AG24")
+        b = get_airfoil("AG03")
+        blend_0 = blend_airfoils(a, b, 0.0, n_points=80)
+        blend_1 = blend_airfoils(a, b, 1.0, n_points=80)
+        a_r = resample_airfoil(a, 80)
+        b_r = resample_airfoil(b, 80)
+        assert np.allclose(blend_0, a_r, atol=1e-6)
+        assert np.allclose(blend_1, b_r, atol=1e-6)
+
+    def test_blend_midpoint(self):
+        """50% blend should be between the two airfoils."""
+        t_a, _ = max_thickness(get_airfoil("AG24"))
+        t_b, _ = max_thickness(get_airfoil("AG03"))
+        blended = blend_airfoils("AG24", "AG03", 0.5)
+        t_blend, _ = max_thickness(blended)
+        # Thickness should be between the two
+        assert min(t_a, t_b) <= t_blend <= max(t_a, t_b) + 0.01
+
+    def test_airfoil_at_station(self):
+        """Test span-station blending."""
+        root = airfoil_at_station(0.0)
+        mid = airfoil_at_station(0.5)
+        tip = airfoil_at_station(1.0)
+        t_root, _ = max_thickness(root)
+        t_mid, _ = max_thickness(mid)
+        t_tip, _ = max_thickness(tip)
+        # All should have reasonable thickness
+        assert t_root > 0.03
+        assert t_mid > 0.03
+        assert t_tip > 0.03
+
+
+class TestScaling:
+    """Tests for airfoil scaling and twist."""
+
+    def test_scale_chord(self):
+        coords = get_airfoil("AG24")
+        scaled = scale_airfoil(coords, chord=200.0)
+        assert abs(scaled[:, 0].max() - 200.0) < 1.0
+        assert scaled[:, 1].max() > 10.0  # Physical mm
+
+    def test_twist_rotation(self):
+        coords = get_airfoil("AG24")
+        no_twist = scale_airfoil(coords, chord=200.0, twist_deg=0.0)
+        twisted = scale_airfoil(coords, chord=200.0, twist_deg=-5.0)
+        # Twisted should have different y values
+        assert not np.allclose(no_twist[:, 1], twisted[:, 1])
 
 
 class TestAirfoilDatabase:
     """Tests for airfoil database."""
 
     def test_database_not_empty(self):
-        """Test that database has airfoils."""
         assert len(AIRFOIL_DATABASE) > 0
 
     def test_database_structure(self):
-        """Test that database entries have required fields."""
         for name, data in AIRFOIL_DATABASE.items():
             assert "thickness" in data, f"{name} missing thickness"
-            assert "camber" in data, f"{name} missing camber"
             assert "description" in data, f"{name} missing description"

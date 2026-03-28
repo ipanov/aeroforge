@@ -42,9 +42,13 @@ class WingSpec(BaseModel):
     root_chord: float = 210.0          # mm
     tip_chord: float = 115.0           # mm
     panels_per_half: int = 5           # 5 panels per half = 10 total (256mm each, exact bed fit)
-    sweep_angle: float = 0.0           # degrees (TBD, AI-optimized)
-    dihedral_angle: float = 0.0        # degrees (TBD, AI-optimized)
-    washout_tip: float = 0.0           # degrees (TBD, AI-optimized, negative = nose down)
+    sweep_angle: float = 1.5            # degrees at quarter chord (slight aft for CG)
+    washout_tip: float = -3.5          # degrees total at tip (negative = nose down)
+    washout_exponent: float = 2.5      # Non-linear distribution (concentrated outboard)
+
+    # Polyhedral dihedral at each panel boundary (root to tip)
+    # Panels 1-2: gentle, Panels 3-4: moderate, Panel 5: steep (winglet effect)
+    dihedral_per_panel: list[float] = [0.0, 1.5, 2.0, 3.0, 4.0, 6.0]
 
     # Airfoil blend stations
     airfoil_root: str = "AG24"
@@ -95,6 +99,19 @@ class WingSpec(BaseModel):
         """Chord at any span fraction (0=root, 1=tip). Linear taper."""
         return self.root_chord + (self.tip_chord - self.root_chord) * span_fraction
 
+    def washout_at(self, span_fraction: float) -> float:
+        """Washout angle at any span fraction. Negative = nose down (standard).
+
+        Uses non-linear distribution concentrated in outer span.
+        """
+        return self.washout_tip * span_fraction ** self.washout_exponent
+
+    def dihedral_at_panel(self, panel_index: int) -> float:
+        """Dihedral angle at the outboard edge of a panel (0-based from root)."""
+        if panel_index < 0 or panel_index >= len(self.dihedral_per_panel):
+            return self.dihedral_per_panel[-1]
+        return self.dihedral_per_panel[panel_index]
+
     def reynolds_at(self, span_fraction: float, velocity: float = 8.0) -> float:
         """Reynolds number at a span station. Default cruise velocity 8 m/s."""
         chord_m = self.chord_at(span_fraction) / 1000  # mm to m
@@ -142,13 +159,13 @@ class EmpennageSpec(BaseModel):
     """Tail surfaces specification."""
     config: str = "conventional"       # conventional, v_tail, t_tail
 
-    h_stab_span: float = 400.0        # mm
-    h_stab_chord: float = 80.0        # mm
+    h_stab_span: float = 450.0        # mm (sized for VH ≈ 0.40)
+    h_stab_chord: float = 95.0        # mm
     h_stab_airfoil: str = "NACA0009"
     elevator_chord_ratio: float = 0.33 # elevator as fraction of chord
 
-    v_stab_height: float = 120.0       # mm
-    v_stab_root_chord: float = 100.0   # mm
+    v_stab_height: float = 140.0       # mm (sized for VV ≈ 0.007)
+    v_stab_root_chord: float = 110.0   # mm
     v_stab_tip_chord: float = 60.0     # mm
     v_stab_airfoil: str = "NACA0009"
     rudder_chord_ratio: float = 0.35
@@ -225,7 +242,7 @@ class ControlSpec(BaseModel):
 
     aileron_chord_ratio: float = 0.22  # aileron as fraction of wing chord
     aileron_span_start: float = 0.55   # fraction of half-span where aileron starts
-    flap_chord_ratio: float = 0.27     # flap as fraction of wing chord
+    flap_chord_ratio: float = 0.28     # flap as fraction of wing chord (competition standard)
     flap_span_end: float = 0.55        # fraction of half-span where flap ends
 
     flight_modes: list[FlightMode] = Field(default_factory=lambda: [
