@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "mcp__freecad__execute_code",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python hooks/cad_post_execute.py"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "mcp__freecad__execute_code",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python hooks/cad_pre_execute.py"
+          }
+        ]
+      }
+    ]
+  }
+}
