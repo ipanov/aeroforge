@@ -96,18 +96,18 @@ print("SCREENSHOT_OK")
         Returns:
             Dict with keys 'X', 'Y', 'Z' (dimensions) and 'VOL' (volume).
         """
-        code = f"""
-import FreeCAD
-obj = FreeCAD.ActiveDocument.getObject("{object_name}")
-if obj is None:
-    raise ValueError("Object '{object_name}' not found")
-bb = obj.Shape.BoundBox
-print(f"BB_X:{{bb.XLength:.6f}}")
-print(f"BB_Y:{{bb.YLength:.6f}}")
-print(f"BB_Z:{{bb.ZLength:.6f}}")
-vol = bb.XLength * bb.YLength * bb.ZLength
-print(f"BB_VOL:{{vol:.6f}}")
-"""
+        code = (
+            'import FreeCAD\n'
+            'obj = FreeCAD.ActiveDocument.getObject("' + object_name + '")\n'
+            'if obj is None:\n'
+            '    print("BB_ERROR: not found")\n'
+            'else:\n'
+            '    bb = obj.Shape.BoundBox\n'
+            '    print("BB_X:" + str(bb.XLength))\n'
+            '    print("BB_Y:" + str(bb.YLength))\n'
+            '    print("BB_Z:" + str(bb.ZLength))\n'
+            '    print("BB_VOL:" + str(obj.Shape.Volume))\n'
+        )
         output = self.execute(code)
         result: dict[str, float] = {}
         for match in re.finditer(r"BB_(X|Y|Z|VOL):([\d.]+)", output):
