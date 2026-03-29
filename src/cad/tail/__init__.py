@@ -22,27 +22,36 @@ class TailSectionSpec:
     # Configuration
     tail_type: Literal["conventional", "v_tail", "t_tail"] = "conventional"
 
-    # Horizontal stabilizer
-    h_stab_span: float = 300.0
-    h_stab_chord: float = 60.0
-    h_stab_airfoil: str = "NACA0010"
-    elevator_ratio: float = 0.35  # Elevator as fraction of chord
+    # Horizontal stabilizer (Design Consensus v2, 2026-03-29)
+    h_stab_span: float = 430.0  # mm, all-moving
+    h_stab_root_chord: float = 115.0  # Re 61,300 at 8 m/s
+    h_stab_tip_chord: float = 75.0  # Tapers to 60mm in last 15mm (swept LE tip)
+    h_stab_root_airfoil: str = "HT-14"  # 7.5% thickness
+    h_stab_tip_airfoil: str = "HT-13"  # 6.5% thickness, linear blend
+    h_stab_area: float = 4080.0  # mm² (~4.08 dm²)
+    h_stab_ar: float = 4.53
+    h_stab_taper_ratio: float = 0.652
+    h_stab_pivot_frac: float = 0.25  # Pivot axis at 25% MAC
+    h_stab_rear_spar_frac: float = 0.65  # 2mm CF rod at 65% chord
+    h_stab_deflection_up: float = 12.0  # Degrees (nose up)
+    h_stab_deflection_down: float = 20.0  # Degrees (nose down)
+    h_stab_mass_target: float = 25.0  # grams (22-28g range)
 
-    # Vertical stabilizer
-    v_stab_height: float = 100.0
-    v_stab_chord: float = 80.0
+    # Vertical stabilizer (TBD — pending aero/structural consensus)
+    v_stab_height: float = 120.0
+    v_stab_root_chord: float = 100.0
+    v_stab_tip_chord: float = 60.0
     v_stab_airfoil: str = "NACA0010"
-    rudder_ratio: float = 0.40  # Rudder as fraction of chord
+    rudder_ratio: float = 0.35  # Rudder as fraction of chord
 
     # V-tail (if applicable)
     v_tail_angle: float = 40.0  # Degrees from horizontal
 
     # Tail moment arm (distance from CG to tail quarter-chord)
-    tail_moment: float = 400.0
+    # ~660mm for AeroForge (boom ~650mm + pod offset)
+    tail_moment: float = 660.0
 
-    # Control throws
-    elevator_throw_up: float = 20.0  # Degrees
-    elevator_throw_down: float = 15.0
+    # Control throws (H-stab is all-moving, so throws = deflection limits)
     rudder_throw_left: float = 25.0
     rudder_throw_right: float = 25.0
 
@@ -54,19 +63,24 @@ class TailSection:
         self.spec = spec
 
     @property
-    def h_stab_area(self) -> float:
-        """Horizontal stabilizer area in mm²."""
-        return self.spec.h_stab_span * self.spec.h_stab_chord
+    def h_stab_mean_chord(self) -> float:
+        """H-stab mean aerodynamic chord in mm (trapezoidal approximation)."""
+        return (self.spec.h_stab_root_chord + self.spec.h_stab_tip_chord) / 2
+
+    @property
+    def h_stab_area_calc(self) -> float:
+        """Horizontal stabilizer area in mm² (trapezoidal)."""
+        return self.spec.h_stab_span * self.h_stab_mean_chord
+
+    @property
+    def v_stab_mean_chord(self) -> float:
+        """V-stab mean chord in mm."""
+        return (self.spec.v_stab_root_chord + self.spec.v_stab_tip_chord) / 2
 
     @property
     def v_stab_area(self) -> float:
         """Vertical stabilizer area in mm²."""
-        return self.spec.v_stab_height * self.spec.v_stab_chord
-
-    @property
-    def elevator_area(self) -> float:
-        """Elevator area in mm²."""
-        return self.h_stab_area * self.spec.elevator_ratio
+        return self.spec.v_stab_height * self.v_stab_mean_chord
 
     @property
     def rudder_area(self) -> float:
@@ -83,7 +97,7 @@ class TailSection:
         Returns:
             Dictionary with tail volume coefficients
         """
-        h_volume = (self.h_stab_area * self.spec.tail_moment) / (wing_area * wing_chord)
+        h_volume = (self.h_stab_area_calc * self.spec.tail_moment) / (wing_area * wing_chord)
         v_volume = (self.v_stab_area * self.spec.tail_moment) / (wing_area * wing_chord)
 
         return {
@@ -106,7 +120,7 @@ class TailSection:
 
         # Each V-tail panel contributes to both horizontal and vertical
         # Assuming symmetric V-tail
-        panel_area = self.spec.h_stab_span * self.spec.h_stab_chord / 2
+        panel_area = self.spec.h_stab_span * self.h_stab_mean_chord / 2
 
         return {
             "horizontal": 2 * panel_area * math.cos(angle_rad),

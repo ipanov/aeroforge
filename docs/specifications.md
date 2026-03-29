@@ -177,11 +177,32 @@ slider/knob for variable deployment. AI-assisted programming of Turnigy 9X curve
 ## Empennage
 
 - **Configuration**: Conventional (horizontal + vertical stabilizer)
-- **H-stab**: ~400mm span, ~80mm chord, symmetric airfoil (NACA 0009 or flat)
-- **V-stab**: ~120mm height, tapered chord
-- **Elevator**: Full-span, 30-35% chord ratio
-- **Rudder**: 30-35% chord ratio
-- **Tail mount**: Printed socket bonded to boom end
+
+### Horizontal Stabilizer (Design Consensus v2, 2026-03-29)
+- **Type**: All-moving (entire surface pivots, no separate elevator)
+- **Span**: 430mm (215mm per half)
+- **Root chord**: 115mm (Re 61,300 at 8 m/s)
+- **Tip chord**: 75mm → tapers to 60mm in last 15mm (swept LE tip)
+- **Taper ratio**: 0.652 (main section)
+- **Area**: ~408 cm² (4.08 dm²)
+- **Aspect ratio**: 4.53
+- **Airfoil**: HT-14 (7.5%) root → HT-13 (6.5%) tip, linear blend
+- **Vh**: 0.382 (acceptable for all-moving)
+- **S_h/S_w**: 9.8% (within F5J range 8.9–11.6%)
+- **Pivot axis**: 3mm CF rod at 25% MAC
+- **Rear spar**: 2mm CF rod at 65% chord
+- **Deflection**: -20° to +12°
+- **TE truncation**: 97% chord (~0.8mm flat TE)
+- **Wall thickness**: 0.45mm (vase mode, LW-PLA)
+- **Mass target**: 25g nominal (22–28g range, full assembly)
+- **Print strategy**: Vase mode with diagonal rib grid, LW-PLA at 230°C
+
+### Vertical Stabilizer (TBD — pending aero/structural consensus)
+- **V-stab**: ~120mm height, tapered chord (preliminary)
+- **Rudder**: 30-35% chord ratio (preliminary)
+
+### Tail Mount
+- **Tail mount**: PETG socket bonded to boom end, brass tube inserts (4mm OD / 3mm ID)
 
 ## Manufacturing
 
