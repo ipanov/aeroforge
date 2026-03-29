@@ -15,6 +15,7 @@ or derive from it. If there's ever a conflict, specifications.md wins.
 - `CLAUDE.md` — quick reference table
 - `README.md` — current specifications table
 - `docs/slicer_pipeline.md` — panel sizing table
+- `docs/competition_sailplane_catalog.md` — AeroForge comparison row (Section 6.6)
 - `src/core/specs.py` — `WingSpec.wingspan`
 - `src/cad/wing/` — any wing generator code using span constants
 - `tests/test_wing.py` — test fixtures using span values
@@ -86,7 +87,10 @@ or derive from it. If there's ever a conflict, specifications.md wins.
 ### Empennage Dimensions
 - `docs/specifications.md` — empennage section
 - `docs/aerodynamics_research.md` — tail volume coefficients, tail config comparison (Section 9)
+- `docs/competition_sailplane_catalog.md` — tail surface data (Section 3), AeroForge reference ratios (Section 6.6)
 - `src/cad/tail/__init__.py` — TailSectionSpec defaults
+- `cad/assemblies/empennage/HStab_Assembly/DESIGN_CONSENSUS.md` — HStab design consensus (v3.1), all elevator/hinge/spar specs
+- `cad/assemblies/empennage/HStab_Assembly/ELEVATOR_MECHANICAL_DETAIL.md` — Elevator bevel, rudder clearance, control horn, bridge joiner, pushrod routing, tip closure
 
 ### Performance Targets
 - `docs/specifications.md` — performance table
@@ -107,11 +111,17 @@ or derive from it. If there's ever a conflict, specifications.md wins.
 - `hooks/cad_post_execute.py` — PostToolUse: auto-screenshot + error detection
 - `hooks/cad_pre_execute.py` — PreToolUse: block scaling, oversized code
 - `hooks/cad_pre_commit.py` — PreCommit: require validation screenshots
+- `hooks/cad_structure_validate.py` — PreCommit: CAD folder structure enforcement (drawing-first, renders, docs)
 - `hooks/freecad_rpc_helper.py` — FreeCAD RPC connection helper
-- `.claude/settings.json` — Hook wiring configuration (PostToolUse, PreToolUse)
+- `.claude/settings.json` — Hook wiring configuration (PostToolUse, PreToolUse, PreCommit)
 - `.git/hooks/pre-commit` — Git pre-commit hook wiring for cad_pre_commit.py
 - `cad-progress.md` — Session state tracking
 - `tests/test_spar_geometry.py` — Spar dimensional assertions
+
+### CAD Framework
+- `cad/CAD_FRAMEWORK.md` — Authoritative folder structure rules (Clear Skies style)
+- `cad/components/` — Individual component folders (drawing + model + renders + docs)
+- `cad/assemblies/` — Assembly folders (same structure as components)
 
 ## How to Use This Registry
 

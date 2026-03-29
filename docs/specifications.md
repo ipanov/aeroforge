@@ -164,45 +164,60 @@ slider/knob for variable deployment. AI-assisted programming of Turnigy 9X curve
 | Elevator | Pod-mounted 9g servo | Carbon rod pushrod through boom |
 | Rudder | Pod-mounted 9g servo | Pull-pull Kevlar cable through boom |
 
-## Fuselage
+## Fuselage (TBD — pending aero/structural consensus)
 
-- **Configuration**: Pod-and-boom (not monocoque)
-- **Pod**: Printed in 2 halves (left/right), LW-PLA shell + PLA internal structure
-- **Boom**: Off-the-shelf carbon tube, 10-12mm OD, ~650mm
-- **Layout** (nose to tail): Motor mount → ESC → Battery bay (adjustable for CG) →
-  Receiver → Wing saddle/spar tunnel → Servo bay → Boom socket
+- **Configuration**: Continuous 3D-printed aerodynamic body (NOT pod-and-boom)
+- **Outer shell**: One continuous optimized shape from spinner to VStab fin tip
+- **Structure**: Multiple printed sections on 4 carbon rods + CA (like wing panels)
+- **Internal pod**: Electronics mounting tray inside the shell (for maintainability)
+- **No carbon tail boom**: The tail is printed fuselage sections, not a separate tube
+- **VStab fin**: Integrated into fuselage — only the Rudder is a separate component
+- **Layout** (nose to tail): Spinner → Motor mount → ESC → Battery bay (adjustable for CG) →
+  Receiver → Wing saddle/spar tunnel → Servo bay → Taper → VStab fin
+- **Wing fairing**: Blends into fuselage, must consider AG24 root airfoil (210mm chord)
 - **Wing attachment**: Wing saddle with spar pass-through, nylon bolts + alignment dowels
 - **CG target**: 30-35% of mean aerodynamic chord
+- **Print sections**: Each fits Bambu 256mm bed, slide onto 4 CF rod longerons
 
 ## Empennage
 
 - **Configuration**: Conventional (horizontal + vertical stabilizer)
 
-### Horizontal Stabilizer (Design Consensus v2, 2026-03-29)
-- **Type**: All-moving (entire surface pivots, no separate elevator)
+### Horizontal Stabilizer (Design Consensus v3, 2026-03-30)
+- **Type**: Fixed stabilizer + 35% chord elevator
+- **Planform**: Superellipse n=2.3 (Oswald e=0.990)
 - **Span**: 430mm (215mm per half)
 - **Root chord**: 115mm (Re 61,300 at 8 m/s)
-- **Tip chord**: 75mm → tapers to 60mm in last 15mm (swept LE tip)
-- **Taper ratio**: 0.652 (main section)
+- **Tip chord**: ~50mm at 95% span (superellipse taper)
+- **Mean chord**: 94.8mm
 - **Area**: ~408 cm² (4.08 dm²)
 - **Aspect ratio**: 4.53
-- **Airfoil**: HT-14 (7.5%) root → HT-13 (6.5%) tip, linear blend
-- **Vh**: 0.382 (acceptable for all-moving)
+- **Airfoil**: HT-13 (6.5%) root → HT-12 (5.1%) tip, linear blend
+- **Vh**: 0.393
 - **S_h/S_w**: 9.8% (within F5J range 8.9–11.6%)
-- **Pivot axis**: 3mm CF rod at 25% MAC
-- **Rear spar**: 2mm CF rod at 65% chord
-- **Deflection**: -20° to +12°
-- **TE truncation**: 97% chord (~0.8mm flat TE)
-- **Wall thickness**: 0.45mm (vase mode, LW-PLA)
-- **Mass target**: 25g nominal (22–28g range, full assembly)
-- **Print strategy**: Vase mode with diagonal rib grid, LW-PLA at 230°C
+- **Elevator**: 35% chord, hinge at 65% chord, -20° to +25° deflection
+- **Hinge**: 0.5mm music wire pin through PETG knuckle strips (infinite fatigue life)
+- **Main spar**: 3mm CF tube (3/2mm OD/ID), 390mm, terminates at 195mm/half
+- **Rear spar**: 1.5mm CF rod at 60% chord
+- **Elevator stiffener**: 1mm CF rod at 80% chord
+- **VStab junction**: C2-continuous fillet (r=9.2mm) + dovetail interlock
+- **TE truncation**: 97% chord (~0.7mm flat TE)
+- **Wall thickness**: 0.45mm stab / 0.40mm elevator (vase mode, LW-PLA)
+- **Mass balance**: 1.0g tungsten putty on control horn (flutter prevention)
+- **Mass target**: 33.7g nominal (35g hard limit)
+- **Print strategy**: Vase mode, LW-PLA at 230°C; PETG hinge strips printed separately
 
-### Vertical Stabilizer (TBD — pending aero/structural consensus)
-- **V-stab**: ~120mm height, tapered chord (preliminary)
-- **Rudder**: 30-35% chord ratio (preliminary)
+### Vertical Stabilizer (Integrated into Fuselage)
+- **Height**: 165mm
+- **Root chord**: 180mm, Tip chord: 95mm
+- **Root airfoil**: HT-14 (7.5%), Tip: HT-12 (5.1%)
+- **Rudder**: 35% chord ratio, hinge at 65% chord
+- **Rear spar**: 1.5mm CF rod at 60% chord
+- **Integration**: Superelliptical blend X=650–866mm (part of fuselage)
 
 ### Tail Mount
-- **Tail mount**: PETG socket bonded to boom end, brass tube inserts (4mm OD / 3mm ID)
+- **HStab mount**: Stab roots bond to VStab fin via dovetail interlock + CA
+- **Main spar**: Continuous 3mm CF tube passes through VStab fin hole
 
 ## Manufacturing
 
