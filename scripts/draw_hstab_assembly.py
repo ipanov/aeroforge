@@ -961,37 +961,53 @@ def main():
 
 
 def draw_planform_scaled(msp, ox: float, oy: float, sc: float):
-    """Planform view with scale factor applied to all coordinates.
+    """Planform view with scale factor applied.
 
-    Convention: LE on LEFT, TE on RIGHT. Root at CENTER (oy), tips at oy +/- half_span*sc.
-    Spars are STRAIGHT VERTICAL LINES.
+    COORDINATE SYSTEM (from DESIGN_CONSENSUS v5):
+      ox = drawing X position of root LE (X=0 in local H-Stab coords)
+      oy = drawing Y position of root (Y=0, VStab fin centerline)
+      sc = scale factor (e.g. 0.5 for 1:2)
+
+    Drawing X = ox + local_x * sc   (chordwise: LE at small X, TE at large X)
+    Drawing Y = oy + local_y * sc   (spanwise: root at center, tips at edges)
+
+    ALL RODS are STRAIGHT VERTICAL LINES at constant X positions.
+    Only LE and TE curves (superellipse planform).
     """
-    # The spar at root is at 25% of 115mm = 28.75mm from LE
-    spar_x_root = spar_frac_at(0) * chord_at(0)  # 28.75
-    spar_draw_x = ox + spar_x_root * sc  # spar at constant X in drawing
+    # ── Consensus v5 planform formulas ──
+    # c(y) = 115 * (1 - |y/215|^2.3)^(1/2.3)
+    # x_LE(y) = 51.75 - 0.45 * c(y)
+    # x_TE(y) = x_LE(y) + 0.97 * c(y)  [at 97% truncation]
+    #
+    # ALL rods at FIXED X from root LE:
+    #   Main spar X=35.0, Rear spar X=69.0, Hinge X=74.75, Stiffener X=92.0
+
+    def dx(local_x):
+        """Convert local X to drawing X."""
+        return ox + local_x * sc
+
+    def dy(local_y):
+        """Convert local Y to drawing Y."""
+        return oy + local_y * sc
 
     stations = planform_stations(HALF_SPAN, 60)
 
+    # ── Planform outline (LE and TE curves) ──
     for sign in [1, -1]:
         le_pts = []
-        hinge_pts = []
         te_pts = []
 
         for y in stations:
             c = chord_at(y)
             if c <= 0:
                 break
-            sf = spar_frac_at(y)
-            le_x = spar_draw_x - sf * c * sc
-            hinge_x = spar_draw_x + (HINGE_FRAC - sf) * c * sc
-            te_x = spar_draw_x + (TE_FRAC - sf) * c * sc
+            x_le = 51.75 - 0.45 * c
+            x_te = x_le + TE_FRAC * c
 
-            draw_y = oy + sign * y * sc
-            le_pts.append((le_x, draw_y))
-            hinge_pts.append((hinge_x, draw_y))
-            te_pts.append((te_x, draw_y))
+            le_pts.append((dx(x_le), dy(sign * y)))
+            te_pts.append((dx(x_te), dy(sign * y)))
 
-        # LE outline (thick)
+        # LE outline
         for i in range(len(le_pts) - 1):
             msp.add_line(le_pts[i], le_pts[i + 1], dxfattribs={"layer": "OUTLINE"})
 
@@ -999,265 +1015,167 @@ def draw_planform_scaled(msp, ox: float, oy: float, sc: float):
         for i in range(len(te_pts) - 1):
             msp.add_line(te_pts[i], te_pts[i + 1], dxfattribs={"layer": "OUTLINE"})
 
-        # Hinge line (dashed)
-        for i in range(len(hinge_pts) - 1):
-            msp.add_line(hinge_pts[i], hinge_pts[i + 1],
-                         dxfattribs={"layer": "HIDDEN", "linetype": "DASHED"})
-
         # Tip closure
         if le_pts and te_pts:
             msp.add_line(le_pts[-1], te_pts[-1], dxfattribs={"layer": "OUTLINE"})
 
-        # Labels
+        # Labels (placed at 45% span to avoid overlap)
         side_name = "RIGHT" if sign > 0 else "LEFT"
-        mid_y = oy + sign * HALF_SPAN * 0.5 * sc
-        c_mid = chord_at(HALF_SPAN * 0.5)
-        sf_mid = spar_frac_at(HALF_SPAN * 0.5)
-        stab_center_x = spar_draw_x - sf_mid * c_mid * sc * 0.3
-        elev_center_x = spar_draw_x + (0.80 - sf_mid) * c_mid * sc
-
+        label_y = dy(sign * HALF_SPAN * 0.45)
         msp.add_text(f"{side_name} STAB", height=1.8,
                      dxfattribs={"layer": "TEXT"}).set_placement(
-            (stab_center_x, mid_y))
+            (dx(20), label_y))
         msp.add_text(f"{side_name} ELEVATOR", height=1.5,
                      dxfattribs={"layer": "TEXT"}).set_placement(
-            (elev_center_x - 5, mid_y))
+            (dx(80), label_y))
 
-    # Root line (stab: LE to hinge)
-    c_root = chord_at(0)
-    sf_root = spar_frac_at(0)
-    le_root_x = spar_draw_x - sf_root * c_root * sc
-    hinge_root_x = spar_draw_x + (HINGE_FRAC - sf_root) * c_root * sc
-    te_root_x = spar_draw_x + (TE_FRAC - sf_root) * c_root * sc
-    msp.add_line((le_root_x, oy), (hinge_root_x, oy), dxfattribs={"layer": "OUTLINE"})
+    # ── Root chord line (stab: LE to hinge) ──
+    le_root_x = dx(0)        # LE at root = X=0
+    hinge_dx = dx(74.75)     # hinge at fixed X=74.75
+    te_root_x = dx(111.55)   # TE at 97% of 115mm
+    spar_dx = dx(35.0)       # main spar at fixed X=35.0
+    rear_dx = dx(69.0)       # rear spar at fixed X=69.0
+    stiff_dx = dx(92.0)      # stiffener at fixed X=92.0
 
-    # Elevator root lines with gap for VStab fin
+    msp.add_line((le_root_x, oy), (hinge_dx, oy), dxfattribs={"layer": "OUTLINE"})
+
+    # ── Elevator root lines with gap for VStab fin ──
+    gap_half_dy = ROOT_GAP_AT_HINGE / 2 * sc
     for sign in [1, -1]:
-        gap_hinge_y = sign * ROOT_GAP_AT_HINGE / 2 * sc
-        gap_te_y = sign * ROOT_GAP_AT_TE / 2 * sc
-        msp.add_line((hinge_root_x, oy + gap_hinge_y),
-                     (te_root_x, oy + gap_te_y),
+        msp.add_line((hinge_dx, oy + sign * gap_half_dy),
+                     (te_root_x, oy + sign * gap_half_dy),
                      dxfattribs={"layer": "OUTLINE"})
 
-    # VStab fin outline
+    # ── VStab fin (dashed rectangle) ──
     fin_half = VSTAB_FIN_WIDTH / 2 * sc
-    fin_le_x = spar_draw_x - 8 * sc
-    fin_te_x = te_root_x + 3 * sc
-    for dy in [fin_half, -fin_half]:
-        msp.add_line((fin_le_x, oy + dy), (fin_te_x, oy + dy),
-                     dxfattribs={"layer": "HIDDEN", "linetype": "DASHED"})
-    msp.add_line((fin_le_x, oy - fin_half), (fin_le_x, oy + fin_half),
-                 dxfattribs={"layer": "HIDDEN", "linetype": "DASHED"})
-    msp.add_line((fin_te_x, oy - fin_half), (fin_te_x, oy + fin_half),
-                 dxfattribs={"layer": "HIDDEN", "linetype": "DASHED"})
-    msp.add_text("VSTAB FIN", height=1.2,
-                 dxfattribs={"layer": "TEXT"}).set_placement(
-        (fin_le_x + 1, oy - 0.5))
+    fin_x1 = dx(25)
+    fin_x2 = te_root_x + 3 * sc
+    for ddy in [fin_half, -fin_half]:
+        msp.add_line((fin_x1, oy + ddy), (fin_x2, oy + ddy),
+                     dxfattribs={"layer": "HIDDEN"})
+    msp.add_line((fin_x1, oy - fin_half), (fin_x1, oy + fin_half),
+                 dxfattribs={"layer": "HIDDEN"})
+    msp.add_line((fin_x2, oy - fin_half), (fin_x2, oy + fin_half),
+                 dxfattribs={"layer": "HIDDEN"})
 
-    # ── SPARS (all STRAIGHT vertical lines) ──
-    # Main spar: constant X, spans +-195mm
+    # ── ALL RODS: STRAIGHT VERTICAL LINES at constant X ──
+
+    # Main spar: 3mm CF tube at X=35.0, ±186mm
     spar_span_sc = MAIN_SPAR_SPAN * sc
-    msp.add_line((spar_draw_x, oy - spar_span_sc),
-                 (spar_draw_x, oy + spar_span_sc),
+    msp.add_line((spar_dx, oy - spar_span_sc), (spar_dx, oy + spar_span_sc),
                  dxfattribs={"layer": "SPAR"})
-    # Show spar width (3mm tube)
     spar_hw = MAIN_SPAR_DIA / 2 * sc
-    for dx in [-spar_hw, spar_hw]:
-        msp.add_line((spar_draw_x + dx, oy - spar_span_sc),
-                     (spar_draw_x + dx, oy + spar_span_sc),
+    for ddx in [-spar_hw, spar_hw]:
+        msp.add_line((spar_dx + ddx, oy - spar_span_sc),
+                     (spar_dx + ddx, oy + spar_span_sc),
                      dxfattribs={"layer": "SPAR"})
 
-    # Rear spar: STRAIGHT at root 60% chord position
-    rear_spar_root_dist = (0.60 - sf_root) * c_root  # from spar
-    rear_spar_draw_x = spar_draw_x + rear_spar_root_dist * sc
-    rear_spar_span_sc = REAR_SPAR_SPAN * sc
-    msp.add_line((rear_spar_draw_x, oy - rear_spar_span_sc),
-                 (rear_spar_draw_x, oy + rear_spar_span_sc),
+    # Rear spar: 1.5mm CF rod at X=69.0, ±210mm
+    rear_span_sc = REAR_SPAR_SPAN * sc
+    msp.add_line((rear_dx, oy - rear_span_sc), (rear_dx, oy + rear_span_sc),
                  dxfattribs={"layer": "SPAR"})
 
-    # Elevator stiffener: STRAIGHT at root 80% chord position
-    stiff_root_dist = (0.80 - sf_root) * c_root
-    stiff_draw_x = spar_draw_x + stiff_root_dist * sc
-    stiff_span_sc = STIFFENER_SPAN * sc
-    msp.add_line((stiff_draw_x, oy - stiff_span_sc),
-                 (stiff_draw_x, oy + stiff_span_sc),
-                 dxfattribs={"layer": "SPAR"})
+    # Hinge wire: 0.5mm at X=74.75, ±203mm — STRAIGHT LINE (NOT curved!)
+    hinge_span_sc = 203.0 * sc
+    msp.add_line((hinge_dx, oy - hinge_span_sc), (hinge_dx, oy + hinge_span_sc),
+                 dxfattribs={"layer": "HIDDEN"})
 
-    # ── Control horn ──
-    horn_y = oy - CONTROL_HORN_Y * sc
-    msp.add_line((hinge_root_x, horn_y), (hinge_root_x + 2 * sc, horn_y - 4 * sc),
-                 dxfattribs={"layer": "SECTION"})
-    msp.add_line((hinge_root_x + 2 * sc, horn_y - 4 * sc),
-                 (hinge_root_x - 2 * sc, horn_y - 4 * sc),
-                 dxfattribs={"layer": "SECTION"})
-    msp.add_line((hinge_root_x - 2 * sc, horn_y - 4 * sc),
-                 (hinge_root_x, horn_y),
-                 dxfattribs={"layer": "SECTION"})
-    msp.add_text("CONTROL\nHORN", height=1.2,
-                 dxfattribs={"layer": "TEXT"}).set_placement(
-        (hinge_root_x + 3 * sc, horn_y - 3 * sc))
-
-    # ── Bridge joiner ──
-    bw_sc = 1.5 * sc
-    bh_sc = BRIDGE_SPAN / 2 * sc
-    bridge_x = hinge_root_x - 1.5 * sc
-    msp.add_line((bridge_x, oy - bh_sc), (bridge_x, oy + bh_sc),
-                 dxfattribs={"layer": "SECTION"})
-    msp.add_line((bridge_x + bw_sc, oy - bh_sc), (bridge_x + bw_sc, oy + bh_sc),
-                 dxfattribs={"layer": "SECTION"})
-    msp.add_line((bridge_x, oy - bh_sc), (bridge_x + bw_sc, oy - bh_sc),
-                 dxfattribs={"layer": "SECTION"})
-    msp.add_line((bridge_x, oy + bh_sc), (bridge_x + bw_sc, oy + bh_sc),
-                 dxfattribs={"layer": "SECTION"})
-    msp.add_text("BRIDGE\nJOINER", height=1.0,
-                 dxfattribs={"layer": "TEXT"}).set_placement(
-        (bridge_x + bw_sc + 1, oy - 1.5))
-
-    # ── Rudder clearance zone ──
-    rc_x1 = te_root_x - 6 * sc
-    rc_x2 = te_root_x
-    rc_y1 = oy - ROOT_GAP_AT_TE / 2 * sc
-    rc_y2 = oy + ROOT_GAP_AT_TE / 2 * sc
-    msp.add_line((rc_x1, rc_y1), (rc_x2, rc_y1), dxfattribs={"layer": "HATCH"})
-    msp.add_line((rc_x2, rc_y1), (rc_x2, rc_y2), dxfattribs={"layer": "HATCH"})
-    msp.add_line((rc_x2, rc_y2), (rc_x1, rc_y2), dxfattribs={"layer": "HATCH"})
-    msp.add_line((rc_x1, rc_y2), (rc_x1, rc_y1), dxfattribs={"layer": "HATCH"})
-    n_hatch = 5
-    for i in range(1, n_hatch):
-        frac = i / n_hatch
-        hx = rc_x1 + frac * (rc_x2 - rc_x1)
-        msp.add_line((hx, rc_y1), (hx, rc_y2), dxfattribs={"layer": "HATCH"})
-    msp.add_text("RUDDER\nCLEAR.\nZONE", height=0.9,
-                 dxfattribs={"layer": "TEXT"}).set_placement(
-        (rc_x2 + 1, oy - 1.5))
+    # Stiffeners: 1mm at X=92.0, y=4..150mm each side (NOT through fin)
+    stiff_root_dy = ROOT_GAP_AT_HINGE / 2 * sc
+    stiff_tip_dy = STIFFENER_SPAN * sc
+    for sign in [1, -1]:
+        msp.add_line((stiff_dx, oy + sign * stiff_root_dy),
+                     (stiff_dx, oy + sign * stiff_tip_dy),
+                     dxfattribs={"layer": "SPAR"})
 
     # ── Section cut indicators ──
-    # A-A at root (horizontal)
     cut_ext = 5 * sc
-    cut_x1 = le_root_x - cut_ext
-    cut_x2 = te_root_x + cut_ext
-    for ext_x, lbl_off in [(cut_x1, -3), (cut_x2, 1.5)]:
+    # A-A at root
+    for ext_x, lbl_off in [(le_root_x - cut_ext, -3), (te_root_x + cut_ext, 1.5)]:
         msp.add_line((ext_x, oy - 2), (ext_x, oy + 2),
                      dxfattribs={"layer": "SECTION"})
         msp.add_text("A", height=2.0, dxfattribs={"layer": "SECTION"}).set_placement(
             (ext_x + lbl_off, oy - 1))
-    msp.add_line((cut_x1, oy), (le_root_x - 1, oy),
-                 dxfattribs={"layer": "SECTION", "linetype": "DASHDOT"})
-    msp.add_line((te_root_x + 1, oy), (cut_x2, oy),
-                 dxfattribs={"layer": "SECTION", "linetype": "DASHDOT"})
 
-    # B-B at hinge line (vertical)
-    cut_y_ext = 20 * sc
-    by1 = oy - cut_y_ext
-    by2 = oy + cut_y_ext
-    for ext_y, lbl_off in [(by1, -3), (by2, 1.5)]:
-        msp.add_line((hinge_root_x - 2, ext_y), (hinge_root_x + 2, ext_y),
-                     dxfattribs={"layer": "SECTION"})
-        msp.add_text("B", height=2.0, dxfattribs={"layer": "SECTION"}).set_placement(
-            (hinge_root_x + 3, ext_y + lbl_off))
+    # ── Structure labels (above the top spar end, spaced to avoid overlap) ──
+    label_y = oy + spar_span_sc + 5
+    msp.add_text("MAIN SPAR\n3mm CF tube", height=1.1,
+                 dxfattribs={"layer": "TEXT"}).set_placement((spar_dx - 6, label_y))
+    msp.add_text("REAR SPAR\n1.5mm CF rod", height=1.1,
+                 dxfattribs={"layer": "TEXT"}).set_placement((rear_dx - 5, label_y + 8))
+    msp.add_text("HINGE WIRE\n0.5mm steel", height=1.1,
+                 dxfattribs={"layer": "TEXT"}).set_placement((hinge_dx + 2, label_y + 8))
+    msp.add_text("STIFFENER\n1mm CF rod", height=1.1,
+                 dxfattribs={"layer": "TEXT"}).set_placement((stiff_dx + 2, label_y))
 
-    # ── Spar / structure labels ──
-    label_y = oy + spar_span_sc + 4
-    msp.add_text("MAIN SPAR", height=1.3, dxfattribs={"layer": "TEXT"}).set_placement(
-        (spar_draw_x - 6, label_y))
-    msp.add_text("3mm CF tube", height=1.1, dxfattribs={"layer": "TEXT"}).set_placement(
-        (spar_draw_x - 6, label_y - 2))
-
-    msp.add_text("REAR SPAR", height=1.3, dxfattribs={"layer": "TEXT"}).set_placement(
-        (rear_spar_draw_x - 5, label_y))
-    msp.add_text("1.5mm CF rod", height=1.1, dxfattribs={"layer": "TEXT"}).set_placement(
-        (rear_spar_draw_x - 5, label_y - 2))
-
-    msp.add_text("STIFFENER", height=1.3, dxfattribs={"layer": "TEXT"}).set_placement(
-        (stiff_draw_x - 5, label_y))
-    msp.add_text("1mm CF rod", height=1.1, dxfattribs={"layer": "TEXT"}).set_placement(
-        (stiff_draw_x - 5, label_y - 2))
-
-    # LE/TE labels
-    tip_label_y = oy + HALF_SPAN * 0.85 * sc
+    # LE / TE labels
+    tip_lbl_y = oy + HALF_SPAN * 0.85 * sc
     msp.add_text("LE", height=1.8, dxfattribs={"layer": "TEXT"}).set_placement(
-        (le_root_x - 5, tip_label_y))
+        (le_root_x - 5, tip_lbl_y))
     msp.add_text("TE", height=1.8, dxfattribs={"layer": "TEXT"}).set_placement(
-        (te_root_x + 1.5, tip_label_y))
-    msp.add_text("HINGE LINE\n(65% chord)", height=1.1,
-                 dxfattribs={"layer": "TEXT"}).set_placement(
-        (hinge_root_x + 2, tip_label_y))
+        (te_root_x + 2, tip_lbl_y))
 
     # ── DIMENSIONS ──
     dim_style = "AEROFORGE"
+    tip_top = oy + HALF_SPAN * sc
+    tip_bot = oy - HALF_SPAN * sc
 
-    # Full span (430mm) -- along LE side
-    le_tip_y_top = oy + HALF_SPAN * sc
-    le_tip_y_bot = oy - HALF_SPAN * sc
+    # Full span 430mm
     dim = msp.add_linear_dim(
         base=(le_root_x - 10, oy),
-        p1=(le_root_x, le_tip_y_bot),
-        p2=(le_root_x, le_tip_y_top),
-        angle=90, dimstyle=dim_style,
-        override={"dimlfac": 1.0 / sc})
+        p1=(le_root_x, tip_bot), p2=(le_root_x, tip_top),
+        angle=90, dimstyle=dim_style, override={"dimlfac": 1.0 / sc})
     dim.render()
 
-    # Half span (215mm) -- right side
+    # Half span 215mm
     dim = msp.add_linear_dim(
         base=(te_root_x + 8, oy),
-        p1=(te_root_x, oy),
-        p2=(te_root_x, le_tip_y_top),
-        angle=90, dimstyle=dim_style,
-        override={"dimlfac": 1.0 / sc})
+        p1=(te_root_x, oy), p2=(te_root_x, tip_top),
+        angle=90, dimstyle=dim_style, override={"dimlfac": 1.0 / sc})
     dim.render()
 
-    # Root chord (115mm from LE to TE at 97%)
+    # Root chord 111.55mm (at 97%)
     dim = msp.add_linear_dim(
-        base=(le_root_x, le_tip_y_top + 7),
-        p1=(le_root_x, oy),
-        p2=(te_root_x, oy),
-        dimstyle=dim_style,
-        override={"dimlfac": 1.0 / sc})
+        base=(le_root_x, tip_top + 7),
+        p1=(le_root_x, oy), p2=(te_root_x, oy),
+        dimstyle=dim_style, override={"dimlfac": 1.0 / sc})
     dim.render()
 
-    # Stab chord at root (LE to hinge = 74.75mm)
+    # Hinge position 74.75mm from LE
     dim = msp.add_linear_dim(
-        base=(le_root_x, le_tip_y_top + 13),
-        p1=(le_root_x, oy),
-        p2=(hinge_root_x, oy),
-        dimstyle=dim_style,
-        override={"dimlfac": 1.0 / sc})
+        base=(le_root_x, tip_top + 13),
+        p1=(le_root_x, oy), p2=(hinge_dx, oy),
+        dimstyle=dim_style, override={"dimlfac": 1.0 / sc})
     dim.render()
 
-    # Main spar position (25% chord = 28.75mm from LE)
+    # Main spar position 35.0mm from LE
     dim = msp.add_linear_dim(
-        base=(le_root_x, le_tip_y_top + 19),
-        p1=(le_root_x, oy),
-        p2=(spar_draw_x, oy),
-        dimstyle=dim_style,
-        override={"dimlfac": 1.0 / sc})
+        base=(le_root_x, tip_top + 19),
+        p1=(le_root_x, oy), p2=(spar_dx, oy),
+        dimstyle=dim_style, override={"dimlfac": 1.0 / sc})
     dim.render()
 
-    # Main spar span (390mm total = 2x195mm)
+    # Spar span 372mm
     dim = msp.add_linear_dim(
-        base=(spar_draw_x - 8, oy),
-        p1=(spar_draw_x, oy - spar_span_sc),
-        p2=(spar_draw_x, oy + spar_span_sc),
-        angle=90, dimstyle=dim_style,
-        override={"dimlfac": 1.0 / sc})
+        base=(spar_dx - 8, oy),
+        p1=(spar_dx, oy - spar_span_sc), p2=(spar_dx, oy + spar_span_sc),
+        angle=90, dimstyle=dim_style, override={"dimlfac": 1.0 / sc})
     dim.render()
 
-    # Root gap (8mm)
+    # Root gap 8mm
     dim = msp.add_linear_dim(
-        base=(hinge_root_x - 6, oy),
-        p1=(hinge_root_x, oy - ROOT_GAP_AT_HINGE / 2 * sc),
-        p2=(hinge_root_x, oy + ROOT_GAP_AT_HINGE / 2 * sc),
-        angle=90, dimstyle=dim_style,
-        override={"dimlfac": 1.0 / sc})
+        base=(hinge_dx - 6, oy),
+        p1=(hinge_dx, oy - gap_half_dy), p2=(hinge_dx, oy + gap_half_dy),
+        angle=90, dimstyle=dim_style, override={"dimlfac": 1.0 / sc})
     dim.render()
 
     # View title
     msp.add_text("VIEW 1: PLANFORM (TOP VIEW)", height=3.0,
                  dxfattribs={"layer": "TEXT"}).set_placement(
-        (ox - 10, le_tip_y_top + 24))
-    msp.add_text(f"Scale approx 1:{1/sc:.1f} | Full span {SPAN:.0f}mm", height=1.8,
-                 dxfattribs={"layer": "TEXT"}).set_placement(
-        (ox - 10, le_tip_y_top + 20))
+        (ox - 10, tip_top + 24))
+    msp.add_text(f"Scale 1:{1/sc:.0f} | Span {SPAN:.0f}mm | Root chord {ROOT_CHORD:.0f}mm",
+                 height=1.8, dxfattribs={"layer": "TEXT"}).set_placement(
+        (ox - 10, tip_top + 20))
 
 
 if __name__ == "__main__":
