@@ -1,17 +1,17 @@
 """
 2D Technical Drawing: H-Stab Assembly (Master Reference)
 ========================================================
-FROM DESIGN CONSENSUS v3.1 (aero+structural agent team):
+FROM DESIGN CONSENSUS v5 (aero+structural agent team, R3):
 
   Configuration: Fixed stabilizer + 35% chord elevator
   Planform: Superellipse n=2.3
   Blend: HT-13 (6.5%) root -> HT-12 (5.1%) tip
   430mm span | 115mm root chord | Superellipse taper
-  Main spar: 3mm CF tube at 25-30% chord (drifts)
-  Rear spar: 1.5mm CF rod at 60% chord
-  Elevator stiffener: 1mm CF rod at 80% chord
+  Main spar: 3mm CF tube at 30.4% root chord (X=35.0mm, constant)
+  Rear spar: 1.5mm CF rod at 60% chord (X=69.0mm)
+  Elevator stiffener: 1mm CF rod at 80% chord (X=92.0mm)
   Hinge: 0.5mm music wire at 65% chord, interleaved PETG knuckles
-  Mass: 34.17g | Vh=0.393
+  Mass: 33.65g | Vh=0.393
 
 Views:
   1. PLANFORM (top view) -- full 430mm span, both halves + elevators
@@ -44,13 +44,17 @@ STIFFENER_DIA = 1.0      # 1mm CF rod
 STIFFENER_TUNNEL_ID = 1.1
 HINGE_WIRE_DIA = 0.5     # 0.5mm music wire
 HINGE_GAP = 0.3          # gap between stab TE and elevator LE
-MAIN_SPAR_SPAN = 195.0   # spar ends at 195mm
-REAR_SPAR_SPAN = 215.0   # full half-span (both halves = 440mm)
-STIFFENER_SPAN = 170.0   # per half
+MAIN_SPAR_SPAN = 186.0   # spar ends at 186mm per half (v5 structural correction)
+MAIN_SPAR_X = 35.0       # fixed X from root LE (30.4% root chord) -- v5
+MAIN_SPAR_ROOT_FRAC = 0.304  # 30.4% root chord
+REAR_SPAR_SPAN = 210.0   # per half (420mm total rod) -- v5
+REAR_SPAR_X = 69.0       # fixed X from root LE (60% root chord) -- v5
+STIFFENER_SPAN = 150.0   # per half (2x150mm rods, NOT through fin) -- v5
+STIFFENER_X = 92.0       # fixed X from root LE (80% root chord) -- v5
 HINGE_WIRE_LEN = 440.0   # full span
 VSTAB_FIN_WIDTH = 7.0
 ROOT_GAP_AT_HINGE = 8.0  # elevator root gap at hinge line
-ROOT_GAP_AT_TE = 10.2    # elevator root gap at TE (rudder clearance)
+ROOT_GAP_AT_TE = 8.0     # elevator root gap at TE (same as hinge) -- v5
 KNUCKLE_OD = 1.2
 KNUCKLE_ID = 0.6
 CONTROL_HORN_Y = 15.0    # 15mm from root, on left elevator
@@ -84,10 +88,20 @@ def chord_at(y: float) -> float:
 
 
 def spar_frac_at(y: float) -> float:
-    """Spar chord fraction drifts from 25% at root to 30% at y=195mm."""
-    if abs(y) >= MAIN_SPAR_SPAN:
-        return 0.30
-    return 0.25 + 0.05 * abs(y) / MAIN_SPAR_SPAN
+    """Spar chord fraction at span station y.
+
+    The spar is at CONSTANT X=35.0mm from root LE (v5).
+    The chord fraction changes because the planform tapers around it.
+    At root: 35.0/115.0 = 30.4%. At y=186mm (termination): ~18.9%.
+    """
+    c = chord_at(y)
+    if c <= 0:
+        return MAIN_SPAR_ROOT_FRAC
+    # LE position at this span station
+    x_le = 51.75 - 0.45 * c  # from consensus planform formula
+    # Spar is at fixed X=35.0mm from root LE
+    frac = (MAIN_SPAR_X - x_le) / c
+    return max(frac, 0.0)
 
 
 def ht13_yt(xc: float, chord: float) -> float:
