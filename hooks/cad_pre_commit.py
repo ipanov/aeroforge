@@ -69,6 +69,26 @@ def main() -> int:
         print(f"Screenshot must be less than {MAX_SCREENSHOT_AGE_SECONDS // 60} minutes old.")
         return 1
 
+    # MANDATORY: Run drawing orientation and component integrity tests
+    # if ANY DXF or drawing-related files are staged
+    drawing_files = [f for f in staged if f.endswith(".dxf") or f.endswith(".png")
+                     or "hstab_geometry" in f or "orientation.py" in f
+                     or "draw_" in f]
+    if drawing_files:
+        print("Running drawing orientation & component integrity tests...")
+        result = subprocess.run(
+            [sys.executable, "-m", "pytest", "tests/test_drawing_orientation.py", "-v",
+             "--tb=short"],
+            capture_output=True, text=True,
+            env={**os.environ, "PYTHONPATH": "."},
+        )
+        if result.returncode != 0:
+            print("BLOCKED: Drawing tests FAILED. Fix before committing.")
+            print(result.stdout)
+            print(result.stderr)
+            return 1
+        print(f"Drawing tests passed.")
+
     return 0
 
 
