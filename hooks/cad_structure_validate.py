@@ -4,8 +4,8 @@ Validates that component and assembly folders in cad/ follow the Clear Skies
 folder organization rules defined in cad/CAD_FRAMEWORK.md.
 
 Rules enforced:
-1. No .FCStd without a corresponding .dxf (drawing-first rule)
-2. No .FCStd commit without renders (4 views)
+1. No 3D model (.FCStd/.step/.3mf) without a corresponding .dxf (drawing-first rule)
+2. No 3D model commit without renders (4 views)
 3. No renders commit without COMPONENT_INFO.md or ASSEMBLY_INFO.md
 4. Naming conventions: files must match folder name
 5. Required render views: isometric, front, top, right
@@ -153,19 +153,33 @@ def validate_naming(folder: Path) -> list[ValidationError]:
     return errors
 
 
+def _has_any_model(folder: Path, folder_name: str) -> bool:
+    """Check if any 3D model file exists in the folder (.FCStd, .step, .3mf)."""
+    for ext in (".FCStd", ".step", ".3mf"):
+        if (folder / f"{folder_name}{ext}").exists():
+            return True
+    return False
+
+
 def validate_drawing_first(folder: Path) -> list[ValidationError]:
-    """Ensure no .FCStd exists without a corresponding .dxf."""
+    """Ensure no 3D model exists without a corresponding .dxf."""
     errors = []
     folder_name = folder.name
 
-    has_fcstd = (folder / f"{folder_name}.FCStd").exists()
+    has_model = _has_any_model(folder, folder_name)
     has_dxf = (folder / f"{folder_name}_drawing.dxf").exists()
 
-    if has_fcstd and not has_dxf:
+    if has_model and not has_dxf:
+        # Find which model files exist for the error message
+        model_files = [
+            f"{folder_name}{ext}"
+            for ext in (".FCStd", ".step", ".3mf")
+            if (folder / f"{folder_name}{ext}").exists()
+        ]
         errors.append(ValidationError(
             str(folder.relative_to(PROJECT_ROOT)),
             "DRAWING_FIRST",
-            f"3D model '{folder_name}.FCStd' exists without a drawing "
+            f"3D model {model_files} exists without a drawing "
             f"'{folder_name}_drawing.dxf'. Drawing MUST be created first.",
         ))
 
@@ -177,8 +191,8 @@ def validate_renders(folder: Path) -> list[ValidationError]:
     errors = []
     folder_name = folder.name
 
-    has_fcstd = (folder / f"{folder_name}.FCStd").exists()
-    if not has_fcstd:
+    has_model = _has_any_model(folder, folder_name)
+    if not has_model:
         return errors  # No model, no renders needed yet
 
     renders_dir = folder / "renders"
@@ -208,8 +222,8 @@ def validate_info_doc(folder: Path) -> list[ValidationError]:
     errors = []
     folder_name = folder.name
 
-    has_fcstd = (folder / f"{folder_name}.FCStd").exists()
-    if not has_fcstd:
+    has_model = _has_any_model(folder, folder_name)
+    if not has_model:
         return errors  # No model, no docs needed yet
 
     has_component_info = (folder / "COMPONENT_INFO.md").exists()
@@ -297,8 +311,9 @@ def validate_staged_files() -> list[ValidationError]:
             if s.startswith(str(folder.relative_to(PROJECT_ROOT)).replace("\\", "/"))
         ]
 
-        staged_has_fcstd = any(
-            s.lower().endswith(".fcstd") for s in staged_in_folder
+        staged_has_model = any(
+            any(s.lower().endswith(ext) for ext in (".fcstd", ".step", ".3mf"))
+            for s in staged_in_folder
         )
         staged_has_renders = any(
             "/renders/" in s for s in staged_in_folder
@@ -308,8 +323,8 @@ def validate_staged_files() -> list[ValidationError]:
             # Always enforce DRAWING_FIRST and NAMING
             if err.rule in ("DRAWING_FIRST", "NAMING"):
                 errors.append(err)
-            # Only enforce RENDERS if .FCStd is being committed
-            elif err.rule == "RENDERS" and staged_has_fcstd:
+            # Only enforce RENDERS if a 3D model is being committed
+            elif err.rule == "RENDERS" and staged_has_model:
                 errors.append(err)
             # Only enforce INFO_DOC if renders are being committed
             elif err.rule == "INFO_DOC" and staged_has_renders:

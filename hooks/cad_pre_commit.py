@@ -4,6 +4,7 @@ Checks:
 1. Blocks .FCBak files from being committed
 2. Blocks temp_* files from being committed
 3. Blocks geometry files (.step/.stl/.FCStd/.3mf) without recent validation screenshots
+4. Warns if .step or .stl is committed for printed components without a .3mf file
 """
 
 import subprocess
@@ -68,6 +69,28 @@ def main() -> int:
         print("Run validation first to generate a screenshot in exports/validation/")
         print(f"Screenshot must be less than {MAX_SCREENSHOT_AGE_SECONDS // 60} minutes old.")
         return 1
+
+    # Warn if .step or .stl is committed without a corresponding .3mf
+    # (printed components need 3MF for Bambu P1S/A1)
+    printable_files = [
+        f for f in staged
+        if Path(f).suffix.lower() in {".step", ".stl"}
+        and f.startswith("cad/components/")
+    ]
+    if printable_files:
+        missing_3mf = []
+        for pf in printable_files:
+            p = Path(pf)
+            threemf_path = p.with_suffix(".3mf")
+            # Check if the .3mf is staged or already exists on disk
+            threemf_str = str(threemf_path).replace("\\", "/")
+            project_root = Path(__file__).resolve().parent.parent
+            if threemf_str not in staged and not (project_root / threemf_path).exists():
+                missing_3mf.append(pf)
+        if missing_3mf:
+            print(f"WARNING: Printed component geometry without .3mf: {missing_3mf}")
+            print("Bambu P1S/A1 requires .3mf files for slicing. Generate with OrcaSlicer.")
+            # Warning only, do not block
 
     # MANDATORY: Run drawing orientation and component integrity tests
     # if ANY DXF or drawing-related files are staged

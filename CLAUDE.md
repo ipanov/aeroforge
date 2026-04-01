@@ -28,13 +28,14 @@ cad/
 ├── components/{category}/{ComponentName}/
 │   ├── ComponentName_drawing.dxf     # FIRST (2D drawing)
 │   ├── ComponentName_drawing.png     # PNG render of drawing
-│   ├── ComponentName.FCStd           # 3D model (AFTER drawing approval)
+│   ├── ComponentName.step            # 3D model (AFTER drawing approval)
+│   ├── ComponentName.3mf             # Print-ready file (REQUIRED for printed parts)
 │   ├── renders/                      # 4 views (isometric, front, top, right)
 │   └── COMPONENT_INFO.md
 └── assemblies/{category}/{AssemblyName}/
     ├── AssemblyName_drawing.dxf
     ├── AssemblyName_drawing.png
-    ├── AssemblyName.FCStd
+    ├── AssemblyName.step
     ├── renders/
     └── ASSEMBLY_INFO.md
 ```
@@ -116,22 +117,23 @@ transitions, and small features.**
 
 Four hooks enforce quality automatically:
 
-1. **PostToolUse** (`hooks/cad_post_execute.py`): After every FreeCAD execute_code:
+1. **PostToolUse** (`hooks/cad_post_execute.py`): After every Build123d/OCP Viewer operation:
    - Checks output for errors → BLOCKS if found (exit 2)
-   - Takes auto-screenshot → saves to exports/validation/
+   - Takes auto-screenshot via OCP Viewer → saves to exports/validation/
    - Prints all object dimensions
 
-2. **PreToolUse** (`hooks/cad_pre_execute.py`): Before every FreeCAD execute_code:
+2. **PreToolUse** (`hooks/cad_pre_execute.py`): Before every Build123d execute_code:
    - BLOCKS .scale() operations (destroys dimensions)
    - BLOCKS code > 500 lines (forces incremental building)
 
 3. **PreCommit** (`hooks/cad_pre_commit.py`): Before every git commit:
    - BLOCKS .FCBak and temp_* files
    - BLOCKS geometry commits without recent validation screenshots
+   - WARNS if .step or .stl is committed without a corresponding .3mf (printed parts need 3MF)
 
 4. **PreCommit** (`hooks/cad_structure_validate.py`): Before every git commit touching cad/:
-   - BLOCKS .FCStd without corresponding .dxf (drawing-first rule)
-   - BLOCKS .FCStd commit without 4 render views
+   - BLOCKS .step/.3mf without corresponding .dxf (drawing-first rule)
+   - BLOCKS .step/.3mf commit without 4 render views
    - BLOCKS renders commit without COMPONENT_INFO.md or ASSEMBLY_INFO.md
    - BLOCKS files with wrong naming conventions
    - Run standalone with `--all` flag to validate entire cad/ tree
@@ -142,8 +144,8 @@ CLAUDE.md rules are ADVISORY — they guide behavior but can be missed.
 ### Dual Quality Gates
 
 Every component must pass BOTH gates independently:
-- **Testing gate:** Dimensional assertions via pytest + FreeCAD RPC (deterministic)
-- **Validation gate:** Visual comparison of screenshots to reference (semantic)
+- **Testing gate:** Dimensional assertions via pytest + Build123d (deterministic)
+- **Validation gate:** Visual comparison of OCP Viewer screenshots to reference (semantic)
 
 ## MANDATORY: Assembly Validation (Collision & Containment)
 
@@ -170,6 +172,25 @@ Spars and rods are NOT straight cylinders placed in space. They must:
 - Be routed along the chord fraction at every span station (e.g., 25% chord line, 65% chord line)
 - The chord fraction line CURVES as the planform tapers — the spar follows this curve
 - Validate clearance at every 10mm span station
+
+## MANDATORY: No Experimental Geometry in Production Paths (Incident 005)
+
+**NEVER export experimental or in-progress geometry to production file paths.**
+
+Production paths are any path under `cad/components/` or `cad/assemblies/` that matches
+the canonical naming convention (e.g., `ComponentName.step`, `ComponentName.3mf`).
+
+### Rules
+1. **Experimental geometry** goes to `exports/` or a temp path -- NEVER to the component folder
+2. **Only validated, consensus-approved geometry** gets written to `cad/` production paths
+3. **If you are iterating** on a shape, use `exports/wip/` or `exports/validation/` as scratch space
+4. **The commit hooks will block** geometry without validation, but do not rely on hooks alone -- be disciplined about file paths from the start
+
+### Why This Exists
+
+Incident 005: Experimental geometry was exported directly to the production component
+folder, overwriting a validated model. The hooks caught it at commit time, but the
+validated file was already lost. Always write experiments to scratch paths first.
 
 ## MANDATORY: Complexity Philosophy (NEVER Simplify)
 
@@ -262,9 +283,18 @@ See `docs/specifications.md` for locked-in dimensions and weight budget.
 
 ### Two-Engine System
 - **Build123d** (Python, headless) - ALL 3D modeling, parametric design, assemblies
-- **FreeCAD 1.0+** (headless via FreeCADCmd) - FEM analysis (CalculiX), CFD (OpenFOAM)
-- Both share the OpenCascade (OCCT) kernel. STEP files interchange losslessly.
+- **OCP Viewer** (VS Code extension + MCP) - 3D visualization and screenshots
+- **FreeCAD 1.0+** (headless via FreeCADCmd) - FEM analysis ONLY (CalculiX solver)
+- Both Build123d and FreeCAD share the OpenCascade (OCCT) kernel. STEP files interchange losslessly.
 - FreeCAD path: C:\Users\ilija\AppData\Local\Programs\FreeCAD 1.0
+- **SU2** (planned) - GPU-accelerated CFD analysis on RTX 3070, replaces OpenFOAM
+
+### Screenshot Method (OCP Viewer)
+All 3D screenshots use OCP Viewer, never FreeCAD:
+```python
+from ocp_vscode import save_screenshot
+save_screenshot('exports/validation/component_view.png')
+```
 
 ### Dependency Graph System
 - **NetworkX DAG** for component dependency tracking
@@ -327,19 +357,19 @@ Even the smallest screw is a component.
 - **Pydantic** - Spec validation
 
 ### Analysis
-- **FreeCAD FEM** - Structural (CalculiX)
-- **CfdOF/OpenFOAM** - CFD aerodynamics
+- **FreeCAD FEM** - Structural analysis ONLY (CalculiX solver)
+- **SU2** (planned) - GPU-accelerated CFD on RTX 3070 (replaces OpenFOAM)
 - **xfoil** - 2D airfoil polars
 
 ### Manufacturing
 - **OrcaSlicer** CLI for headless slicing
-- **3MF** preferred export format
+- **3MF** REQUIRED export format for all printed components (Bambu P1S/A1)
 - See `docs/slicer_pipeline.md`
 
 ### MCP Servers
 - **context7** - Library docs
-- **freecad-mcp** (neka-nat) - FreeCAD RPC
-- **ocp-viewer-mcp** (dmilad) - Visual feedback
+- **ocp-viewer-mcp** (dmilad) - 3D visualization and screenshots (primary viewer)
+- **freecad-mcp** (neka-nat) - FreeCAD RPC (FEM analysis only)
 
 ## Project Structure
 
