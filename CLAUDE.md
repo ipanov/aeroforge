@@ -45,11 +45,12 @@ cad/
 1. **Research** -- reference images, datasheets, sub-parts identification
 2. **2D Drawing** -- create DXF + PNG, review and approve
 3. **3D Model** -- only after drawing approval, dimensions match drawing exactly
-4. **Assembly Validation** (assemblies only) -- collision detection, containment checks, spar routing verification using `src/cad/validation/assembly_check.py`. MUST PASS before proceeding.
-5. **Renders** -- 4 standard views saved to renders/ folder
-6. **Documentation** -- COMPONENT_INFO.md or ASSEMBLY_INFO.md
-7. **Validation** -- dimensional tests + visual comparison, both gates pass
-8. **Commit** -- only after all above steps complete
+4. **Mesh Generation** -- STEP → fine tessellation → geodesic ribs → 3MF (see Mesh Pipeline section)
+5. **Assembly Validation** (assemblies only) -- collision detection, containment checks, spar routing verification using `src/cad/validation/assembly_check.py`. MUST PASS before proceeding.
+6. **Renders** -- 4 standard views from MESH version, saved to renders/ folder
+7. **Documentation** -- COMPONENT_INFO.md or ASSEMBLY_INFO.md
+8. **Validation** -- dimensional tests + visual comparison, both gates pass
+9. **Commit** -- only after all above steps complete
 
 ### Error Handling
 - If a geometry check fails: fix the geometry, not the check
@@ -63,6 +64,38 @@ cad/
 - **Keep final validation artifacts** (they serve as visual documentation)
 - **Delete intermediate/failed artifacts** once the component passes validation
 - The `.gitignore` excludes temporary validation PNGs from git
+
+## MANDATORY: 3D Mesh Generation Pipeline
+
+**All printable components follow: STEP → STL → geodesic ribs → 3MF + renders.**
+
+### The Pipeline
+1. **STEP** (Build123d) -- parametric BREP model, the source of truth for geometry
+2. **Fine tessellation** (STL, 1 micrometer tolerance) -- high-fidelity triangle mesh from STEP
+3. **Geodesic ribs** (trimesh, +/-45 deg at 12mm spacing) -- structural lattice added to mesh
+4. **Export 3MF + renders** -- print-ready file and 4-view validation images
+
+### Scripts
+- `scripts/rebuild_all_meshes.py` -- regenerates all meshes from STEP files (STL + geodesic ribs + 3MF)
+- `scripts/render_all_mesh.py` -- generates 4-view renders (isometric, front, top, right) from mesh versions
+
+### Rules
+1. **ALL renders MUST be from the MESH version** (with geodesic ribs visible), NOT from BREP/STEP
+2. **Shells are shown transparent** (alpha=0.4-0.5) so internal structure (ribs, spars) is visible
+3. **Assembly renders** show all components together with color coding per component
+4. **3MF is THE deliverable** for printing, generated from the mesh -- never from STEP directly
+5. **NEVER use OCCT boolean operations on complex lofts** -- they hang indefinitely. Use mesh approach instead.
+6. **OrcaSlicer** is NOT required in the automated pipeline. Only for manual slicer estimates if needed.
+
+### Symmetric Components
+For symmetric assemblies (e.g., left/right stabilizer halves), only ONE component definition exists.
+The mirror is generated at assembly time in `rebuild_all_meshes.py`. Do NOT create separate
+Left/Right component folders for geometrically identical mirrored parts.
+
+### Feature Fading Rule
+Any cut feature (groove, channel, bore) near thin airfoil tips MUST fade to effectively zero
+(<=0.05mm depth) before the airfoil thickness drops below 2mm. Verify with cross-section analysis
+at multiple span stations. This prevents paper-thin walls that fail during printing.
 
 ## MANDATORY: Visual Validation After Every Change
 

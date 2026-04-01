@@ -1,5 +1,5 @@
 """
-HStab_Left 3D Model — v7 (Build123d)
+HStab 3D Model — v7 (Build123d)
 ======================================
 FULL PRECISION: Spline curves (not Polyline), full airfoil loft, boolean cut.
 - HT-13 (root) → HT-12 (tip) blended via arc-length resampling
@@ -101,7 +101,7 @@ def get_full_airfoil_section(y_sta):
 
 def main():
     print("=" * 60)
-    print("HStab_Left v7 — Build123d FULL PRECISION")
+    print("HStab v7 — Build123d FULL PRECISION")
     print("  Spline curves, full airfoil loft, boolean cut")
     print("=" * 60)
 
@@ -171,14 +171,14 @@ def main():
     # The elevator bull-nose nests into this groove
     # Tapers from root (deeper) to tip (shallower)
     SADDLE_DEPTH_ROOT = 2.5   # mm into stab body at root
-    SADDLE_DEPTH_TIP = 0.8    # mm at y=206 (last practical hinge station)
+    SADDLE_DEPTH_TIP = 0.05   # mm at y=206 — effectively zero (was 0.8, caused visible indentation)
     SADDLE_WIDTH_ROOT = 3.0   # mm in Z direction at root
-    SADDLE_WIDTH_TIP = 1.2    # mm at tip
+    SADDLE_WIDTH_TIP = 0.1    # mm at tip — effectively zero (spline needs non-degenerate shape)
     Y_SADDLE_END = 206.0      # saddle stops before airfoil gets too thin
 
-    print(f"\nHinge saddle groove (concave, tapered)...")
+    print(f"\nHinge saddle groove (concave, tapered to zero at tip)...")
     saddle_sections = []
-    saddle_ys = [FIN_HALF, 50, 100, 150, Y_MAIN_END, Y_SADDLE_END]
+    saddle_ys = [FIN_HALF, 50, 100, 150, Y_MAIN_END, 200, Y_SADDLE_END]
     for y_s in saddle_ys:
         t = (y_s - FIN_HALF) / (Y_SADDLE_END - FIN_HALF)
         depth = SADDLE_DEPTH_ROOT + t * (SADDLE_DEPTH_TIP - SADDLE_DEPTH_ROOT)
@@ -211,11 +211,11 @@ def main():
     print(f"  Saddle: depth {SADDLE_DEPTH_ROOT}->{SADDLE_DEPTH_TIP}mm, width {SADDLE_WIDTH_ROOT}->{SADDLE_WIDTH_TIP}mm")
 
     # === STEP 6: Export ===
-    d = "cad/components/empennage/HStab_Left"
+    d = "cad/components/empennage/HStab"
     os.makedirs(d, exist_ok=True)
 
-    step_path = f"{d}/HStab_Left.step"
-    stl_path = f"{d}/HStab_Left.stl"
+    step_path = f"{d}/HStab.step"
+    stl_path = f"{d}/HStab.stl"
     print(f"\nExporting STEP: {step_path}")
     export_step(stab, step_path)
     print(f"Exporting STL: {stl_path}")
@@ -224,7 +224,7 @@ def main():
     bb = stab.bounding_box()
     fv = stab.volume
     print(f"\n{'=' * 60}")
-    print(f"HStab_Left v7 FINAL")
+    print(f"HStab v7 FINAL")
     print(f"  Volume: {fv:.0f} mm3 ({fv / 1000:.2f} cm3)")
     print(f"  Mass (LW-PLA 0.75): {fv * 0.75 / 1000:.2f}g")
     print(f"  Mass (LW-PLA 0.50 foamed): {fv * 0.50 / 1000:.2f}g")
