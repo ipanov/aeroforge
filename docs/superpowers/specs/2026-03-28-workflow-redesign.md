@@ -1,8 +1,12 @@
 # AeroForge Workflow Redesign Spec
 
 **Date:** 2026-03-28
-**Status:** Approved
+**Status:** Approved (SUPPLEMENTED by `cad/CAD_FRAMEWORK.md` for folder organization and drawing-first workflow)
 **Context:** Full project reset after Incidents 001 & 002 (hollow shell wing, traditional balsa-kit ribs instead of 3D-print-optimized geodesic structure, no visual validation)
+
+> **NOTE (2026-03-28):** CAD folder structure and the mandatory drawing-first workflow
+> are now defined in `cad/CAD_FRAMEWORK.md` and enforced by `hooks/cad_structure_validate.py`.
+> This spec remains valid for the three-tool pipeline, vase-mode technique, and quality gates.
 
 ## Problem Statement
 

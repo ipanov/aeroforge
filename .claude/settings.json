@@ -7,6 +7,10 @@
           {
             "type": "command",
             "command": "python hooks/cad_post_execute.py"
+          },
+          {
+            "type": "command",
+            "command": "python hooks/assembly_validate.py"
           }
         ]
       }
@@ -56,6 +60,10 @@
           {
             "type": "command",
             "command": "python hooks/aero_consensus_check.py"
+          },
+          {
+            "type": "command",
+            "command": "python hooks/complexity_check.py"
           }
         ]
       }

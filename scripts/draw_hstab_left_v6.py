@@ -66,20 +66,33 @@ def main():
     root_hinge = D(X_HINGE, 0)
     msp.add_line(root_le, root_hinge, dxfattribs={"layer": "OUTLINE"})
 
-    # Tip: LE curve closes toward hinge at the tip
-    # The stab tip is where LE and hinge meet (or the cap zone)
-    arc_pts = tip_arc_points(n_pts=50)
-    # Only draw the portion of the tip that belongs to the stab (LE side of hinge)
-    stab_arc = [(cx, cy) for cx, cy in arc_pts if cx <= X_HINGE]
+    # Tip: use SAME Bezier curve as assembly drawing, clipped at hinge X=60
+    # The stab tip follows the assembly tip arc from LE endpoint to where it crosses X_HINGE
+    arc_pts = tip_arc_points(n_pts=80)
+    # Keep all points on the stab side (x <= X_HINGE), plus interpolate the crossing point
+    stab_arc = []
+    for i, (cx, cy) in enumerate(arc_pts):
+        if cx <= X_HINGE:
+            stab_arc.append((cx, cy))
+        else:
+            # Interpolate crossing point at X_HINGE
+            if i > 0 and arc_pts[i-1][0] <= X_HINGE:
+                px, py = arc_pts[i-1]
+                dx = cx - px
+                if dx > 1e-6:
+                    t = (X_HINGE - px) / dx
+                    cross_y = py + t * (cy - py)
+                    stab_arc.append((X_HINGE, cross_y))
+            break
+
     if stab_arc:
         stab_arc_d = [D(cx, cy) for cx, cy in stab_arc]
         for i in range(len(stab_arc_d)-1):
             msp.add_line(stab_arc_d[i], stab_arc_d[i+1], dxfattribs={"layer": "OUTLINE"})
 
-    # Connect last LE point to first hinge point if needed
-    if le_d and hinge_pts:
-        # Close the planform outline at the tip
-        pass  # The arc and hinge line should connect naturally
+        # Connect the arc endpoint (at X_HINGE) to the hinge line endpoint
+        if hinge_pts:
+            msp.add_line(stab_arc_d[-1], hinge_pts[-1], dxfattribs={"layer": "OUTLINE"})
 
     # Main spar
     msp.add_line(D(X_MAIN_SPAR, 0), D(X_MAIN_SPAR, Y_MAIN_END), dxfattribs={"layer": "SPAR"})

@@ -1,8 +1,14 @@
 # Enforcement Harness for CAD Validation
 
 **Date:** 2026-03-28
-**Status:** Approved
+**Status:** Approved (PARTIALLY SUPERSEDED by `cad/CAD_FRAMEWORK.md` for folder structure and workflow order)
 **Problem:** AI writes policies but never enforces them. Claims completion without verification. Produces garbage geometry without visual validation.
+
+> **NOTE (2026-03-28):** The CAD folder organization and drawing-first workflow rules
+> are now defined in `cad/CAD_FRAMEWORK.md` and enforced by `hooks/cad_structure_validate.py`.
+> The three-layer enforcement hooks described below remain active and unchanged.
+> Render screenshots now go to `cad/{components|assemblies}/{category}/{Name}/renders/`
+> in addition to the auto-screenshots in `exports/validation/`.
 
 ## Core Principle
 
