@@ -202,7 +202,7 @@ print(f"  7. Preview and check print path traces internal ribs")
 def print_build_plan():
     """Print the build execution plan."""
     print("=" * 60)
-    print("AEROFORGE GLIDER BUILD PLAN")
+    print("IVA AEROFORGE GLIDER BUILD PLAN")
     print("=" * 60)
     print()
     print("Phase 1: Right Half-Wing (5 vase-mode panels)")

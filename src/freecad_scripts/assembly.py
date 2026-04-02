@@ -1,4 +1,4 @@
-"""FreeCAD code generator for full glider assembly.
+"""FreeCAD code generator for the Iva Aeroforge full glider assembly.
 
 Combines all components into a single FreeCAD document:
 - Wing (5 panels per half, mirrored for full wingspan)
@@ -55,10 +55,10 @@ import FreeCADGui
 # Target AUW: 750-850g
 # ════════════════════════════════════════════════════════════
 
-doc = FreeCAD.newDocument("AeroForge_Sailplane")
-FreeCAD.setActiveDocument("AeroForge_Sailplane")
+doc = FreeCAD.newDocument("Iva_Aeroforge")
+FreeCAD.setActiveDocument("Iva_Aeroforge")
 
-print("Building AeroForge Sailplane assembly...")
+print("Building Iva Aeroforge assembly...")
 print("=" * 50)
 
 # ── CG AND MASS TRACKING ──

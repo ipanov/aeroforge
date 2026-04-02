@@ -3,9 +3,20 @@
     "freecad": {
       "command": "uvx",
       "args": [
-        "--python", "3.12",
-        "freecad-mcp"
+        "--python",
+        "3.12",
+        "freecad-mcp",
+        "--only-text-feedback"
       ]
+    },
+    "stgen-dxf-viewer": {
+      "command": "node",
+      "args": [
+        "c:\\Users\\ilija\\.vscode\\extensions\\jeil-structuralengineering-consultants.stgen-0.2.2\\media\\mcp-server.js"
+      ],
+      "env": {
+        "STGEN_MCP_PORT": "52789"
+      }
     }
   },
   "_comment": "FreeCAD MCP server connects to FreeCAD GUI via XML-RPC on port 9875",

@@ -46,17 +46,15 @@ htmlcov/
 .cadquery/
 .build123d/
 
-# Large binary files (use Git LFS for these if needed)
-*.stl
-*.step
-*.stp
-*.3mf
-*.amf
-*.obj
-*.brep
-
-# Keep example exports
-!exports/
+# Large binary files — only in exports/ scratch space
+# cad/ production files (.step, .stl, .3mf) are NOT ignored — they are tracked deliverables
+exports/**/*.stl
+exports/**/*.step
+exports/**/*.stp
+exports/**/*.3mf
+exports/**/*.amf
+exports/**/*.obj
+exports/**/*.brep
 
 # FreeCAD
 *.FCStd
@@ -70,6 +68,9 @@ desktop.ini
 
 # Logs
 *.log
+
+# Local package-manager cache
+ChocolateyHttpCache/
 
 # Local config
 .env
