@@ -111,6 +111,37 @@ AssemblyName/
 4. Save both to the component/assembly folder
 5. **STOP: Drawing must be reviewed and approved before proceeding**
 
+### Drawing Composition Rules (MANDATORY)
+
+These are not optional style preferences. They are part of the acceptance criteria for any drawing.
+
+1. **Use true orthographic projection layout.**
+2. **Top, front, and side views must be aligned by projection.**
+3. **Views of the same object on one sheet must share the same scale unless a detail view is explicitly labeled with a different scale.**
+4. **Long-span parts on landscape sheets must normally be drawn horizontally.**
+5. **Wing assembly sheets must show:**
+   - top view with span horizontal
+   - front view with the same span scale as the top view
+   - side/profile or section/profile view clearly labeled
+6. **Do not rotate a wing planform vertically on a landscape sheet just to make it fit.**
+7. **Dimension placement must support manufacturing clarity and must not break the projection logic of the sheet.**
+8. **A drawing can be geometrically correct and still be rejected for bad sheet composition.**
+
+### Drawing Approval Gate
+
+A drawing is **not approved** unless it passes both:
+
+1. **Geometry gate** — the shape/dimensions match the consensus/spec
+2. **Composition gate** — the orthographic sheet layout is professional and readable
+
+Examples of composition-gate failure:
+
+- top and front views using different apparent span scales
+- wing drawn vertically on a landscape sheet without justification
+- views dropped arbitrarily on the page instead of aligned by projection
+- oversized empty fields with undersized primary views
+- side/profile details shown without clear scale labeling
+
 ### Phase 2: 3D Model
 6. Only after drawing approval: create 3D model in FreeCAD
 7. Model dimensions MUST match the drawing exactly

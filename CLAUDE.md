@@ -146,6 +146,52 @@ caught the slope discontinuity on iteration 1.
 **Rule: If you can't see it clearly at full scale, ZOOM IN. Always zoom into tips,
 transitions, and small features.**
 
+## MANDATORY: Engineering Drawing Composition Rules
+
+**2D drawings must read like professional orthographic engineering blueprints, not like plotted geometry.**
+
+These rules are based on established multiview drafting practice (ASME Y14.3 / Y14.2 and ISO orthographic sheet conventions):
+
+### Required composition rules
+
+1. **Orthographic views must be true projections**, not decorative placements.
+2. **Primary views must align by projection**:
+   - top view aligned vertically/horizontally with front view
+   - side/profile view aligned with the related front/top geometry
+3. **Views that represent the same object on one sheet must use the same scale unless explicitly labeled otherwise.**
+4. **If a different scale is needed for a detail/profile/section, it must be called out explicitly in the title of that view.**
+5. **For landscape sheets, long-span aircraft parts (wing, fuselage side view, boom, spar layouts) must be arranged horizontally unless a rotated layout is dimensionally necessary and clearly justified.**
+6. **The wing top view and wing front view must share the same span scale on a given sheet.**
+7. **Never place a wing planform vertically on a landscape drawing sheet when the same geometry can be shown horizontally with aligned orthographic views.**
+8. **Use sheet space intentionally**:
+   - primary view largest and dominant
+   - companion orthographic views placed in standard relation
+   - sections/details grouped cleanly away from the primary view
+   - avoid huge empty areas and avoid views touching the border/grid frame
+9. **Dimensions must follow the geometry orientation**, not the page convenience.
+10. **If a sheet fails a basic machinist/manual-drafter common-sense check, it is not approved even if the geometry itself is correct.**
+
+### Wing-specific rules
+
+For wing drawings, the minimum acceptable assembly sheet is:
+
+- **Top view** with span horizontal
+- **Front view** with the same span scale as the top view
+- **Side/profile view** or section/profile view clearly labeled and scaled
+- panel/joint stations, spar lines, hinge lines, and major dimensions placed without crowding
+
+### Review questions before approval
+
+Before approving any drawing, explicitly ask:
+
+- Do the top and front views match in span scale?
+- Are the views aligned like real orthographic projections?
+- Is the longest geometry laid out in the direction that best fits the sheet?
+- Would this sheet look normal to a mechanical drafter from a professional blueprint office?
+- Are any views rotated or scaled in a way that breaks projection logic?
+
+If any answer is no, fix the drawing layout before proceeding.
+
 ## MANDATORY: Enforcement Hooks (Deterministic, Cannot Skip)
 
 Four hooks enforce quality automatically:
