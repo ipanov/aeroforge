@@ -39,7 +39,7 @@ cad/
     │   └── Empennage_Assembly/
     ├── wing/
     │   └── Wing_Left_Assembly/
-    └── AeroForge_Sailplane/  # Top-level assembly (just another assembly)
+    └── Iva_Aeroforge/        # Top-level assembly (just another assembly)
 ```
 
 ### Component Folder (Required Files)

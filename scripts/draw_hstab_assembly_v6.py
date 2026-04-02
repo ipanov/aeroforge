@@ -52,9 +52,9 @@ def draw_half(msp, sign):
 def main():
     doc = setup_drawing(
         title="HStab_Assembly",
-        subtitle="Full H-Stab v6: single spar, concealed hinge@X=60, 45% elevator. 430mm span.",
+        subtitle="Full H-Stab integration candidate: single spar, concealed hinge@X=60, 45% elevator. 430mm span.",
         material="See component drawings for individual materials",
-        mass="29.33g total", scale="1:1", sheet_size="A1", status="FOR APPROVAL", revision="v6",
+        mass="31-33g candidate", scale="1:1", sheet_size="A1", status="FOR APPROVAL", revision="v6a",
     )
     msp = doc.modelspace()
 
@@ -98,7 +98,7 @@ def main():
                      dxfattribs={"layer": "HIDDEN"})
     msp.add_line(D_assy(X_MAIN_SPAR, -FIN_HALF), D_assy(X_MAIN_SPAR, +FIN_HALF),
                  dxfattribs={"layer": "HIDDEN"})
-    msp.add_text("MAIN SPAR  3mm CF tube  X=34.5  378mm (ONLY SPAR)", height=1.8,
+    msp.add_text("MAIN SPAR  3mm CF tube  X=34.5  385mm (ONLY SPAR)", height=1.8,
                  dxfattribs={"layer": "TEXT"}).set_placement(
         (D_assy(X_MAIN_SPAR, Y_CAP_END + 5)[0], D_assy(X_MAIN_SPAR, Y_CAP_END + 5)[1] + 2))
 
@@ -109,7 +109,7 @@ def main():
                      dxfattribs={"layer": "CENTERLINE"})
     msp.add_line(D_assy(X_HINGE, -FIN_HALF), D_assy(X_HINGE, +FIN_HALF),
                  dxfattribs={"layer": "HIDDEN"})
-    msp.add_text("HINGE  0.5mm wire  X=60.0  concealed saddle  424mm", height=1.8,
+    msp.add_text("HINGE  0.5mm wire  X=60.0  concealed saddle  440mm", height=1.8,
                  dxfattribs={"layer": "TEXT"}).set_placement(
         (D_assy(X_HINGE, Y_CAP_END + 5)[0], D_assy(X_HINGE, Y_CAP_END + 5)[1] + 2))
 
@@ -224,17 +224,15 @@ def main():
     # Notes
     notes = [
         "NOTES:",
-        "1. Full span: 430mm (214mm tip each half + 7mm fin). All dims mm.",
+        "1. Approved v6 baseline: 430mm span (215mm half-span + 7mm fin gap zone). All dims mm.",
         "2. Superellipse n=2.3 planform with C1-continuous tip cap y=210-214.",
-        "3. 45%-chord ref X=51.75 is straight. Spar straight + perpendicular to fin CL.",
-        "4. SINGLE SPAR: 3mm CF tube, X=34.5 (30% chord = max thickness), 378mm total.",
-        "   No rear spar, no stiffener (removed in v6 — D-box torsion adequate).",
-        "5. HINGE: Concealed saddle at X=60.0 (52% chord). 0.5mm wire, 424mm.",
-        "   Bull-nose elevator LE nests into concave stab TE channel.",
-        "6. Elevator area: 176.6 cm2 (45% root chord). +54% vs v5.",
+        "3. 45%-chord ref X=53.1 is straight. Spar straight + perpendicular to fin CL.",
+        "4. SINGLE SPAR: 3mm CF tube, X=34.5, 385mm total. No rear spar, no stiffener.",
+        "5. HINGE: Concealed saddle at X=60.0. 0.5mm wire, 440mm. Bull-nose nests into stab TE channel.",
+        "6. Root chord 118mm. Area ~4.21 dm^2. Active aircraft tail-volume target ~0.42.",
         "7. Gap seal TBD. No visible gap at any deflection angle.",
         "8. VStab junction: 9.2mm fillet, quartic, C2. Dovetail interlock + CA.",
-        "9. Total mass: 29.33g. Hard limit: 35g.",
+        "9. Candidate mass target: 31-33g with same construction family.",
     ]
     nx = sc_x; ny = sc_y - 40
     for i, n in enumerate(notes):

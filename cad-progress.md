@@ -18,6 +18,7 @@
 |----------|--------|---------|-------|---------|------|-------|
 | HStab_Assembly | cad/assemblies/empennage/HStab_Assembly | -- | -- | -- | -- | Empty folder |
 | Empennage_Assembly | cad/assemblies/empennage/Empennage_Assembly | -- | -- | -- | -- | Empty folder |
+| Iva_Aeroforge | cad/assemblies/Iva_Aeroforge | DRAWING | -- | -- | -- | Top-level aircraft wrapper |
 
 ## Migration Needed
 

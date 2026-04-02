@@ -1,5 +1,33 @@
 # AeroForge Sailplane Specifications
 
+## Authority Note
+
+This document is a framework-level baseline, not the final authority for an
+active aircraft under refinement.
+
+For the current glider program, the authoritative values are the active
+assembly-level `DESIGN_CONSENSUS.md` files:
+- `cad/assemblies/Iva_Aeroforge/DESIGN_CONSENSUS.md`
+- `cad/assemblies/wing/Wing_Assembly/DESIGN_CONSENSUS.md`
+- `cad/assemblies/fuselage/Fuselage_Assembly/DESIGN_CONSENSUS.md`
+- `cad/assemblies/empennage/HStab_Assembly/DESIGN_CONSENSUS.md`
+
+When this file disagrees with an active assembly consensus, the assembly
+consensus wins.
+
+## Parent-Drawing Policy
+
+Whole-aircraft and parent-level assembly drawings must include off-the-shelf
+components as **engineering envelopes only** for:
+- packaging
+- CG accounting
+- cooling / routing
+- interference checks
+
+The project does **not** create owned manufacturing drawings for vendor parts
+such as batteries, motors, ESCs, receivers, servos, spinners, or propellers at
+this stage.
+
 ## Baseline Dimensions
 
 | Parameter | Value | Notes |

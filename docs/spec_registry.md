@@ -10,6 +10,14 @@ or derive from it. If there's ever a conflict, specifications.md wins.
 
 ## Parameter Map
 
+### Top-Level Aircraft Name
+- `docs/specifications.md` — top-level aircraft identity
+- `src/core/specs.py` — `SailplaneSpec.name`
+- `CLAUDE.md` — project structure / top-level assembly reference
+- `cad/CAD_FRAMEWORK.md` — top-level assembly example
+- `scripts/draw_iva_assembly.py` — aircraft-level drawing target
+- `cad/assemblies/Iva_Aeroforge/` — aircraft-level assembly folder
+
 ### Wingspan
 - `docs/specifications.md` — primary definition
 - `CLAUDE.md` — quick reference table

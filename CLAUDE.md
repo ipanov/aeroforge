@@ -465,7 +465,7 @@ aeroforge/
 │   └── assemblies/             # Multi-piece assemblies
 │       ├── empennage/
 │       ├── wing/
-│       └── AeroForge_Sailplane/  # Top-level (just another assembly)
+│       └── Iva_Aeroforge/        # Top-level (just another assembly)
 ├── src/
 │   ├── core/                   # Component framework & DAG
 │   │   ├── component.py        # Base Component, OffShelf, Custom classes

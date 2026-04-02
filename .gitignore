@@ -69,6 +69,9 @@ desktop.ini
 # Logs
 *.log
 
+# Local package-manager cache
+ChocolateyHttpCache/
+
 # Local config
 .env
 .env.local

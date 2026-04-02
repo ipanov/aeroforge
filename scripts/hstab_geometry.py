@@ -15,26 +15,26 @@ import os
 import numpy as np
 from numpy import interp as np_interp
 
-# === v5 Consensus Parameters ===
+# === v6 Consensus Parameters ===
 HALF_SPAN = 215.0
 ROOT_CHORD = 115.0
 N_EXP = 2.3
 REF_FRAC = 0.45
 REF_X = ROOT_CHORD * REF_FRAC   # 51.75mm
 
-# v6 parameters (R4: single spar, forward hinge, concealed saddle)
-X_MAIN_SPAR = 34.5   # 30.0% root chord — exact max-thickness point
-X_HINGE = 60.0        # 52.2% root chord — concealed saddle hinge (was 74.75 in v5)
+# v6 parameters (approved baseline: single spar, forward hinge, concealed saddle)
+X_MAIN_SPAR = 34.5
+X_HINGE = 60.0
 
 # v5 legacy (REMOVED in v6 — kept as comments for reference)
 # X_REAR_SPAR = 69.0  # REMOVED: rear spar eliminated in v6
 # X_STIFF = 92.0       # REMOVED: elevator stiffener eliminated in v6
 
-D_MAIN = 3.1           # bore diameter for 3mm CF tube
-D_HINGE = 0.6          # bore diameter for 0.5mm wire (PETG sleeve)
+D_MAIN = 3.1
+D_HINGE = 0.6
 
-Y_MAIN_END = 189.0     # spar tube terminates (was 186 in v5)
-Y_HINGE_END = 212.0    # hinge wire terminates (was 203 in v5)
+Y_MAIN_END = 189.0
+Y_HINGE_END = 212.0
 
 T_ROOT = 0.065
 T_TIP = 0.051
@@ -48,13 +48,13 @@ FIN_HALF = 3.5    # VStab fin half-thickness (7mm total)
 FIN_GAP = 0.5     # clearance each side
 
 # Tip arc: polylines stop here, remaining tip closed with ellipse arc entity
-Y_TIP_ARC_START = 210.0   # polylines STOP here; remaining 4mm closed with ellipse arc
+Y_TIP_ARC_START = 219.0   # polylines STOP here; remaining 4mm closed with ellipse arc
                           # chord at y=210 is ~32mm — arc is 4mm × 16mm, clearly visible
 
 # Horn parameters
-Y_HORN_START = 195.0
-Y_LAST_KNUCKLE = 200.0
-POCKET_Y_CENTER = 200.0
+Y_HORN_START = 203.0
+Y_LAST_KNUCKLE = 208.0
+POCKET_Y_CENTER = 208.0
 POCKET_SPAN = 10.0
 POCKET_CHORD = 6.5
 POCKET_DEPTH = 1.5
