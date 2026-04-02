@@ -489,7 +489,7 @@ $SKPOLY
   9
 $TDCREATE
  40
-2461133.370023148
+2461133.3775925925
   9
 $TDUCREATE
  40
@@ -497,7 +497,7 @@ $TDUCREATE
   9
 $TDUPDATE
  40
-2461133.370023148
+2461133.3775925925
   9
 $TDUUPDATE
  40
@@ -549,7 +549,7 @@ $SPLINESEGS
   9
 $HANDSEED
   5
-16F
+160
   9
 $SURFTAB1
  70
@@ -929,11 +929,11 @@ $PSTYLEMODE
   9
 $FINGERPRINTGUID
   2
-{86533C8F-F6A7-428C-9BDC-34B1BB88E7F6}
+{33551429-82D6-4FB9-985E-29457EF443DE}
   9
 $VERSIONGUID
   2
-{FC38CD77-A04E-4EB0-B3FB-B8D30B69A3A4}
+{FCE5A7FC-C376-45D7-AF7E-14A1AAFB2DC6}
   9
 $EXTNAMES
 290
@@ -1323,9 +1323,9 @@ ISM
   0
 CLASS
   1
-LAYOUT
+ACDBPLACEHOLDER
   2
-AcDbLayout
+AcDbPlaceHolder
   3
 ObjectDBX Classes
  90
@@ -1339,9 +1339,9 @@ ObjectDBX Classes
   0
 CLASS
   1
-ACDBPLACEHOLDER
+LAYOUT
   2
-AcDbPlaceHolder
+AcDbLayout
   3
 ObjectDBX Classes
  90
@@ -3373,7 +3373,7 @@ ACAD
   0
 APPID
   5
-16C
+15D
 330
 3
 100
@@ -3387,7 +3387,7 @@ HATCHBACKGROUNDCOLOR
   0
 APPID
   5
-16D
+15E
 330
 3
 100
@@ -5225,7 +5225,7 @@ BLOCK_RECORD
 100
 AcDbSymbolTable
  70
-7
+6
   0
 BLOCK_RECORD
   5
@@ -5338,26 +5338,6 @@ AcDbSymbolTableRecord
 AcDbBlockTableRecord
   2
 *D1
-340
-0
- 70
-0
-280
-1
-281
-0
-  0
-BLOCK_RECORD
-  5
-151
-330
-9
-100
-AcDbSymbolTableRecord
-100
-AcDbBlockTableRecord
-  2
-*D2
 340
 0
  70
@@ -5900,246 +5880,6 @@ ENDBLK
 144
 330
 142
-100
-AcDbEntity
-  8
-0
-100
-AcDbBlockEnd
-  0
-BLOCK
-  5
-152
-330
-151
-100
-AcDbEntity
-  8
-0
-100
-AcDbBlockBegin
-  2
-*D2
- 70
-1
- 10
-0.0
- 20
-0.0
- 30
-0.0
-  3
-*D2
-  1
-
-  0
-LINE
-  5
-154
-330
-151
-100
-AcDbEntity
-  8
-0
-100
-AcDbLine
- 10
-560.0
- 20
-424.875
- 30
-0.0
- 11
-560.0
- 21
-418.625
- 31
-0.0
-  0
-LINE
-  5
-155
-330
-151
-100
-AcDbEntity
-  8
-0
-100
-AcDbLine
- 10
-610.0
- 20
-424.875
- 30
-0.0
- 11
-610.0
- 21
-418.625
- 31
-0.0
-  0
-INSERT
-  5
-156
-330
-151
-100
-AcDbEntity
-  8
-DIMENSION
-100
-AcDbBlockReference
-  2
-_ARCHTICK
- 10
-560.0
- 20
-419.0
- 30
-0.0
- 41
-0.175
- 42
-0.175
- 50
-180.0
-  0
-INSERT
-  5
-158
-330
-151
-100
-AcDbEntity
-  8
-DIMENSION
-100
-AcDbBlockReference
-  2
-_ARCHTICK
- 10
-610.0
- 20
-419.0
- 30
-0.0
- 41
-0.175
- 42
-0.175
-  0
-LINE
-  5
-15A
-330
-151
-100
-AcDbEntity
-  8
-0
-100
-AcDbLine
- 10
-560.0
- 20
-419.0
- 30
-0.0
- 11
-610.0
- 21
-419.0
- 31
-0.0
-  0
-MTEXT
-  5
-15B
-330
-151
-100
-AcDbEntity
-  8
-DIMENSION
-100
-AcDbMText
- 10
-585.0
- 20
-419.225
- 30
-0.0
- 40
-0.25
- 71
-5
-  1
-5000
-  7
-OpenSansCondensed-Light
-  0
-POINT
-  5
-15C
-330
-151
-100
-AcDbEntity
-  8
-Defpoints
-100
-AcDbPoint
- 10
-560.0
- 20
-419.0
- 30
-0.0
-  0
-POINT
-  5
-15D
-330
-151
-100
-AcDbEntity
-  8
-Defpoints
-100
-AcDbPoint
- 10
-560.0
- 20
-425.0
- 30
-0.0
-  0
-POINT
-  5
-15E
-330
-151
-100
-AcDbEntity
-  8
-Defpoints
-100
-AcDbPoint
- 10
-610.0
- 20
-425.0
- 30
-0.0
-  0
-ENDBLK
-  5
-153
-330
-151
 100
 AcDbEntity
   8
@@ -8783,7 +8523,7 @@ AcDbText
  40
 1.8
   1
-Scale: 1:2 | Units: mm | Date: 2026-03-30 | Mass: ~91g excl. VStab skin | Rev: v0 | Status: FOR ITERATION
+Scale: 1:2 | Units: mm | Date: 2026-03-30 | Mass: ~91g excl. VStab skin | Rev: v1 | Status: FOR ITERATION
  11
 664.0
  21
@@ -9151,7 +8891,7 @@ AcDbText
  10
 45.0
  20
-525.0
+508.0
  30
 0.0
  40
@@ -9161,7 +8901,7 @@ SIDE VIEW — FUSELAGE ASSEMBLY (1:2)
  11
 45.0
  21
-525.0
+508.0
  31
 0.0
 100
@@ -9181,7 +8921,7 @@ AcDbText
  10
 45.0
  20
-345.0
+328.0
  30
 0.0
  40
@@ -9191,7 +8931,7 @@ TOP VIEW — FUSELAGE ASSEMBLY (1:2)
  11
 45.0
  21
-345.0
+328.0
  31
 0.0
 100
@@ -10241,9 +9981,9 @@ TEXT
 100
 AcDbText
  10
-167.0
+165.0
  20
-454.5
+455.5
  30
 0.0
  40
@@ -10251,9 +9991,9 @@ AcDbText
   1
 Wing LE
  11
-167.0
+165.0
  21
-454.5
+455.5
  31
 0.0
 100
@@ -10295,9 +10035,9 @@ TEXT
 100
 AcDbText
  10
-212.0
+210.0
  20
-452.5
+453.5
  30
 0.0
  40
@@ -10305,9 +10045,9 @@ AcDbText
   1
 Servo bay
  11
-212.0
+210.0
  21
-452.5
+453.5
  31
 0.0
 100
@@ -10349,9 +10089,9 @@ TEXT
 100
 AcDbText
  10
-362.0
+360.0
  20
-449.25
+450.25
  30
 0.0
  40
@@ -10359,9 +10099,9 @@ AcDbText
   1
 Boom/fin blend
  11
-362.0
+360.0
  21
-449.25
+450.25
  31
 0.0
 100
@@ -10403,9 +10143,9 @@ TEXT
 100
 AcDbText
  10
-470.0
+468.0
  20
-487.25
+488.25
  30
 0.0
  40
@@ -10413,9 +10153,9 @@ AcDbText
   1
 Fin root
  11
-470.0
+468.0
  21
-487.25
+488.25
  31
 0.0
 100
@@ -10457,9 +10197,9 @@ TEXT
 100
 AcDbText
  10
-492.5
+490.5
  20
-482.25
+483.25
  30
 0.0
  40
@@ -10467,9 +10207,9 @@ AcDbText
   1
 HStab pivot
  11
-492.5
+490.5
  21
-482.25
+483.25
  31
 0.0
 100
@@ -10487,9 +10227,9 @@ TEXT
 100
 AcDbText
  10
-107.0
+105.0
  20
-470.0
+478.0
  30
 0.0
  40
@@ -10497,9 +10237,9 @@ AcDbText
   1
 Battery max section at X=150
  11
-107.0
+105.0
  21
-470.0
+478.0
  31
 0.0
 100
@@ -10517,9 +10257,9 @@ TEXT
 100
 AcDbText
  10
-175.0
+170.0
  20
-374.0
+366.0
  30
 0.0
  40
@@ -10527,9 +10267,9 @@ AcDbText
   1
 Wing saddle / spar tunnel at X=260
  11
-175.0
+170.0
  21
-374.0
+366.0
  31
 0.0
 100
@@ -10547,9 +10287,9 @@ TEXT
 100
 AcDbText
  10
-375.0
+363.0
  20
-485.0
+488.0
  30
 0.0
  40
@@ -10557,9 +10297,9 @@ AcDbText
   1
 Integrated fin from X=650-1046
  11
-375.0
+363.0
  21
-485.0
+488.0
  31
 0.0
 100
@@ -10619,7 +10359,7 @@ AcDbAlignedDimension
 100
 AcDbRotatedDimension
   0
-DIMENSION
+TEXT
   5
 150
 330
@@ -10627,67 +10367,13 @@ DIMENSION
 100
 AcDbEntity
   8
-DIMENSION
-100
-AcDbDimension
-280
-0
-  2
-*D2
-  3
-EZDXF
- 10
-560.0
- 20
-419.0
- 30
-0.0
- 11
-585.0
- 21
-419.225
- 31
-0.0
- 70
-32
- 71
-5
-  1
-<>
-100
-AcDbAlignedDimension
- 13
-560.0
- 23
-425.0
- 33
-0.0
- 14
-610.0
- 24
-425.0
- 34
-0.0
- 50
-0.0
-100
-AcDbRotatedDimension
-  0
-TEXT
-  5
-15F
-330
-17
-100
-AcDbEntity
-  8
 TEXT
 100
 AcDbText
  10
-532.0
+567.0
  20
-461.0
+456.0
  30
 0.0
  40
@@ -10695,9 +10381,9 @@ AcDbText
   1
 SEC A — Motor Face
  11
-532.0
+567.0
  21
-461.0
+456.0
  31
 0.0
 100
@@ -10705,7 +10391,7 @@ AcDbText
   0
 ELLIPSE
   5
-160
+151
 330
 17
 100
@@ -10715,9 +10401,9 @@ OUTLINE
 100
 AcDbEllipse
  10
-560.0
+595.0
  20
-435.0
+430.0
  30
 0.0
  11
@@ -10735,7 +10421,7 @@ AcDbEllipse
   0
 LINE
   5
-161
+152
 330
 17
 100
@@ -10745,21 +10431,21 @@ CENTERLINE
 100
 AcDbLine
  10
-560.0
+595.0
  20
-422.0
+417.0
  30
 0.0
  11
-560.0
+595.0
  21
-448.0
+443.0
  31
 0.0
   0
 LINE
   5
-162
+153
 330
 17
 100
@@ -10769,21 +10455,21 @@ CENTERLINE
 100
 AcDbLine
  10
-547.0
+582.0
  20
-435.0
+430.0
  30
 0.0
  11
-573.0
+608.0
  21
-435.0
+430.0
  31
 0.0
   0
 TEXT
   5
-163
+154
 330
 17
 100
@@ -10793,9 +10479,9 @@ TEXT
 100
 AcDbText
  10
-642.0
+687.0
  20
-464.0
+459.0
  30
 0.0
  40
@@ -10803,9 +10489,9 @@ AcDbText
   1
 SEC B — Max Section
  11
-642.0
+687.0
  21
-464.0
+459.0
  31
 0.0
 100
@@ -10813,7 +10499,7 @@ AcDbText
   0
 ELLIPSE
   5
-164
+155
 330
 17
 100
@@ -10823,9 +10509,9 @@ OUTLINE
 100
 AcDbEllipse
  10
-670.0
+715.0
  20
-435.0
+430.0
  30
 0.0
  11
@@ -10843,7 +10529,7 @@ AcDbEllipse
   0
 LINE
   5
-165
+156
 330
 17
 100
@@ -10853,21 +10539,21 @@ CENTERLINE
 100
 AcDbLine
  10
-670.0
+715.0
  20
-419.0
+414.0
  30
 0.0
  11
-670.0
+715.0
  21
-451.0
+446.0
  31
 0.0
   0
 LINE
   5
-166
+157
 330
 17
 100
@@ -10877,21 +10563,21 @@ CENTERLINE
 100
 AcDbLine
  10
-652.5
+697.5
  20
-435.0
+430.0
  30
 0.0
  11
-687.5
+732.5
  21
-435.0
+430.0
  31
 0.0
   0
 TEXT
   5
-167
+158
 330
 17
 100
@@ -10901,9 +10587,9 @@ TEXT
 100
 AcDbText
  10
-532.0
+567.0
  20
-351.5
+346.5
  30
 0.0
  40
@@ -10911,9 +10597,9 @@ AcDbText
   1
 SEC C — Wing LE Joint
  11
-532.0
+567.0
  21
-351.5
+346.5
  31
 0.0
 100
@@ -10921,7 +10607,7 @@ AcDbText
   0
 ELLIPSE
   5
-168
+159
 330
 17
 100
@@ -10931,9 +10617,9 @@ OUTLINE
 100
 AcDbEllipse
  10
-560.0
+595.0
  20
-325.0
+320.0
  30
 0.0
  11
@@ -10951,7 +10637,7 @@ AcDbEllipse
   0
 LINE
   5
-169
+15A
 330
 17
 100
@@ -10961,21 +10647,21 @@ CENTERLINE
 100
 AcDbLine
  10
-560.0
+595.0
  20
-311.5
+306.5
  30
 0.0
  11
-560.0
+595.0
  21
-338.5
+333.5
  31
 0.0
   0
 LINE
   5
-16A
+15B
 330
 17
 100
@@ -10985,21 +10671,21 @@ CENTERLINE
 100
 AcDbLine
  10
-545.5
+580.5
  20
-325.0
+320.0
  30
 0.0
  11
-574.5
+609.5
  21
-325.0
+320.0
  31
 0.0
   0
 TEXT
   5
-16B
+15C
 330
 17
 100
@@ -12117,7 +11803,7 @@ CREATED_BY_EZDXF
   3
 WRITTEN_BY_EZDXF
 350
-16E
+15F
   0
 DICTIONARYVAR
   5
@@ -12129,7 +11815,7 @@ DictionaryVariables
 280
 0
   1
-1.4.3 @ 2026-04-02T06:52:50.131887+00:00
+1.4.3 @ 2026-04-02T07:03:44.878850+00:00
   0
 VISUALSTYLE
   5
@@ -12833,7 +12519,7 @@ X-Ray
   0
 DICTIONARYVAR
   5
-16E
+15F
 330
 2D
 100
@@ -12841,7 +12527,7 @@ DictionaryVariables
 280
 0
   1
-1.4.3 @ 2026-04-02T06:52:50.143888+00:00
+1.4.3 @ 2026-04-02T07:03:44.888851+00:00
   0
 ENDSEC
   0
