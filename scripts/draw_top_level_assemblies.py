@@ -30,6 +30,21 @@ CHORD_SPANS = [0, 256, 512, 640, 768, 896, 1024, 1152, 1216, 1280]
 CHORD_VALUES = [210, 204, 198, 192, 186, 180, 168, 156, 144, 115]
 PANEL_NAMES = ["P1", "P2", "P3", "P4", "P5"]
 POLYHEDRAL_LABELS = ["0.0°", "0.0°", "1.5°", "2.5°", "7.0°"]
+FUSELAGE_GAP = 38.0
+MAIN_SPAR_FRAC = 0.25
+REAR_SPAR_FRAC = 0.60
+HINGE_FRAC = 0.72
+MAIN_SPAR_HALF_LEN = 1024.0
+MAIN_SPAR_TIP_LEN = 256.0
+REAR_SPAR_HALF_LEN = 1024.0
+FLAP_END = 768.0
+AILERON_START = 768.0
+SERVO_STATIONS = [
+    ("FLAP SERVO P1", 128.0, 0.35, 23.0, 11.0),
+    ("FLAP SERVO P3", 640.0, 0.35, 23.0, 11.0),
+    ("AILERON SERVO P4", 896.0, 0.35, 23.0, 11.0),
+    ("AILERON SERVO P5", 1152.0, 0.30, 20.0, 10.0),
+]
 
 FUSELAGE_XSECTIONS = [
     (0, 0, 0),
@@ -91,56 +106,109 @@ def add_airfoil_outline(msp, cx: float, cy: float, chord: float, thickness: floa
     msp.add_lwpolyline(pts, close=True, dxfattribs={"layer": layer})
 
 
-def add_wing_top_view(msp, x0: float, y0: float, scale: float, full: bool) -> None:
+def _draw_single_half_top_view(msp, x_root: float, y_le: float, scale: float, direction: int, show_servos: bool) -> None:
+    """Draw one wing half in plan view with span horizontal."""
+    last_le = None
+    last_te = None
+    for i in range(len(CHORD_SPANS)):
+        s = CHORD_SPANS[i]
+        chord = chord_at_span(s)
+        xx = x_root + direction * s * scale
+        le = (xx, y_le)
+        te = (xx, y_le - chord * scale)
+        if i > 0:
+            msp.add_line(last_le, le, dxfattribs={"layer": "OUTLINE"})
+            msp.add_line(last_te, te, dxfattribs={"layer": "OUTLINE"})
+        last_le = le
+        last_te = te
+
+    tip_x = x_root + direction * HALF_SPAN * scale
+    msp.add_line((x_root, y_le), (x_root, y_le - ROOT_CHORD * scale), dxfattribs={"layer": "OUTLINE"})
+    msp.add_line((tip_x, y_le), (tip_x, y_le - TIP_CHORD * scale), dxfattribs={"layer": "OUTLINE"})
+
+    # panel stations
+    for idx in range(1, 5):
+        s = idx * PANEL_SPAN
+        xx = x_root + direction * s * scale
+        chord = chord_at_span(s)
+        msp.add_line((xx, y_le), (xx, y_le - chord * scale), dxfattribs={"layer": "SECTION"})
+        label_x = xx - 12 if direction > 0 else xx + 4
+        msp.add_text(PANEL_NAMES[idx - 1], height=2.0, dxfattribs={"layer": "TEXT"}).set_placement((label_x, y_le - 9))
+    tip_label_x = tip_x - 18 if direction > 0 else tip_x + 4
+    msp.add_text("P5", height=2.0, dxfattribs={"layer": "TEXT"}).set_placement((tip_label_x, y_le - 9))
+
+    # spar and hinge lines
+    for frac, layer, end_span in [
+        (MAIN_SPAR_FRAC, "SPAR", MAIN_SPAR_HALF_LEN),
+        (REAR_SPAR_FRAC, "SPAR", REAR_SPAR_HALF_LEN),
+        (HINGE_FRAC, "CENTERLINE", HALF_SPAN),
+    ]:
+        pts = []
+        for s in CHORD_SPANS:
+            if s > end_span:
+                continue
+            xx = x_root + direction * s * scale
+            yy = y_le - chord_at_span(s) * frac * scale
+            pts.append((xx, yy))
+        for i in range(len(pts) - 1):
+            msp.add_line(pts[i], pts[i + 1], dxfattribs={"layer": layer})
+
+    # P5 stepped spar at 27%
+    pts = []
+    for s in [1024.0, 1152.0, 1216.0, 1280.0]:
+        xx = x_root + direction * s * scale
+        yy = y_le - chord_at_span(s) * 0.27 * scale
+        pts.append((xx, yy))
+    for i in range(len(pts) - 1):
+        msp.add_line(pts[i], pts[i + 1], dxfattribs={"layer": "SPAR"})
+
+    # control surfaces
+    for start, end, text in [(0.0, FLAP_END, "FLAP"), (AILERON_START, HALF_SPAN, "AILERON")]:
+        x1 = x_root + direction * start * scale
+        x2 = x_root + direction * end * scale
+        y1 = y_le - chord_at_span(start) * HINGE_FRAC * scale
+        y2 = y_le - chord_at_span(end) * HINGE_FRAC * scale
+        msp.add_line((x1, y1), (x2, y2), dxfattribs={"layer": "CENTERLINE"})
+        tx = (x1 + x2) / 2
+        ty = (y1 + y2) / 2 - 12
+        msp.add_text(text, height=2.0, dxfattribs={"layer": "TEXT"}).set_placement((tx - 8, ty))
+
+    # servo envelopes
+    if show_servos:
+        for label, station, frac, w, h in SERVO_STATIONS:
+            chord = chord_at_span(station)
+            cx = x_root + direction * station * scale
+            cy = y_le - chord * frac * scale
+            hw = (w * scale) / 2
+            hh = (h * scale) / 2
+            x_a = cx - hw
+            x_b = cx + hw
+            y_a = cy - hh
+            y_b = cy + hh
+            msp.add_line((x_a, y_a), (x_b, y_a), dxfattribs={"layer": "HIDDEN"})
+            msp.add_line((x_b, y_a), (x_b, y_b), dxfattribs={"layer": "HIDDEN"})
+            msp.add_line((x_b, y_b), (x_a, y_b), dxfattribs={"layer": "HIDDEN"})
+            msp.add_line((x_a, y_b), (x_a, y_a), dxfattribs={"layer": "HIDDEN"})
+            msp.add_text(label, height=1.5, dxfattribs={"layer": "TEXT"}).set_placement((cx - 10, cy + 4))
+
+
+def add_wing_top_view(msp, x0: float, y_le: float, scale: float, full: bool) -> tuple[float, float]:
+    """Return (x_root_left, x_root_right) for gap-related annotations."""
     if full:
-        for sign in (-1, 1):
-            last_te = None
-            for i in range(len(CHORD_SPANS) - 1):
-                s0 = CHORD_SPANS[i]
-                s1 = CHORD_SPANS[i + 1]
-                c0 = chord_at_span(s0)
-                c1 = chord_at_span(s1)
-                yy0 = y0 + sign * s0 * scale
-                yy1 = y0 + sign * s1 * scale
-                msp.add_line((x0, yy0), (x0, yy1), dxfattribs={"layer": "OUTLINE"})
-                msp.add_line((x0 + c0 * scale, yy0), (x0 + c1 * scale, yy1), dxfattribs={"layer": "OUTLINE"})
-                last_te = (x0 + c1 * scale, yy1)
-            msp.add_line((x0, y0), (x0 + ROOT_CHORD * scale, y0), dxfattribs={"layer": "OUTLINE"})
-            if last_te is not None:
-                msp.add_line((x0, y0 + sign * HALF_SPAN * scale), last_te, dxfattribs={"layer": "OUTLINE"})
-            for idx in range(1, 5):
-                s = idx * PANEL_SPAN
-                yy = y0 + sign * s * scale
-                chord = chord_at_span(s)
-                msp.add_line((x0, yy), (x0 + chord * scale, yy), dxfattribs={"layer": "SECTION"})
-    else:
-        last_te = None
-        for i in range(len(CHORD_SPANS) - 1):
-            s0 = CHORD_SPANS[i]
-            s1 = CHORD_SPANS[i + 1]
-            c0 = chord_at_span(s0)
-            c1 = chord_at_span(s1)
-            yy0 = y0 + s0 * scale
-            yy1 = y0 + s1 * scale
-            msp.add_line((x0, yy0), (x0, yy1), dxfattribs={"layer": "OUTLINE"})
-            msp.add_line((x0 + c0 * scale, yy0), (x0 + c1 * scale, yy1), dxfattribs={"layer": "OUTLINE"})
-            last_te = (x0 + c1 * scale, yy1)
-        msp.add_line((x0, y0), (x0 + ROOT_CHORD * scale, y0), dxfattribs={"layer": "OUTLINE"})
-        if last_te is not None:
-            msp.add_line((x0, y0 + HALF_SPAN * scale), last_te, dxfattribs={"layer": "OUTLINE"})
-        for idx in range(1, 5):
-            s = idx * PANEL_SPAN
-            yy = y0 + s * scale
-            chord = chord_at_span(s)
-            msp.add_line((x0, yy), (x0 + chord * scale, yy), dxfattribs={"layer": "SECTION"})
-            msp.add_text(PANEL_NAMES[idx - 1], height=2.3, dxfattribs={"layer": "TEXT"}).set_placement((x0 + 6, yy - 6))
-        msp.add_text("P5", height=2.3, dxfattribs={"layer": "TEXT"}).set_placement((x0 + 6, y0 + (HALF_SPAN - 70) * scale))
-
-    if full:
-        msp.add_line((x0 - 18, y0), (x0 + ROOT_CHORD * scale + 18, y0), dxfattribs={"layer": "CENTERLINE"})
+        x_root_left = x0 + HALF_SPAN * scale
+        x_root_right = x_root_left + FUSELAGE_GAP * scale
+        _draw_single_half_top_view(msp, x_root_left, y_le, scale, -1, False)
+        _draw_single_half_top_view(msp, x_root_right, y_le, scale, +1, False)
+        # fuselage gap
+        msp.add_line((x_root_left, y_le + 10), (x_root_left, y_le - ROOT_CHORD * scale - 10), dxfattribs={"layer": "CENTERLINE"})
+        msp.add_line((x_root_right, y_le + 10), (x_root_right, y_le - ROOT_CHORD * scale - 10), dxfattribs={"layer": "CENTERLINE"})
+        return x_root_left, x_root_right
+    x_root = x0
+    _draw_single_half_top_view(msp, x_root, y_le, scale, +1, True)
+    return x_root, x_root
 
 
-def add_wing_front_view(msp, x0: float, y0: float, scale: float, full: bool) -> None:
+def add_wing_front_view(msp, x0: float, y0: float, scale: float, full: bool) -> tuple[float, float]:
     # piecewise linear front elevation emphasizing polyhedral
     half_pts = [
         (0, 0),
@@ -150,21 +218,24 @@ def add_wing_front_view(msp, x0: float, y0: float, scale: float, full: bool) -> 
         (1024, 24),
         (1280, 50),
     ]
+    gap_half = (FUSELAGE_GAP / 2) * scale if full else 0.0
     if full:
-        pts = [(-x, y) for x, y in reversed(half_pts[1:])] + half_pts
+        pts = [(-gap_half - x * scale, y0 + y) for x, y in half_pts[::-1]]
+        pts += [(gap_half + x * scale, y0 + y) for x, y in half_pts]
+        mapped = [(x0 + x, y) for x, y in pts]
     else:
-        pts = half_pts
-    mapped = [(x0 + x * scale, y0 + y) for x, y in pts]
+        mapped = [(x0 + x * scale, y0 + y) for x, y in half_pts]
     for i in range(len(mapped) - 1):
         msp.add_line(mapped[i], mapped[i + 1], dxfattribs={"layer": "OUTLINE"})
     for idx, (x, y) in enumerate(half_pts):
-        mx = x0 + x * scale
+        mx = x0 + (gap_half + x * scale if full else x * scale)
         msp.add_line((mx, y0 - 10), (mx, y0 + y + 8), dxfattribs={"layer": "SECTION"})
         if idx < len(POLYHEDRAL_LABELS):
             msp.add_text(POLYHEDRAL_LABELS[idx], height=1.8, dxfattribs={"layer": "TEXT"}).set_placement((mx + 2, y0 + y + 10))
         if full and x != 0:
-            mmx = x0 - x * scale
+            mmx = x0 - (gap_half + x * scale)
             msp.add_line((mmx, y0 - 10), (mmx, y0 + y + 8), dxfattribs={"layer": "SECTION"})
+    return x0 - gap_half, x0 + gap_half
 
 
 def add_wing_side_view(msp, x0: float, y0: float, scale: float) -> None:
@@ -195,34 +266,34 @@ def draw_wing_half_assembly() -> tuple[str, str]:
     )
     msp = doc.modelspace()
 
-    top_scale = 1 / 3
-    top_x0 = 120.0
-    top_y0 = 75.0
-    msp.add_text("TOP VIEW — WING HALF ASSEMBLY", height=4.2, dxfattribs={"layer": "TEXT"}).set_placement((top_x0, 540))
-    add_wing_top_view(msp, top_x0, top_y0, top_scale, full=False)
+    wing_scale = 0.28  # common scale across top/front/profile
+    top_x0 = 85.0
+    top_y_le = 505.0
+    msp.add_text("TOP VIEW — WING HALF ASSEMBLY", height=4.2, dxfattribs={"layer": "TEXT"}).set_placement((top_x0, 530))
+    add_wing_top_view(msp, top_x0, top_y_le, wing_scale, full=False)
 
-    msp.add_text("FRONT VIEW — POLYHEDRAL / DIHEDRAL", height=3.4, dxfattribs={"layer": "TEXT"}).set_placement((380, 250))
-    add_wing_front_view(msp, 410, 180, 0.22, full=False)
+    msp.add_text("FRONT VIEW — POLYHEDRAL / DIHEDRAL", height=3.4, dxfattribs={"layer": "TEXT"}).set_placement((top_x0, 260))
+    add_wing_front_view(msp, top_x0, 205, wing_scale, full=False)
 
-    msp.add_text("SIDE VIEW — ROOT / TIP PROFILES", height=3.4, dxfattribs={"layer": "TEXT"}).set_placement((525, 540))
-    add_wing_side_view(msp, 540, 470, 0.55)
+    msp.add_text("PROFILE DETAILS — ROOT / TIP AIRFOIL", height=3.4, dxfattribs={"layer": "TEXT"}).set_placement((500, 260))
+    add_wing_side_view(msp, 525, 215, wing_scale)
 
     # Main dimensions
-    msp.add_linear_dim(base=(top_x0 + ROOT_CHORD * top_scale / 2, 52),
-                       p1=(top_x0, 58),
-                       p2=(top_x0 + ROOT_CHORD * top_scale, 58),
+    msp.add_linear_dim(base=(top_x0 + HALF_SPAN * wing_scale / 2, 110),
+                       p1=(top_x0, 118),
+                       p2=(top_x0 + HALF_SPAN * wing_scale, 118),
                        dxfattribs={"dimstyle": "AEROFORGE", "layer": "DIMENSION"}).render()
-    msp.add_linear_dim(base=(92, top_y0 + HALF_SPAN * top_scale / 2),
-                       p1=(100, top_y0),
-                       p2=(100, top_y0 + HALF_SPAN * top_scale),
+    msp.add_linear_dim(base=(60, top_y_le - ROOT_CHORD * wing_scale / 2),
+                       p1=(68, top_y_le),
+                       p2=(68, top_y_le - ROOT_CHORD * wing_scale),
                        angle=90,
                        dxfattribs={"dimstyle": "AEROFORGE", "layer": "DIMENSION"}).render()
 
     # Notes
-    msp.add_text("Main spar at 25% chord", height=2.0, dxfattribs={"layer": "TEXT"}).set_placement((160, 225))
-    msp.add_text("Rear spar at 60% chord", height=2.0, dxfattribs={"layer": "TEXT"}).set_placement((160, 205))
-    msp.add_text("Hinge line at 72% chord", height=2.0, dxfattribs={"layer": "TEXT"}).set_placement((160, 185))
-    msp.add_text("Flaps P1-P3, Ailerons P4-P5", height=2.0, dxfattribs={"layer": "TEXT"}).set_placement((160, 165))
+    msp.add_text("Main spar 8mm tube to P4/P5, 5mm rod in P5", height=2.0, dxfattribs={"layer": "TEXT"}).set_placement((460, 175))
+    msp.add_text("Rear spar 5x3 spruce to P4/P5 only", height=2.0, dxfattribs={"layer": "TEXT"}).set_placement((460, 155))
+    msp.add_text("Hinge line at 72% chord; flap P1-P3, aileron P4-P5", height=2.0, dxfattribs={"layer": "TEXT"}).set_placement((460, 135))
+    msp.add_text("Servo envelopes shown per current consensus only", height=2.0, dxfattribs={"layer": "TEXT"}).set_placement((460, 115))
 
     out = ROOT / "cad/assemblies/wing/Wing_Half_Assembly/Wing_Half_Assembly_drawing.dxf"
     return save_dxf_and_png(doc, str(out), dpi=240)
@@ -234,7 +305,7 @@ def draw_wing_assembly() -> tuple[str, str]:
         subtitle="Full-wing parent drawing. This sheet governs wing-level review before panel derivation.",
         material="Mirrored half-wing assemblies with progressive polyhedral",
         mass="430g full wing target",
-        scale="1:5 / 1:3 front",
+        scale="1:6 common",
         sheet_size="A1",
         status="FOR ITERATION",
         revision="v1",
@@ -242,32 +313,59 @@ def draw_wing_assembly() -> tuple[str, str]:
     )
     msp = doc.modelspace()
 
-    top_scale = 1 / 5
-    top_x0 = 315.0
-    top_y0 = 245.0
-    msp.add_text("TOP VIEW — FULL WING ASSEMBLY", height=4.2, dxfattribs={"layer": "TEXT"}).set_placement((250, 532))
-    add_wing_top_view(msp, top_x0, top_y0, top_scale, full=True)
+    wing_scale = 0.27
+    top_x0 = 55.0
+    top_y_le = 505.0
+    msp.add_text("TOP VIEW — FULL WING ASSEMBLY", height=4.2, dxfattribs={"layer": "TEXT"}).set_placement((top_x0, 530))
+    x_left_root, x_right_root = add_wing_top_view(msp, top_x0, top_y_le, wing_scale, full=True)
 
-    msp.add_text("FRONT VIEW — FULL SPAN POLYHEDRAL", height=3.4, dxfattribs={"layer": "TEXT"}).set_placement((220, 145))
-    add_wing_front_view(msp, 405, 92, 0.20, full=True)
+    msp.add_text("FRONT VIEW — FULL SPAN POLYHEDRAL", height=3.4, dxfattribs={"layer": "TEXT"}).set_placement((top_x0, 255))
+    gap_left, gap_right = add_wing_front_view(msp, top_x0 + HALF_SPAN * wing_scale + (FUSELAGE_GAP * wing_scale) / 2, 205, wing_scale, full=True)
 
-    msp.add_text("SIDE VIEW — SECTION REFERENCE", height=3.4, dxfattribs={"layer": "TEXT"}).set_placement((560, 520))
-    add_wing_side_view(msp, 585, 465, 0.42)
+    msp.add_text("PROFILE DETAILS — ROOT / TIP AIRFOIL", height=3.4, dxfattribs={"layer": "TEXT"}).set_placement((625, 255))
+    add_wing_side_view(msp, 635, 210, wing_scale)
 
-    msp.add_linear_dim(base=(top_x0 + ROOT_CHORD * top_scale / 2, 250),
-                       p1=(top_x0, 258),
-                       p2=(top_x0 + ROOT_CHORD * top_scale, 258),
+    total_width = FULL_SPAN * wing_scale + FUSELAGE_GAP * wing_scale
+    msp.add_linear_dim(base=(top_x0 + total_width / 2, 105),
+                       p1=(top_x0, 113),
+                       p2=(top_x0 + total_width, 113),
                        dxfattribs={"dimstyle": "AEROFORGE", "layer": "DIMENSION"}).render()
-    msp.add_linear_dim(base=(280, top_y0),
-                       p1=(290, top_y0 - HALF_SPAN * top_scale),
-                       p2=(290, top_y0 + HALF_SPAN * top_scale),
+    msp.add_linear_dim(base=(58, top_y_le - ROOT_CHORD * wing_scale / 2),
+                       p1=(66, top_y_le),
+                       p2=(66, top_y_le - ROOT_CHORD * wing_scale),
                        angle=90,
+                       dxfattribs={"dimstyle": "AEROFORGE", "layer": "DIMENSION"}).render()
+    msp.add_linear_dim(base=((x_left_root + x_right_root) / 2, top_y_le + 18),
+                       p1=(x_left_root, top_y_le + 10),
+                       p2=(x_right_root, top_y_le + 10),
                        dxfattribs={"dimstyle": "AEROFORGE", "layer": "DIMENSION"}).render()
 
     msp.add_text("Baseline assembly only. Re-open planform optimization before next panel generation.",
                  height=2.2, dxfattribs={"layer": "TEXT"}).set_placement((95, 72))
-    msp.add_text("Flap zone: P1-P3", height=2.0, dxfattribs={"layer": "TEXT"}).set_placement((350, 390))
-    msp.add_text("Aileron zone: P4-P5", height=2.0, dxfattribs={"layer": "TEXT"}).set_placement((350, 490))
+    msp.add_text("Flap zone: P1-P3", height=2.0, dxfattribs={"layer": "TEXT"}).set_placement((250, 145))
+    msp.add_text("Aileron zone: P4-P5", height=2.0, dxfattribs={"layer": "TEXT"}).set_placement((430, 145))
+    msp.add_text("Fuselage center gap shown between root faces", height=2.0, dxfattribs={"layer": "TEXT"}).set_placement((285, 125))
+    msp.add_text("8mm main spar visible to root; carry-through/joiner region at center", height=2.0, dxfattribs={"layer": "TEXT"}).set_placement((250, 105))
+
+    # root detail showing gap and spar ends
+    detail_x = 600.0
+    detail_y = 485.0
+    msp.add_text("ROOT DETAIL — CENTER GAP / SPAR REGION", height=2.8, dxfattribs={"layer": "TEXT"}).set_placement((detail_x - 10, detail_y + 20))
+    chord = ROOT_CHORD * wing_scale * 1.25
+    gap = FUSELAGE_GAP * wing_scale * 1.25
+    left_x = detail_x
+    right_x = detail_x + 70 + gap
+    y_top = detail_y
+    y_bot = detail_y - chord
+    # root faces
+    msp.add_line((left_x, y_top), (left_x, y_bot), dxfattribs={"layer": "OUTLINE"})
+    msp.add_line((right_x, y_top), (right_x, y_bot), dxfattribs={"layer": "OUTLINE"})
+    # spar stubs
+    for frac, layer, text in [(MAIN_SPAR_FRAC, "SPAR", "8mm MAIN"), (REAR_SPAR_FRAC, "SPAR", "REAR 5x3"), (HINGE_FRAC, "CENTERLINE", "HINGE")]:
+        yy = y_top - ROOT_CHORD * frac * wing_scale * 1.25
+        msp.add_line((left_x - 28, yy), (left_x, yy), dxfattribs={"layer": layer})
+        msp.add_line((right_x, yy), (right_x + 28, yy), dxfattribs={"layer": layer})
+        msp.add_text(text, height=1.6, dxfattribs={"layer": "TEXT"}).set_placement((right_x + 32, yy - 1))
 
     out = ROOT / "cad/assemblies/wing/Wing_Assembly/Wing_Assembly_drawing.dxf"
     return save_dxf_and_png(doc, str(out), dpi=240)
