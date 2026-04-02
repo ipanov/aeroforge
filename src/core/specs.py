@@ -197,13 +197,18 @@ class BatterySpec(BaseModel):
 
 
 class ReceiverSpec(BaseModel):
-    """Receiver specification - FIXED, owner's inventory."""
-    name: str = "Turnigy 9X V2 8ch"
-    channels: int = 8
+    """Receiver specification - FIXED, owner's inventory.
+
+    Flysky FS-iA6B (compatible with Turnigy 9X V2 transmitter).
+    Dimensions are main body without antenna.
+    """
+    name: str = "Flysky FS-iA6B"
+    channels: int = 6
     weight: float = 18.0               # grams
-    length: float = 52.0               # mm
-    width: float = 35.0                # mm
+    length: float = 47.2               # mm (body only, without antenna)
+    width: float = 26.2                # mm
     height: float = 15.0               # mm
+    antenna_length: float = 165.0      # mm (single wire antenna)
 
 
 # ── Control System ────────────────────────────────────────────────
