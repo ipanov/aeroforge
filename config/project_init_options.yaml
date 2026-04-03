@@ -1,0 +1,139 @@
+tooling_options:
+  - id: fdm_printer
+    label: FDM 3D Printer
+    pros:
+      - Excellent for complex integrated geometry and rapid AI-driven iteration
+      - Direct path from CAD to printable custom parts
+    cons:
+      - Usually heavier than classic built-up balsa structures
+      - Needs careful structural design around anisotropy and segment joints
+  - id: laser_cutter
+    label: Laser Cutter
+    pros:
+      - Extremely good for ribs, formers, and light sheet structures
+      - Fast and repeatable for classic wing/fuselage skeletons
+    cons:
+      - Less suitable for deeply integrated 3D aerodynamic shells
+      - Requires separate joinery and assembly strategy
+  - id: cnc_router
+    label: CNC Router
+    pros:
+      - Strong for plugs, molds, fixtures, and hardpoints
+      - High geometric accuracy for subtractive parts
+    cons:
+      - Higher setup overhead than direct additive paths
+      - Less natural for thin-shell airframe generation
+  - id: hand_tools
+    label: Hand Tools / Classic Build
+    pros:
+      - Useful for paper, foam, simple wood, and quick experimental airframes
+      - Minimal equipment requirements
+    cons:
+      - Lower repeatability and less automation
+      - More labor-intensive for complex optimized structures
+
+manufacturing_techniques:
+  - id: shell_printing
+    label: Thin-Wall Shell Printing
+    pros:
+      - Good for integrated aerodynamic surfaces and fairings
+      - Pairs well with AI-generated geometry
+    cons:
+      - Weight discipline and printability must be managed carefully
+  - id: laser_cut_rib_build
+    label: Laser-Cut Rib and Spar Build
+    pros:
+      - Very light and efficient for sailplanes and classic structures
+      - Easy to mix balsa, plywood, and carbon
+    cons:
+      - More manual assembly and fixture work
+  - id: classic_balsa_carbon
+    label: Classic Balsa + Carbon
+    pros:
+      - Proven performance path for many gliders
+      - Can be lighter than many printed structures
+    cons:
+      - Less integrated geometry than full additive design
+      - Build quality depends heavily on craftsmanship
+  - id: folding_by_hand
+    label: Folding by Hand
+    pros:
+      - Best fit for paper aircraft or ultra-simple concepts
+      - Very low tooling barrier
+    cons:
+      - Not suitable for most high-performance rigid aircraft
+
+materials:
+  - id: paper
+    label: Paper
+    pros:
+      - Best for folded hand-built aircraft and quick prototypes
+    cons:
+      - Low durability and limited structural envelope
+  - id: lw_pla_family
+    label: LW-PLA / PLA / TPU Family
+    pros:
+      - Strong fit for FDM-based custom aerodynamic parts
+      - Supports mixed stiffness/flexibility strategies
+    cons:
+      - Heavier than the lightest classical structures if misused
+  - id: balsa_ply_carbon
+    label: Balsa / Plywood / Carbon
+    pros:
+      - Very strong candidate for light, high-performance sailplanes
+      - Excellent stiffness-to-weight when designed well
+    cons:
+      - More assembly labor and less direct geometric integration
+  - id: foam_sheet
+    label: Foam Sheet
+    pros:
+      - Good for quick prototypes and simple UAVs
+    cons:
+      - Limited structural performance for refined aircraft
+
+production_modes:
+  - id: in_house_build
+    label: In-House Build
+    pros:
+      - Fastest feedback loop between design and fabrication
+    cons:
+      - Limited by local tools and craftsmanship bandwidth
+  - id: hybrid_in_house_and_procured
+    label: Hybrid In-House + Procured
+    pros:
+      - Good balance between custom geometry and bought subsystems
+    cons:
+      - Integration interfaces must be specified very carefully
+  - id: outsourced_factory
+    label: Outsourced Factory Production
+    pros:
+      - Suitable for sewn, molded, composite, or industrial output packages
+      - The design can target professional manufacturing processes
+    cons:
+      - Requires clearer production documentation and supplier-ready outputs
+
+output_artifacts:
+  - id: print_files
+    label: Print Files
+    pros:
+      - Best for direct additive manufacturing workflows
+    cons:
+      - Not useful for factory-sewn or molded products by itself
+  - id: technical_drawings
+    label: Technical Drawings
+    pros:
+      - Universal baseline for review, fit, and manufacturing communication
+    cons:
+      - Often insufficient on their own for soft-goods or advanced molds
+  - id: stitching_plans
+    label: Stitching Plans / Panel Patterns
+    pros:
+      - Appropriate for fabric or paraglider-style wing outputs
+    cons:
+      - Requires seam, reinforcement, and material-stack definition
+  - id: mold_or_tooling_data
+    label: Mold / Tooling Data
+    pros:
+      - Useful when the production path is outsourced or industrial
+    cons:
+      - More up-front tooling design work

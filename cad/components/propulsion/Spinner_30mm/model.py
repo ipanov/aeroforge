@@ -26,7 +26,7 @@ SPINNER_DIAMETER = 30.0        # 30mm outer diameter
 SPINNER_LENGTH = 28.0          # Overall length (tip to rear face)
 WALL_THICKNESS = 1.2           # Aluminum wall thickness
 
-SHAFT_HOLE_DIA = 4.0           # 4mm shaft bore
+SHAFT_HOLE_DIA = 3.0           # 3mm shaft bore
 SET_SCREW_DIA = 3.0            # M3 set screw
 SET_SCREW_Z = 8.0              # Set screw position from rear face
 

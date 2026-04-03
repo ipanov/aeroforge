@@ -1,253 +1,239 @@
 # AeroForge
 
-**AI-Enabled 3D-Printed RC Sailplane Design System**
+**AI-guided heavier-than-air vehicle design system with tracked iterative workflows.**
 
-> *"Why make it simple when it can be complex - for the same price?"*
+AeroForge is not tied to one aircraft class or one fabrication path. The system
+starts from a design brief, captures project decisions such as aircraft type,
+tooling, manufacturing technique, material strategy, and output artifacts, then
+executes a strict staged workflow with visible progress.
 
----
+The current example project is `AIR4`, the `Iva_Aeroforge` thermal electric
+sailplane. The framework is intended to remain broader than that one vehicle.
 
-## What Is This?
+## What AeroForge Does
 
-AeroForge is an AI-driven parametric design system for RC sailplanes. It exploits
-the fact that **3D printers have zero marginal cost for complexity** - a topology-optimized
-lattice rib costs the same filament as a flat plate, but performs dramatically better.
+- Accepts a user design brief for a heavier-than-air flying object
+- Guides initialization through a wizard that records:
+  - aircraft type decided by user/LLM
+  - tooling
+  - manufacturing technique
+  - material strategy
+  - production strategy
+  - expected output artifacts
+- Builds a project-specific workflow profile from those decisions
+- Tracks every sub-assembly through a strict step sequence
+- Exposes the currently running step in:
+  - persisted workflow state
+  - HTML dashboard
+  - local monitor server
+  - optional `n8n` workflow runtime
+- Runs final synthetic wind-tunnel and strength validation on the assembled top object
 
-The system takes natural language design intent (**Text2CAD**) and produces
-fully parametric, constraint-based 3D models ready for printing on consumer
-printers (Bambu A1/P1S).
+## Core Rule
 
-## The Goal
+Non-deterministic decisions belong upstream:
 
-Design a 3D-printed RC sailplane that **exceeds commercial kits** (Insight F5J,
-Introduction, Bowser) in aerodynamic performance - at a fraction of the cost.
+- aircraft type
+- tooling
+- manufacturing technique
+- material strategy
+- production strategy
+- output package
 
-Commercial kits are locked into 10-15 year old designs constrained by manufacturing:
-2-3 airfoil stations, simple planforms, uniform internal structure. AeroForge has
-**no such constraints** - every rib can be a unique airfoil, every surface can be
-optimally shaped, every internal structure can be topology-optimized.
+Those are not hardcoded by the deterministic engine. They are chosen by the
+user and/or an LLM reasoning step, written into [`aeroforge.yaml`](/d:/Repos/aeroforge/aeroforge.yaml),
+and then enforced by code.
 
-## Current Specifications
+Deterministic code is responsible for:
 
-| Parameter | Value |
-|-----------|-------|
-| Wingspan | 2.56m |
-| Wing panels | 10 (5 per half, 256mm each - exact bed fit) |
-| Root chord | 210mm |
-| Tip chord | 115mm |
-| Airfoil | AG24 (root) → AG09 (mid) → AG03 (tip), blended continuously |
-| Main spar | 8mm pultruded carbon tube |
-| Rear spar | 5x3mm spruce strip |
-| Controls | Full-house (ailerons, flaps, elevator, rudder) + crow braking |
-| Target AUW | 700-850g |
-| Target cost | Under $150 total (filament + carbon + electronics) |
+- workflow sequencing
+- dependency ordering
+- artifact-to-step enforcement
+- state persistence
+- dashboard generation
+- monitor serving
+- status broadcasting to `n8n`
+- BOM and procurement synchronization after deliverable changes
 
-## Architecture
+## Workflow
 
-```
-Text2CAD (natural language design)
-    │
-    ▼
-Build123d (Python parametric CAD, headless)
-    │
-    ├── Dependency DAG (NetworkX) ── auto-propagates changes
-    ├── Pydantic validation ── enforces constraints
-    ├── Consistency tests ── spec vs docs vs code
-    │
-    ├── STEP export ──► FreeCAD (headless FEM/CFD analysis)
-    └── 3MF export ──► OrcaSlicer CLI ──► Bambu printer
-```
+The standing workflow is top-down first, then bottom-up:
 
-### Key Innovation: Specification Consistency System
+1. Capture the main requirement for the aircraft or aerodynamic body.
+2. Decide the project profile through the initialization wizard.
+3. Build the top object and parent geometry first.
+4. Drill down into assemblies and components only after parent approval.
+5. Rebuild dependent outputs in a disciplined sequence.
+6. Run final CFD / synthetic wind tunnel / structural validation on the full assembled object.
+7. If convergence fails, open another top-level round and propagate the affected updates downward again.
 
-Every design parameter has a **single source of truth** in Python (`src/core/specs.py`).
-24 automated tests verify that documentation, code, and specs stay in sync.
-When a parameter changes, the dependency graph propagates updates to all affected
-components automatically.
+Every tracked node follows the same strict staged sequence:
 
-See [docs/consistency_system.md](docs/consistency_system.md) for the full system
-architecture with Mermaid diagrams.
+`REQUIREMENTS -> RESEARCH -> AERO_PROPOSAL -> STRUCTURAL_REVIEW -> AERO_RESPONSE -> CONSENSUS -> DRAWING_2D -> MODEL_3D -> MESH -> VALIDATION -> RELEASE`
 
-## Project Structure
+## Current Monitoring Stack
 
-```
-aeroforge/
-├── src/
-│   ├── core/               # Component framework, DAG, specs, validation
-│   ├── cad/                # Build123d parametric models
-│   │   ├── airfoils/       # AG/NACA airfoil generators
-│   │   ├── wing/           # Wing panels, ribs, skins
-│   │   ├── fuselage/       # Pod, boom
-│   │   └── tail/           # Empennage
-│   ├── analysis/           # FreeCAD headless wrappers (FEM, CFD)
-│   └── text2cad/           # AI workflow pipeline
-├── components/             # Off-the-shelf component specs
-├── docs/
-│   ├── philosophy.md       # Design philosophy
-│   ├── specifications.md   # Complete spec reference
-│   ├── consistency_system.md # How spec sync works (with diagrams)
-│   ├── spec_registry.md    # Parameter → file map
-│   └── slicer_pipeline.md  # 3D print automation
-├── exports/                # STL, STEP, 3MF output
-└── tests/                  # 72 tests (framework + consistency)
-```
+The workflow stack now includes:
 
-## Installation and Setup (Step by Step)
+- `.claude/workflow_state.json` as the source of execution truth
+- `exports/workflow_dashboard.html` as the graphical status board
+- `python -m src.orchestrator.cli serve` as a local monitor server
+- optional `n8n` integration for the graphical workflow runtime
+- a workflow guard hook that blocks drawing/model/mesh edits when the wrong step is active
 
-This project uses **AI coding agents** that design, model, and validate 3D-printed aircraft components automatically. You interact by giving design direction; the agent does all the CAD work.
+The dashboard highlights the active step and shows the dependency graph and
+project initialization choices.
 
-### Prerequisites
+The same monitoring layer now treats the BOM as a live artifact, not a static
+report.
 
-| Software | Version | What It Does |
-|----------|---------|-------------|
-| [Python](https://www.python.org/downloads/) | 3.10+ | Runs all CAD scripts and parametric models |
-| [Git](https://git-scm.com/downloads) | 2.30+ | Version control |
-| [VS Code](https://code.visualstudio.com/) | Latest | Code editor + 3D viewer |
-| [Node.js](https://nodejs.org/) | 18+ | Required by Claude Code CLI |
+## Project Profile
 
-### Step 1: Clone and Install Python Dependencies
+The tracked project profile lives in [`aeroforge.yaml`](/d:/Repos/aeroforge/aeroforge.yaml).
 
-```bash
-git clone https://github.com/ipanov/aeroforge.git
-cd aeroforge
-pip install -r requirements.txt
+That file is now the place where AeroForge records:
 
-# Verify installation
-python -c "from src.core.specs import SAILPLANE; print(SAILPLANE.summary())"
-pytest  # Run all tests
-```
+- the current project family and round
+- the top object
+- the aircraft type chosen upstream
+- the location context used for procurement and local quoting
+- tooling and available production resources
+- manufacturing and material strategy
+- production mode, including outsourced/factory production
+- provider preferences for procurement agents
+- output artifacts, such as print files, technical drawings, stitching plans, or tooling data
+- the workflow profile and sub-assembly dependency structure
 
-### Step 2: Install VS Code Extensions
+## Initialization Wizard
 
-Open VS Code, go to Extensions (Ctrl+Shift+X), and install:
-
-1. **OCP CAD Viewer** (`bernhard-42.ocp-cad-viewer`) -- 3D model viewer for Build123d
-2. **Python** (`ms-python.python`) -- Python language support
-3. **Claude Code** (`anthropic.claude-code`) -- AI coding agent (if using Anthropic)
-
-### Step 3: Install Claude Code CLI
+Use the initializer to guide project setup:
 
 ```bash
-# Install globally
-npm install -g @anthropic-ai/claude-code
-
-# Verify
-claude --version
+python -m src.orchestrator.cli init --name "AIR4" --prompt "Thermal electric sailplane"
 ```
 
-### Step 4: Configure Your AI Provider
+The wizard shows data-driven options for:
 
-Claude Code works with **Anthropic** by default. You can also use alternative providers for cost savings. Configure by setting environment variables or editing your Claude Code settings.
+- procurement location and provider preferences
+- tooling
+- manufacturing technique
+- material strategy
+- production mode
+- output artifacts
 
-#### Option A: Anthropic (Default)
+It does not auto-decide them in code. It records the chosen decisions.
+
+## Living BOM
+
+The BOM is synchronized as the project changes:
+
+- off-the-shelf updates refresh provider candidates and quote paths
+- custom-part deliverables refresh estimated manufacturing cost
+- markdown and machine-readable BOM views are kept together
+
+## Starting the Workflow
+
+Preferred path:
 
 ```bash
-# Set your API key (or export in your shell profile)
-claude config set --global apiKey sk-ant-your-key-here
+python -m src.orchestrator.cli start-profile --profile aeroforge.yaml --name "Iva Aeroforge F5J"
 ```
 
-#### Option B: xAI (Grok Models)
-
-To use xAI's Grok models as your provider, set these environment variables before launching Claude Code:
+Useful commands:
 
 ```bash
-# Windows (PowerShell)
-$env:ANTHROPIC_BASE_URL = "https://api.x.ai"
-$env:ANTHROPIC_API_KEY = "xai-your-key-here"
-
-# Linux/Mac
-export ANTHROPIC_BASE_URL="https://api.x.ai"
-export ANTHROPIC_API_KEY="xai-your-key-here"
+python -m src.orchestrator.cli status
+python -m src.orchestrator.cli step --sub wing --step REQUIREMENTS --action start --agent aerodynamicist
+python -m src.orchestrator.cli dashboard
+python -m src.orchestrator.cli rename-round --sub wing --label R5
+python -m src.orchestrator.cli start-iteration --sub wing --label R5
+python -m src.orchestrator.cli serve --launch-n8n
 ```
 
-Or add to your global Claude Code settings (`~/.claude/settings.json`):
-```json
-{
-  "env": {
-    "ANTHROPIC_BASE_URL": "https://api.x.ai",
-    "ANTHROPIC_API_KEY": "xai-your-key-here"
-  }
-}
-```
+## Launching n8n and the Monitor
 
-#### Option C: Groq (Llama 3.1 405B)
+This repo now includes a small Node runtime wrapper for `n8n`.
 
 ```bash
-# Windows (PowerShell)
-$env:ANTHROPIC_BASE_URL = "https://api.groq.com/openai"
-$env:ANTHROPIC_API_KEY = "gsk_your-groq-key-here"
-
-# Linux/Mac
-export ANTHROPIC_BASE_URL="https://api.groq.com/openai"
-export ANTHROPIC_API_KEY="gsk_your-groq-key-here"
+npm install
+python -m src.orchestrator.cli serve --launch-n8n
 ```
 
-**Where to get API keys:**
-- Anthropic: https://console.anthropic.com/settings/keys
-- xAI: https://console.x.ai/
-- Groq: https://console.groq.com/keys
+Or on PowerShell:
 
-### Step 5: Open the Project
-
-```bash
-cd aeroforge
-claude   # Launch the AI agent in this directory
+```powershell
+.\scripts\launch_workflow_stack.ps1 -InstallNodeDeps
 ```
 
-The agent reads `CLAUDE.md` for project rules and `cad/CAD_FRAMEWORK.md` for folder structure. It designs, models, validates, and commits everything automatically. You give design direction; it does the work.
+The local monitor server serves:
 
-### Step 6: Key Scripts
+- `/dashboard`
+- `/api/state`
+- `/api/status`
+- `/api/settings`
 
-| Script | What It Does |
-|--------|-------------|
-| `scripts/rebuild_all_meshes.py` | Regenerates all print meshes (STEP -> STL -> ribs -> 3MF) |
-| `scripts/render_all_mesh.py` | Generates 4-view renders for all components + assemblies |
-| `scripts/build_hstab_left_v7.py` | Builds the H-Stab STEP model from parametric definition |
+## Design Concepts
 
-Run any script: `cd aeroforge && PYTHONPATH=. python scripts/<script>.py`
+### Component
 
-### Switching Providers Mid-Session
+Every lowest single part is a component.
 
-If you run out of tokens on one provider, switch by updating your environment:
+Two important categories exist:
 
-```bash
-# Switch to xAI
-$env:ANTHROPIC_BASE_URL = "https://api.x.ai"
-$env:ANTHROPIC_API_KEY = "xai-your-key"
-claude  # Restart Claude Code
-```
+- custom component
+- off-the-shelf component
 
-The agent state is preserved in the git history and CLAUDE.md -- a new session picks up exactly where the last one left off.
+Off-the-shelf components are still modeled as components, even when the vendor
+item contains more than one physical internal part. They are treated as one
+procured object in the digital assembly.
 
-## Tech Stack
+### Assembly
 
-| Layer | Tool | Purpose |
-|-------|------|---------|
-| CAD Engine | [Build123d](https://github.com/gumyr/build123d) | Parametric 3D modeling |
-| Dependency Graph | [NetworkX](https://networkx.org/) | Change propagation |
-| Validation | [Pydantic](https://docs.pydantic.dev/) | Spec validation |
-| FEM Analysis | FreeCAD + CalculiX | Structural analysis |
-| CFD Analysis | OpenFOAM | Aerodynamics |
-| Airfoil Analysis | xfoil | 2D polars |
-| Slicer | OrcaSlicer (CLI) | Automated slicing |
-| Target Printer | Bambu A1 / P1S | 256x256x256mm bed |
+An assembly is any object made by combining components and/or lower-level
+assemblies. The top assembly follows the same rules as every other assembly.
+The only difference is that nothing sits above it.
 
-## Design Philosophy
+### Tooling
 
-A 3D printer doesn't care about complexity. This project exploits that:
+Tooling is a project decision captured at initialization. It is not hardcoded
+into the framework. A project can target:
 
-- **Every rib is unique** - continuously blended airfoil profiles (not 2-3 stations like commercial kits)
-- **Topology-optimized structure** - geodetic lattice, variable density, computed lightening patterns
-- **AI-optimized everything** - airfoils, twist, planform, control sizing, transmitter programming
-- **Cheap materials, complex geometry** - filament + carbon tubes + spruce. Under $60 in materials.
+- in-house fabrication
+- hybrid in-house plus procured subsystems
+- outsourced or factory production
 
-See [docs/philosophy.md](docs/philosophy.md) for the full rationale.
+### Manufacturing Technique
+
+Manufacturing technique describes how the output is meant to be produced. That
+can mean printing, laser-cut rib construction, folded sheet work, molded
+composites, stitched fabric plans, or factory-ready tooling data.
+
+### Output Artifact
+
+The design output is not always a print file. Depending on the project, it may
+be:
+
+- 3D models
+- technical drawings
+- print files
+- molds
+- cut patterns
+- stitching plans
+- factory data packages
+
+## Current Example
+
+The current `AIR4` profile is a thermal electric sailplane with:
+
+- hybrid in-house + procured production
+- FDM-based custom geometry for selected parts
+- procured propulsion and electronics
+- final full-assembly validation at the aircraft level
+
+The current next round is `R5`.
 
 ## Status
 
-Early development - core framework built, specifications locked, building components.
-
-## License
-
-All rights reserved. License terms will be determined before public release.
-The Text2CAD workflow and parametric design system may be subject to
-specific licensing restrictions for commercial use.
+The orchestrator, dashboard, profile-driven initialization, and hook-based
+workflow enforcement are being put in place so the aircraft development process
+stays visible, accountable, and extensible.

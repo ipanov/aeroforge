@@ -1,0 +1,124 @@
+{
+  "name": "AeroForge Workflow Monitor",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "aeroforge/project-sync",
+        "responseMode": "responseNode"
+      },
+      "name": "Webhook: Project Sync",
+      "type": "n8n-nodes-base.webhook",
+      "position": [220, 220]
+    },
+    {
+      "parameters": {
+        "functionCode": "const data = $input.item.json; return [{ json: { event: 'project_sync', project: data.project || '', aircraft_type: data.aircraft_type || '', project_scope: data.project_scope || '', round_label: data.round_label || '', workflow_profile: data.workflow_profile || {}, timestamp: new Date().toISOString() } }];"
+      },
+      "name": "Function: Normalize Project",
+      "type": "n8n-nodes-base.function",
+      "position": [470, 220]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "aeroforge/step-event",
+        "responseMode": "responseNode"
+      },
+      "name": "Webhook: Step Event",
+      "type": "n8n-nodes-base.webhook",
+      "position": [220, 460]
+    },
+    {
+      "parameters": {
+        "functionCode": "const data = $input.item.json; return [{ json: { event: 'step_event', sub_assembly: data.sub_assembly || '', step: data.step || '', status: data.status || 'running', deliverables: data.deliverables || [], agent: data.agent || '', round_label: data.round_label || '', timestamp: new Date().toISOString() } }];"
+      },
+      "name": "Function: Normalize Step",
+      "type": "n8n-nodes-base.function",
+      "position": [470, 460]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "aeroforge/deliverable-event",
+        "responseMode": "responseNode"
+      },
+      "name": "Webhook: Deliverable Event",
+      "type": "n8n-nodes-base.webhook",
+      "position": [220, 700]
+    },
+    {
+      "parameters": {
+        "functionCode": "const data = $input.item.json; return [{ json: { event: 'deliverable_event', sub_assembly: data.sub_assembly || '', step: data.step || '', deliverables: data.deliverables || [], output_files: data.output_files || [], timestamp: new Date().toISOString() } }];"
+      },
+      "name": "Function: Normalize Deliverables",
+      "type": "n8n-nodes-base.function",
+      "position": [470, 700]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "aeroforge/final-validation",
+        "responseMode": "responseNode"
+      },
+      "name": "Webhook: Final Validation",
+      "type": "n8n-nodes-base.webhook",
+      "position": [220, 940]
+    },
+    {
+      "parameters": {
+        "functionCode": "const data = $input.item.json; return [{ json: { event: 'final_validation', target: data.target || 'top_object', analysis_type: data.analysis_type || '', status: data.status || '', notes: data.notes || '', timestamp: new Date().toISOString() } }];"
+      },
+      "name": "Function: Normalize Validation",
+      "type": "n8n-nodes-base.function",
+      "position": [470, 940]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\"status\":\"ok\",\"timestamp\":\"{{new Date().toISOString()}}\"}"
+      },
+      "name": "Respond: OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [750, 560]
+    }
+  ],
+  "connections": {
+    "Webhook: Project Sync": {
+      "main": [[{ "node": "Function: Normalize Project", "type": "main", "index": 0 }]]
+    },
+    "Function: Normalize Project": {
+      "main": [[{ "node": "Respond: OK", "type": "main", "index": 0 }]]
+    },
+    "Webhook: Step Event": {
+      "main": [[{ "node": "Function: Normalize Step", "type": "main", "index": 0 }]]
+    },
+    "Function: Normalize Step": {
+      "main": [[{ "node": "Respond: OK", "type": "main", "index": 0 }]]
+    },
+    "Webhook: Deliverable Event": {
+      "main": [[{ "node": "Function: Normalize Deliverables", "type": "main", "index": 0 }]]
+    },
+    "Function: Normalize Deliverables": {
+      "main": [[{ "node": "Respond: OK", "type": "main", "index": 0 }]]
+    },
+    "Webhook: Final Validation": {
+      "main": [[{ "node": "Function: Normalize Validation", "type": "main", "index": 0 }]]
+    },
+    "Function: Normalize Validation": {
+      "main": [[{ "node": "Respond: OK", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "tags": [
+    { "name": "aeroforge" },
+    { "name": "workflow-monitor" }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2026-04-03T00:00:00.000Z",
+  "versionId": "2"
+}

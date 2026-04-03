@@ -68,6 +68,13 @@ desktop.ini
 
 # Logs
 *.log
+exports/*.out
+exports/*.err
+exports/py_version.txt
+exports/uv_version.txt
+exports/python_packages.out
+exports/workflow_status.json
+.claude/workflow_state.json
 
 # Local package-manager cache
 ChocolateyHttpCache/

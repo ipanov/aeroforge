@@ -1,5 +1,8 @@
 # Automatic Glider Workflow
 
+This document is now a project-specific derivative of the generic framework
+workflow described in `docs/workflow.md`.
+
 Date: 2026-04-02
 
 Purpose: define the standing AeroForge workflow so aircraft development does not drift into ad hoc part-by-part work.

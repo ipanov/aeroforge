@@ -1,0 +1,13 @@
+{
+  "name": "aeroforge-workflow",
+  "private": true,
+  "description": "n8n runtime for the AeroForge workflow monitor",
+  "scripts": {
+    "n8n:start": "n8n start --host 127.0.0.1 --port 5678",
+    "n8n:import": "n8n import:workflow --input=src/orchestrator/workflow_template.json",
+    "workflow:monitor": "python -m src.orchestrator.cli serve --launch-n8n"
+  },
+  "dependencies": {
+    "n8n": "^1.88.0"
+  }
+}

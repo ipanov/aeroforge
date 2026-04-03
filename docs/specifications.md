@@ -1,4 +1,60 @@
-# AeroForge Sailplane Specifications
+# AeroForge Specifications
+
+## Framework Scope
+
+This file now serves two roles:
+
+1. framework-level policy for AeroForge as a generic heavier-than-air design system
+2. current concrete baseline for the active sailplane example project
+
+The framework must support different outcomes at drill-down time:
+
+- printed parts with `3MF` deliverables
+- procured components with metadata and integration envelopes
+- drawing-only outputs
+- fold instructions or crease patterns
+- stitching plans and cut patterns
+- mold or tooling data
+
+The deliverable is part of the project and node definition. It is not globally fixed.
+
+## Initialization Boundary
+
+The following items are project decisions, not hardcoded deterministic facts:
+
+- aircraft type
+- tooling
+- manufacturing technique
+- material strategy
+- production strategy
+- deliverable strategy
+
+These are decided by the user and/or an LLM-guided initialization wizard, then
+persisted in the tracked project profile.
+
+## Deterministic Boundary
+
+After initialization, deterministic code is responsible for:
+
+- enforcing staged workflow order
+- enforcing dependencies
+- tracking current active step
+- recording deliverables produced by each step
+- exposing workflow progress in the dashboard and `n8n`
+- running final validation on the assembled top object
+
+## Deliverable Rule
+
+Each step may have one or more expected deliverables.
+
+Examples:
+
+- `DRAWING_2D`: drawing files, three-view sheets, cut patterns
+- `MODEL_3D`: STEP model, 3D master geometry
+- `MESH`: STL, `3MF`, manufacturing mesh
+- `VALIDATION`: validation report, screenshots, analysis outputs
+
+The exact deliverable set can differ by node and by project type.
 
 ## Authority Note
 
@@ -32,26 +88,26 @@ this stage.
 
 | Parameter | Value | Notes |
 |-----------|-------|-------|
-| **Wingspan** | 2560mm (2.56m) | 5 panels per half-wing, 256mm each |
-| **Root chord** | 210mm | At fuselage centerline |
-| **Tip chord** | 115mm | Taper ratio ~0.55 |
-| **Wing area** | ~41.6 dm² | Trapezoidal approximation |
-| **Aspect ratio** | ~15.8 | High AR for thermal efficiency |
+| **Wingspan** | 2816mm (2.816m) | R4 preferred candidate; 2560mm retained as fallback |
+| **Root chord** | 170mm | Tighter superelliptic taper (R4) |
+| **Tip chord** | 85mm | Taper ratio 0.5 |
+| **Wing area** | ~43.7 dm² | Superelliptic planform |
+| **Aspect ratio** | ~18.2 | High AR for thermal efficiency |
 | **Sweep** | TBD (AI-optimized) | Slight sweep likely for CG |
 | **Dihedral** | TBD (AI-optimized) | Continuous polyhedral possible |
 | **Twist (washout)** | TBD (AI-optimized) | Continuously varying, not linear |
 
 ## Wing Panel Layout
 
-10 panels total, 5 per half-wing, each 256mm span (exact Bambu bed fit).
+12 panels total, 6 per half-wing (5 × 256mm + 1 × 128mm tip extension).
 
 ```
-Tip ◄── P5 ──┬── P4 ──┬── P3 ──┬── P2 ──┬── P1 ──► Root
-     256mm   │ 256mm  │ 256mm  │ 256mm  │ 256mm
-     Aileron │Aileron │ Flap   │ Flap   │ Flap
-     AG03    │AG-blend│AG-blend│AG-blend│ AG24
-             │        │        │        │
-            joint    joint    joint    joint    fuselage
+Tip ◄── P6 ──┬── P5 ──┬── P4 ──┬── P3 ──┬── P2 ──┬── P1 ──► Root
+     128mm   │ 256mm  │ 256mm  │ 256mm  │ 256mm  │ 256mm
+     Aileron │Aileron │ Flap   │ Flap   │ Flap   │ Flap
+     AG03    │AG-blend│AG-blend│AG-blend│AG-blend│ AG24
+             │        │        │        │        │
+            joint    joint    joint    joint    joint    fuselage
 ```
 
 Each panel slides onto the carbon spar tube. Panels are unique - different airfoil
@@ -59,13 +115,13 @@ profile at every rib station, different chord (taper), different twist angle.
 
 ## Airfoils
 
-| Station | Airfoil | Chord | Thickness | Reynolds (8 m/s) |
+| Station | Airfoil | Chord | Thickness | Reynolds (10 m/s) |
 |---------|---------|-------|-----------|------------------|
-| Root (0%) | AG24 | 210mm | ~9.0% (19mm) | ~112,000 |
-| 25% span | AG24→AG09 blend | 186mm | ~9.1% | ~99,000 |
-| 50% span | AG09 | 162mm | ~9.2% | ~87,000 |
-| 75% span | AG09→AG03 blend | 139mm | ~8.8% | ~74,000 |
-| Tip (100%) | AG03 | 115mm | ~8.4% | ~61,000 |
+| Root (0%) | AG24 | 170mm | ~9.0% (15.3mm) | ~115,000 |
+| 25% span | AG24→AG09 blend | 151mm | ~9.1% | ~102,000 |
+| 50% span | AG09 | 128mm | ~9.2% | ~87,000 |
+| 75% span | AG09→AG03 blend | 106mm | ~8.8% | ~72,000 |
+| Tip (100%) | AG03 | 85mm | ~8.4% | ~58,000 |
 
 Blending is continuous - every rib has a unique, interpolated airfoil profile.
 This is a key advantage over commercial kits limited to 2-3 stations.
@@ -140,23 +196,23 @@ Available via 3DJake.com (ships to Balkans), Bambu Lab Store, Amazon.de.
 ### Airframe Budget
 | Component | Weight (g) | Notes |
 |-----------|-----------|-------|
-| Wing structure (6 panels, LW-PLA) | 200-260 | Skins + ribs + D-box |
-| Wing spars (carbon tube + spruce) | 25-35 | Main + rear, full span |
-| Fuselage pod (printed) | 50-70 | Two halves + internal structure |
-| Tail boom (carbon tube) | 20-25 | 10-12mm OD, ~650mm |
-| Empennage (H-stab + V-stab) | 25-35 | Printed, lightweight |
+| Wing structure (12 panels, LW-PLA) | 220-280 | Skins + ribs + D-box, 2816mm span |
+| Wing spars (carbon tube + spruce) | 30-40 | Main + rear, full span |
+| Fuselage pod (printed) | 50-70 | Integrated shell spinner-to-fin |
+| Empennage (H-stab + V-stab) | 30-40 | Higher-mounted H-stab (R4) |
 | Hardware (screws, hinges, horns) | 20-30 | M2/M3, music wire, clevises |
-| **Airframe total** | **~340-455** | |
+| **Airframe total** | **~350-460** | |
 
 ### Total
 | | Min | Target | Max |
 |--|-----|--------|-----|
-| **AUW** | 700g | 750-800g | 900g |
-| **Wing loading** | 17 g/dm² | 18-19 g/dm² | 22 g/dm² |
+| **AUW** | 700g | 750-850g | 950g |
+| **Wing loading** | 16 g/dm² | 17-19 g/dm² | 22 g/dm² |
 
-Wing loading of 18-19 g/dm² is competitive with commercial F5J kits (~18-25 g/dm²).
-The larger wingspan (2.56m) properly accommodates the heavy racing battery.
-Higher Reynolds numbers (112,000 at root) let AG airfoils perform near their optimum.
+Wing loading of 17-19 g/dm² is competitive with commercial F5J kits (~18-25 g/dm²).
+The 2816mm span (AR 18.2) properly accommodates the heavy racing battery while
+approaching credible F5J proportions. Higher Reynolds numbers at root (~115,000 at
+10 m/s) let AG airfoils perform near their optimum.
 
 ## Control System
 
@@ -211,29 +267,27 @@ slider/knob for variable deployment. AI-assisted programming of Turnigy 9X curve
 
 - **Configuration**: Conventional (horizontal + vertical stabilizer)
 
-### Horizontal Stabilizer (Design Consensus v3, 2026-03-30)
+### Horizontal Stabilizer (R4 Candidate, 2026-04-02)
 - **Type**: Fixed stabilizer + 35% chord elevator
 - **Planform**: Superellipse n=2.3 (Oswald e=0.990)
-- **Span**: 430mm (215mm per half)
-- **Root chord**: 115mm (Re 61,300 at 8 m/s)
-- **Tip chord**: ~50mm at 95% span (superellipse taper)
-- **Mean chord**: 94.8mm
-- **Area**: ~408 cm² (4.08 dm²)
-- **Aspect ratio**: 4.53
+- **Span**: 446mm (223mm per half)
+- **Root chord**: 118mm (Re ~80,000 at 10 m/s)
+- **Tip chord**: ~52mm at 95% span (superellipse taper)
+- **Mean chord**: ~97mm
+- **Area**: ~421 cm² (4.21 dm²)
+- **Aspect ratio**: 4.73
 - **Airfoil**: HT-13 (6.5%) root → HT-12 (5.1%) tip, linear blend
-- **Vh**: 0.393
-- **S_h/S_w**: 9.8% (within F5J range 8.9–11.6%)
+- **Vh**: ~0.42 (target)
+- **S_h/S_w**: 9.6%
 - **Elevator**: 35% chord, hinge at 65% chord, -20° to +25° deflection
-- **Hinge**: 0.5mm music wire pin through PETG knuckle strips (infinite fatigue life)
-- **Main spar**: 3mm CF tube (3/2mm OD/ID), 390mm, terminates at 195mm/half
+- **Hinge**: 0.5mm music wire pin through PETG knuckle strips
+- **Main spar**: 3mm CF tube (3/2mm OD/ID)
 - **Rear spar**: 1.5mm CF rod at 60% chord
-- **Elevator stiffener**: 1mm CF rod at 80% chord
-- **VStab junction**: C2-continuous fillet (r=9.2mm) + dovetail interlock
+- **VStab junction**: C2-continuous fillet + dovetail interlock
+- **Mount**: Higher on fin, slightly aft (not T-tail)
 - **TE truncation**: 97% chord (~0.7mm flat TE)
 - **Wall thickness**: 0.45mm stab / 0.40mm elevator (vase mode, LW-PLA)
-- **Mass balance**: 1.0g tungsten putty on control horn (flutter prevention)
-- **Mass target**: 33.7g nominal (35g hard limit)
-- **Print strategy**: Vase mode, LW-PLA at 230°C; PETG hinge strips printed separately
+- **Mass target**: ~35g
 
 ### Vertical Stabilizer (Integrated into Fuselage)
 - **Height**: 165mm

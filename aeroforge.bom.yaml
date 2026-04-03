@@ -1,0 +1,12 @@
+project_name: Iva Aeroforge F5J
+currency: USD
+location_context:
+  country: North Macedonia
+  region: Skopje
+provider_preferences:
+  - temu
+  - aliexpress
+  - amazon
+  - hobbyking
+notes: Living BOM state. Deliverable hooks and procurement refreshes update this file.
+entries: []

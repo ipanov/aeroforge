@@ -1,8 +1,8 @@
-# Design Consensus: Wing Assembly (v1)
+# Design Consensus: Wing Assembly (v2 — R4 Superelliptical)
 
-**Date:** 2026-04-01
-**Rounds:** 2 (R1: aero proposal + structural review; R2: aero accepts all structural modifications)
-**Status:** AGREED — Option C accepted with structural modifications, aero R2 confirmed zero aerodynamic penalty
+**Date:** 2026-04-03
+**Rounds:** 2 (R1: aero proposal R4 + structural review R4)
+**Status:** AGREED — 3 required structural modifications accepted by aero, consensus reached
 
 ---
 
@@ -10,159 +10,185 @@
 
 | Parameter | Value | Source |
 |-----------|-------|--------|
-| Configuration | **Full-house sailplane wing** — flaps + ailerons + 4 servos per half | Aero R1 |
-| Airfoil root | **AG24 (8.6% thick, 6.2% camber)** | Aero R1 — NeuralFoil L/D 55.5 at Re 112k |
-| Airfoil tip | **AG03 (6.4% thick, 5.1% camber)** | Aero R1 — best low-Re performance, docile stall |
-| Airfoil blend | **Continuous AG24→AG03**, direct linear blend root to tip | Aero R1 |
-| Span | **2560mm** (1280mm per half) | Locked spec |
-| Panels | **5 per half (P1-P5), 256mm each** | Locked spec |
-| Root chord | **210mm** | Locked spec |
-| Tip chord | **115mm** | Locked spec |
-| Taper ratio | **0.548** | Derived |
-| Wing area | **41.6 dm²** (trapezoidal) | Derived |
-| Aspect ratio | **15.7** | Derived |
-| Twist distribution | **Non-linear, 4.0 deg total washout** — twist(η) = -4.0 × η^2.5 | Aero R1 |
-| Dihedral (EDA) | **7.0 deg** — progressive polyhedral at panel joints | Aero R1 |
-| Flap chord | **28%** of local chord (P1-P3, span 0-40%) | Aero R1 |
-| Aileron chord | **28%** of local chord (P4-P5, span 40-100%) | Aero R1 |
-| Main spar (P1-P4) | **8mm CF tube** at 25% chord, 1024mm per half | Struct R1 |
-| Main spar (P5) | **5mm CF rod** at 27% chord, 256mm per half | Struct R1 — R2 aero confirmed zero penalty |
-| Rear spar | **5×3mm spruce**, P1-P4 only, terminates at P4/P5 | Struct R1 |
-| Mass target | **215g per half (430g full wing)** | Struct R1 |
+| Configuration | Full-house sailplane wing — flaps + ailerons + 4 servos per half | Aero R4 R1 |
+| Airfoil root | **AG24** (9.0% thick, 6.2% camber) — L/D 56.7 at Re 116k | Aero R4 R1 — NeuralFoil |
+| Airfoil tip | **AG03** (8.4% thick, 5.1% camber) — L/D 35.0 at Re 58k | Aero R4 R1 — NeuralFoil |
+| Airfoil blend | Continuous AG24→AG09→AG03, three-zone linear interpolation | Aero R4 R1 |
+| Span | **2816mm** (1408mm per half) | R4 locked |
+| Panels | **6 per half (P1-P6)**, 5×256mm + 1×128mm tip | R4 locked |
+| Root chord | **170mm** | R4 locked |
+| Tip chord | **85mm** (taper ratio 0.5) | R4 locked |
+| Planform | **Superelliptical n=2.3**: c(eta) = 170 × (1 - 0.5 × eta^2.3) | Aero R4 R1 |
+| Wing area | **40.62 dm²** | Derived |
+| Aspect ratio | **19.52** | Derived |
+| MAC | **148.6mm** | Derived |
+| Oswald span e | **0.997** (Schrenk) | Aero R4 R1 |
+| Twist distribution | Non-linear, **4.0 deg total washout**: twist(eta) = -4.0 × eta^2.5 | Aero R4 R1 |
+| Dihedral (EDA) | **~5.0 deg** hybrid — flat P1-P2, continuous P2-P5, tip break at P5/P6 | Aero R4 R1 |
+| Flap chord | **28%** of local chord (P1-P3, span 0-768mm) | Aero R4 R1 |
+| Aileron chord | **28%** of local chord (P4-P6, span 768-1408mm) | Aero R4 R1 |
+| Main spar root | **10mm CF tube** (10/8mm OD/ID), root→P3/P4 | Struct R4 R1 — REQ CHANGE #1 |
+| Main spar mid | **8mm CF tube** (8/6mm OD/ID), P3/P4→P4/P5 | Struct R4 R1 |
+| Main spar tip | **4mm CF rod** (solid), P4/P5→tip | Struct R4 R1 |
+| Rear spar | **5×3mm spruce**, root→P4/P5 only | Struct R4 R1 — REQ CHANGE #2 |
+| Mass target | **490g full wing** (245g per half) | Struct R4 R1 — REQ CHANGE #3 |
+| Wing tip | **Schuemann integrated + raked tip** (5 deg aft rake, last 5%) | Aero R4 R1 |
+
+---
+
+## Planform Chord Distribution
+
+Chord law: **c(eta) = 170 × (1 - 0.5 × eta^2.3)** where eta = y/1408
+
+| Station | Span y (mm) | eta | Chord (mm) | Re @ 10 m/s | Airfoil |
+|---------|------------|------|-----------|-------------|---------|
+| P1 root | 0 | 0.000 | 170.0 | 115,800 | AG24 |
+| P1/P2 | 256 | 0.182 | 168.3 | 114,600 | AG24 |
+| P2/P3 | 512 | 0.364 | 161.7 | 110,200 | AG24→AG09 blend |
+| P3/P4 | 768 | 0.545 | 148.9 | 101,400 | AG09 |
+| P4/P5 | 1024 | 0.727 | 129.1 | 87,900 | AG09→AG03 blend |
+| P5/P6 | 1280 | 0.909 | 101.7 | 69,300 | AG03 |
+| Tip | 1408 | 1.000 | 85.0 | 57,900 | AG03 |
 
 ---
 
 ## Airfoil Blending Schedule
 
-| Station | Span (mm) | Span Fraction | AG24 % | AG03 % | Effective Thickness | Chord (mm) | Re @ 8 m/s |
-|---------|-----------|--------------|--------|--------|-------------------|-----------|------------|
-| P1 root | 0 | 0.00 | 100% | 0% | 8.6% | 210 | 112,000 |
-| P1/P2 | 256 | 0.10 | 90% | 10% | 8.3% | 204 | 109,000 |
-| P2/P3 | 512 | 0.20 | 80% | 20% | 7.9% | 198 | 106,000 |
-| P3 mid | 640 | 0.30 | 70% | 30% | 7.6% | 192 | 103,000 |
-| P3/P4 | 768 | 0.40 | 55% | 45% | 7.2% | 186 | 99,000 |
-| P4 mid | 896 | 0.50 | 40% | 60% | 6.9% | 180 | 96,000 |
-| P4/P5 | 1024 | 0.60 | 25% | 75% | 6.5% | 168 | 90,000 |
-| P5 inner | 1152 | 0.70 | 15% | 85% | 6.2% | 156 | 83,000 |
-| P5 mid | 1216 | 0.80 | 8% | 92% | 6.0% | 144 | 77,000 |
-| P5 tip | 1280 | 1.00 | 0% | 100% | 6.4% | 115 | 61,000 |
+| Span Range | eta Range | Airfoil | Blend Method |
+|------------|-----------|---------|--------------|
+| P1 (root to P1/P2) | 0.00-0.18 | AG24 (100%) | Direct |
+| P1/P2 → P2/P3 | 0.18-0.36 | AG24 → AG09 | Linear interpolation |
+| P2/P3 → P3/P4 | 0.36-0.55 | AG09 (100%) | Direct |
+| P3/P4 → P4/P5 | 0.55-0.73 | AG09 → AG03 | Linear interpolation |
+| P4/P5 → tip | 0.73-1.00 | AG03 (100%) | Direct |
+
+### NeuralFoil Section Performance
+
+| Station | Airfoil | Re | L/D_max | CL at best | CD at best | CL_max | CM |
+|---------|---------|------|---------|-----------|-----------|--------|------|
+| Root | AG24 | 115,800 | 56.7 | 0.828 | 0.01459 | 1.218 | -0.058 |
+| P1/P2 | AG24 | 114,600 | 56.4 | 0.827 | 0.01466 | 1.217 | -0.058 |
+| P2/P3 | AG09 | 110,200 | 45.3 | 0.561 | 0.01240 | 0.992 | -0.029 |
+| P3/P4 | AG09 | 101,400 | 43.8 | 0.563 | 0.01285 | 0.985 | -0.030 |
+| P4/P5 | AG03 | 87,900 | 43.8 | 0.689 | 0.01575 | 1.067 | -0.031 |
+| P5/P6 | AG03 | 69,300 | 38.6 | 0.691 | 0.01790 | 1.045 | -0.032 |
+| Tip | AG03 | 57,900 | 35.0 | 0.694 | 0.01985 | 1.030 | -0.033 |
 
 ---
 
 ## Twist Distribution
 
-Twist function: **twist(η) = -4.0 × η^2.5** (where η = span fraction 0→1)
+Function: **twist(eta) = -4.0 × eta^2.5** (deg, negative = washout)
 
-| Station | Span Fraction | Twist (deg) | Notes |
-|---------|--------------|-------------|-------|
+| Station | eta | Twist (deg) | Notes |
+|---------|------|-------------|-------|
 | P1 root | 0.00 | 0.0 | Reference |
-| P1/P2 | 0.10 | -0.1 | |
-| P2/P3 | 0.20 | -0.3 | |
-| P3 mid | 0.30 | -0.5 | |
-| P3/P4 | 0.40 | -0.8 | |
-| P4 mid | 0.50 | -1.2 | Twist accelerating |
-| P4/P5 | 0.60 | -1.8 | |
-| P5 inner | 0.70 | -2.5 | Outer 40% gets 70% of total |
-| P5 mid | 0.80 | -3.2 | |
-| P5 tip | 1.00 | -4.0 | Total 4.0 deg washout |
+| P1/P2 | 0.18 | -0.1 | Minimal — inner wing at peak efficiency |
+| P2/P3 | 0.36 | -0.3 | |
+| P3/P4 | 0.55 | -0.8 | Twist accelerating |
+| P4/P5 | 0.73 | -1.8 | Outer 45% receives 55% of total |
+| P5/P6 | 0.91 | -3.3 | |
+| Tip | 1.00 | -4.0 | Full washout — docile tip stall |
 
 ---
 
-## Dihedral / Polyhedral Scheme
+## Dihedral / Hybrid Scheme
 
-| Joint | Dihedral Change (deg) | Cumulative EDA (deg) | Implementation |
-|-------|----------------------|---------------------|----------------|
-| P1/P2 | 0.0 | 0.0 | Flat joint face |
-| P2/P3 | 0.0 | 0.0 | Flat joint face |
-| P3/P4 | 1.5 | 1.5 | Angled end rib |
-| P4/P5 | 2.5 | 4.0 | Angled end rib |
-| P5 tip | 3.0 | 7.0 | Winglet cant |
+| Zone | Span Range | Dihedral Change (deg) | Cumulative EDA (deg) | Implementation |
+|------|-----------|----------------------|---------------------|----------------|
+| P1-P2 | 0-512mm | 0.0 | 0.0 | Flat joint faces |
+| P2-P3 | 512-768mm | +0.75 | 0.75 | Built into panel geometry |
+| P3-P4 | 768-1024mm | +0.75 | 1.50 | Built into panel geometry |
+| P4-P5 | 1024-1280mm | +0.75 | 2.25 | Built into panel geometry |
+| P5/P6 break | 1280mm | +2.50 | 4.75 | Discrete break at joint face |
+| Tip cant | 1280-1408mm | 0.0 | 4.75 | Flat (break already applied) |
 
-**Total EDA: 7.0 deg.** Dihedral built into joint faces, NOT bent into spar.
+**Total EDA: ~5.0 deg.** Continuous dihedral P2-P5 provides smooth thermal response; discrete P5/P6 break concentrates dihedral at aileron station for roll authority.
 
 ---
 
-## Spar System (Structural R1 + Aero R2 Confirmed)
+## Spar System (Structural R4 R1 — 3-Step Design)
 
-### Main Spar — Stepped System
+### Main Spar — Three-Step System
 
-| Segment | Length | Type | OD | Chord Position | Wall Clearance |
-|---------|--------|------|----| ------------ | -------------- |
-| Root → P4/P5 | 1024mm | CF tube | 8/6mm | 25% | ≥ 2.2mm OK |
-| P4/P5 joint | 30mm | Transition sleeve | 10mm OD | — | Inside P4 end-rib |
-| P4/P5 → tip | 256mm | CF rod | 5mm solid | **27%** | ≥ 0.9mm at tip |
+| Segment | Length | Type | OD/ID (mm) | I (mm^4) | Chord Position | SF @ 8g |
+|---------|--------|------|-----------|----------|----------------|---------|
+| Root → P3/P4 | 768mm | CF tube | 10/8 | 290 | 25% | **1.64** |
+| P3/P4 → P4/P5 | 256mm | CF tube | 8/6 | 137 | 25% | **5.55** |
+| P4/P5 → tip | 384mm | CF rod | 4 solid | 12.6 | 25% | **3.08** |
 
-**Aero R2 confirmed:** Spar step has 0.0% L/D impact — fully internal, external profile unchanged. Sleeve positioned inside P4 end-rib avoids any skin bulge.
+### Spar Clearance Verification
 
-**Spar offset in P5 (25% → 27%):** Moves closer to max thickness (30% chord), gaining ~0.5mm clearance. Zero aero penalty — external geometry unchanged. Actually improves D-box enclosed area.
+| Station | Chord (mm) | Depth at 25% (mm) | Spar | Clearance |
+|---------|-----------|-------------------|------|-----------|
+| Root | 170 | 14.1 | 10mm tube | +4.1mm OK |
+| P3/P4 | 149 | 11.9 | 10mm tube | +1.9mm OK |
+| P4/P5 | 129 | 10.2 | 8mm tube | +2.2mm OK |
+| P5/P6 | 102 | 7.9 | 4mm rod | +3.9mm OK |
+| Tip | 85 | 6.6 | 4mm rod | +2.6mm OK |
+
+### Transition Sleeves
+
+| Transition | Location | Sleeve OD | Sleeve Length | Mass |
+|------------|----------|-----------|---------------|------|
+| 10mm → 8mm | P3/P4 end-rib | 12mm | 20mm | ~1.5g |
+| 8mm → 4mm | P4/P5 end-rib | 10mm | 20mm | ~1.0g |
 
 ### Rear Spar
 
 | Segment | Length | Type | Position | Notes |
 |---------|--------|------|----------|-------|
-| Root → P4/P5 | 1024mm | 5×3mm spruce | 60% chord | Clearance ≥ 0.5mm at P4/P5 |
-| P4/P5 → tip | — | **None** | — | D-box provides torsion alone |
+| Root → P4/P5 | 1024mm | 5×3mm spruce | 60% chord | Clearance OK at all stations |
+| P4/P5 → tip | — | None | — | D-box provides adequate torsion |
 
-**Aero R2 confirmed:** P5 torsional twist at VNE with full aileron deflection = only 0.52 deg — negligible. D-box alone adequate for 256mm tip panel.
-
-### Spar Fit Verification
-
-| Station | Chord | Depth (mm) | Spar | Clearance |
-|---------|-------|-----------|------|-----------|
-| P1 root | 210 | ~15.0 | 8mm tube | 3.5mm |
-| P3/P4 | 186 | ~12.4 | 8mm tube | 2.2mm |
-| P4/P5 | 168 | ~9.3 | 8mm tube | 0.65mm |
-| P5 inner | 156 | ~8.2 | 5mm rod | 1.6mm |
-| P5 tip | 115 | ~6.3 | 5mm rod | 0.65mm (marginal at 27%) |
+Torsional twist at VNE with full aileron deflection in P5/P6: **0.12 deg** — negligible.
 
 ---
 
 ## Control Surface Geometry
 
-### Flaps (P1-P3, span 0-512mm per half)
+### Flaps (P1-P3, span 0-768mm per half)
 
-| Parameter | P1 | P2 | P3 |
-|-----------|-----|-----|-----|
-| Panel chord (mm) | 210-204 | 204-192 | 192-180 |
-| Flap chord 28% (mm) | 59-57 | 57-54 | 54-50 |
-| Hinge at 72% chord | 151-147mm | 147-138mm | 138-130mm |
+| Panel | Chord Range (mm) | Flap 28% (mm) | Hinge at 72% (mm) |
+|-------|-----------------|---------------|-------------------|
+| P1 | 170-168 | 48-47 | 122-121 |
+| P2 | 168-162 | 47-45 | 121-117 |
+| P3 | 162-149 | 45-42 | 117-107 |
 
-### Ailerons (P4-P5, span 512-1280mm per half)
+### Ailerons (P4-P6, span 768-1408mm per half)
 
-| Parameter | P4 | P5 inner | P5 tip |
-|-----------|-----|----------|--------|
-| Panel chord (mm) | 180-168 | 168-144 | 144-115 |
-| Aileron chord 28% (mm) | 50-47 | 47-40 | 40-32 |
-| Hinge at 72% chord | 130-121mm | 121-104mm | 104-83mm |
+| Panel | Chord Range (mm) | Aileron 28% (mm) | Hinge at 72% (mm) |
+|-------|-----------------|-----------------|-------------------|
+| P4 | 149-129 | 42-36 | 107-93 |
+| P5 | 129-102 | 36-29 | 93-73 |
+| P6 (tip) | 102-85 | 29-24 | 73-61 |
 
 ### Deflection Schedule
 
 | Mode | Flap (deg) | Aileron (deg) | Purpose |
 |------|-----------|--------------|---------|
 | Launch | +2 down | +2 down | Reduced drag climb |
-| Cruise | 0 | 0 | Normal flight |
+| Cruise | 0 | 0 | Max L/D |
 | Speed | -2 up | -1 up | Penetration |
 | Thermal 1 | +3 down | +2 down | Light lift |
 | Thermal 2 | +5 down | +3 down | Strong lift |
 | Crow/Landing | -60 down | +45 up | Max drag descent |
 
+### Servo Placement
+
+| Servo | Panel | Position | Type | Mass |
+|-------|-------|----------|------|------|
+| Flap 1 | P1 | Mid-panel, 35% chord | 9g digital metal gear | 9g |
+| Flap 2 | P3 | Mid-panel, 35% chord | 9g digital metal gear | 9g |
+| Aileron 1 | P4 | Mid-panel, 35% chord | 9g digital metal gear | 9g |
+| Aileron 2 | P6 | Mid-panel, 30% chord | 5g low-profile (7mm) | 5g |
+
 ### Hinge Design
 
-TPU living hinge — consistent with HStab:
+TPU living hinge consistent with HStab/rudder:
 - 0.6mm TPU strip, 4mm wide, full span
 - Upper surface gap seal (0.5mm TPU overlap)
 - No discrete hardware, zero visible gap
-
-### Servo Placement
-
-| Servo | Panel | Position | Type |
-|-------|-------|----------|------|
-| Flap 1 | P1 | Mid-panel, 35% chord | 9g digital metal gear |
-| Flap 2 | P3 | Mid-panel, 35% chord | 9g digital metal gear |
-| Aileron 1 | P4 | Mid-panel, 35% chord | 9g digital metal gear |
-| Aileron 2 | P5 | Mid-panel, 30% chord (thickest) | **5g low-profile** (7mm height) |
-
-**P5 servo:** KST X08 or PTK 7308MG-D equivalent, 7mm height. External fairing blister +0.5mm may be needed.
 
 ---
 
@@ -171,38 +197,34 @@ TPU living hinge — consistent with HStab:
 | Parameter | Value |
 |-----------|-------|
 | Extent | LE to 30% chord |
-| Wall thickness | 0.7mm (D-box zone) vs 0.55mm standard vase |
+| Wall thickness | 0.7mm (D-box zone) vs 0.4mm standard vase |
 | Forward boundary | CF tube main spar |
 | Aft boundary | Closing web at 30% chord |
-| GJ (root) | 3.92 N·m² |
-| GJ (P4/P5) | 0.88 N·m² |
+| Material | LW-PLA outer, CF-PLA reinforced D-box zone in P1-P3 |
+| Max torsional twist at VNE | <0.12 deg (all panels) |
 
 ---
 
-## Flutter Prevention (REQUIRED)
+## Flutter Prevention
 
 | Item | Specification | Mass |
 |------|--------------|------|
 | Tungsten mass balance | 1g per horn, 4 per half | 4.0g/half |
-| TE stiffener | 1mm CF rod at 80% chord in ailerons | Included |
+| TE stiffener | 0.8mm CF rod at 80% chord in ailerons | Included in shell |
 | Hinge | Zero-slop TPU living hinge | 2.0g/half |
 
-**Flutter speed:** > 35 m/s (> 1.4 × VNE). **Divergence speed:** ~90 m/s (3.6 × VNE).
+**Flutter speed:** > 35 m/s (> 1.4 × VNE).
 
 ---
 
-## Winglet (Preliminary)
+## Wing Tip
 
 | Parameter | Value |
 |-----------|-------|
-| Height | 80mm (~6% semi-span) |
-| Root chord | 55mm |
-| Tip chord | 25mm |
-| Cant | 75 deg from horizontal |
-| Toe | 2 deg toe-out |
-| Airfoil | NACA 0006 |
-| LE sweep | 30 deg |
-| Mass | ~3g |
+| Treatment | Schuemann integrated (inherent in superelliptical planform) + raked tip |
+| Rake angle | 5 deg aft, last 5% span (P6 outer section) |
+| TE convergence | TE naturally straightens toward tip — built into chord law |
+| No winglet | Rejected: 3-5g mass penalty, flutter risk, off-design drag penalty |
 
 ---
 
@@ -210,12 +232,12 @@ TPU living hinge — consistent with HStab:
 
 | Feature | Spec |
 |---------|------|
-| Type | Male/female tongue+groove |
-| Tongue | 3mm, groove 3.2mm, 2mm deep |
-| Spar hole | 8.3mm (P1-P4), 5.2mm (P5) |
-| Adhesive | CA glue |
+| Type | Male/female tongue + groove, 3mm / 3.2mm × 2mm deep |
+| Spar bore | 10.3mm (P1-P3), 8.3mm (P3/P4→P4/P5), 4.2mm (P4/P5→tip) |
+| Rear spar slot | 5.2 × 3.2mm |
+| Adhesive | CA glue (medium viscosity) |
 | Dihedral | In end-rib face geometry |
-| Alignment | 2mm dowel pins |
+| Alignment | 2mm CF dowel pins (2 per joint) |
 
 ---
 
@@ -223,51 +245,67 @@ TPU living hinge — consistent with HStab:
 
 | Parameter | Value |
 |-----------|-------|
-| Profile L/D (root, Re 112k) | 55.5 |
-| Profile L/D (tip, Re 61k) | 35.9 |
-| 3D wing L/D (realistic) | 16-18:1 |
-| CLmax (wing) | ~1.15 |
-| CLmax (+5 deg flap) | ~1.3 |
+| Profile CD0 (wing) | 0.0125 |
+| 3D CD0 (wing) | 0.0138 |
+| CDi at CL=0.8 (cruise) | 0.00829 |
+| CD total cruise | 0.0221 |
+| 3D L/D (wing alone) | 36.2 |
+| 3D L/D (full aircraft) | 16-18:1 |
+| CL max (wing) | ~1.15 |
+| CL max (+5 deg flap) | ~1.30 |
 | Min sink | 0.40-0.45 m/s |
-| Stall speed (800g) | ~4.9 m/s |
+| Stall speed (850g) | ~4.8 m/s |
 | Best L/D speed | ~9-10 m/s |
 | VNE | 25 m/s |
-| Combined L/D impact of all structural mods | < 0.1% |
+| CDi reduction vs v1 (linear taper, 2560mm) | **-20.3%** |
 
 ---
 
 ## Mass Budget Per Half-Wing
 
 | Component | Mass (g) |
-|-----------|---------|
-| P1-P5 shells (LW-PLA vase) | 86 |
-| D-box reinforcement | 15.6 |
-| Ribs (CF-PLA lattice, 25x) | 5.3 |
-| Flap servos x2 (9g) | 18 |
-| Aileron servo P4 (9g) | 9 |
-| Aileron servo P5 (5g) | 5 |
+|-----------|----------|
+| Shell P1-P6 (LW-PLA, 0.4mm vase) | 91.3 |
+| D-box reinforcement (0.3mm extra LE-30%, P1-P4) | 14.0 |
+| Ribs (25 × CF-PLA lattice, ~0.3g) | 7.5 |
+| Main spar 10mm tube (768mm) | 36.0 |
+| Main spar 8mm tube (256mm) | 9.2 |
+| Main spar 4mm rod (384mm) | 7.7 |
+| Transition sleeves (×2) | 2.5 |
+| Rear spar spruce (1024mm) | 6.9 |
+| Servos (2×9g + 1×9g + 1×5g) | 32.0 |
 | Servo mounts + covers + horns | 12.0 |
-| Tungsten mass balance (4x 1g) | 4.0 |
+| Tungsten mass balance (4×1g) | 4.0 |
 | Pushrods + Z-bends | 1.2 |
 | TPU hinge + gap seal | 3.0 |
-| Main spar 8mm tube (1024mm) | 28.6 |
-| Main spar 5mm rod (256mm) | 3.8 |
-| Transition sleeve | 2.0 |
-| Rear spar spruce (1024mm) | 6.1 |
-| Winglet | 3.0 |
+| Winglet (none — raked tip only) | 0.0 |
 | Joint hardware (pins + CA) | 4.0 |
-| **HALF-WING TOTAL** | **204.8** |
-| **Contingency (5%)** | **10.2** |
-| **HALF-WING WITH CONTINGENCY** | **215.0** |
-| **FULL WING (×2)** | **430.0** |
+| Raked tip fairing | 1.0 |
+| **HALF-WING SUBTOTAL** | **232.3** |
+| Contingency (5%) | 11.6 |
+| **HALF-WING WITH CONTINGENCY** | **243.9** |
+| **FULL WING (×2)** | **487.8 ≈ 490g** |
 
 ### Wing Loading Check
 
-| AUW | Loading | Status |
-|-----|---------|--------|
-| 750g | 18.0 g/dm² | At target |
-| 800g | 19.2 g/dm² | Acceptable |
-| 850g | 20.4 g/dm² | Upper limit |
+| AUW | Loading (g/dm²) | Status |
+|-----|-----------------|--------|
+| 850g | 20.9 | Target range |
+| 900g | 22.2 | Acceptable |
+| 950g | 23.4 | Upper limit |
+| 982g | 24.2 | Flyable — competitive for 2.8m class |
+
+---
+
+## Transport Configuration
+
+**2+2+2 grouping** — two glued joints per half, field-assembled.
+
+| Group | Panels | Assembled Length | Pieces |
+|-------|--------|-----------------|--------|
+| Inner | P1-P2 | 512mm | Fits 550mm tube |
+| Mid | P3-P4 | 512mm | Fits 550mm tube |
+| Outer | P5-P6 | 384mm | Fits 550mm tube |
 
 ---
 
@@ -275,49 +313,63 @@ TPU living hinge — consistent with HStab:
 
 | Part | Mode | Material | Notes |
 |------|------|----------|-------|
-| Panels P1-P5 | Vase 0.50-0.55mm | LW-PLA | D-box gets extra perimeters |
+| Panels P1-P3 | Vase 0.4mm + D-box 0.7mm | LW-PLA | D-box extra perimeter in LE-30% zone |
+| Panels P4-P6 | Vase 0.4mm | LW-PLA | Standard shell |
 | Ribs | 30% lattice | CF-PLA | Separate, installed post-print |
-| Winglet | Vase mode | LW-PLA | Integrated into P5 tip |
 | Servo mounts | 100% solid | CF-PETG | Press-fit |
 | TPU hinges | Flexible | TPU 95A | Bonded post-print |
-
-Print time: ~10h per half (sequential), ~5h with two printers.
+| Raked tip fairing | Vase | LW-PLA | Integrated into P6 shell |
 
 ---
 
 ## Assembly Sequence
 
-1. Print all panels, ribs, servo mounts, winglet
+1. Print all panels, ribs, servo mounts
 2. Install ribs into panels (CA + alignment pins)
-3. Route 8mm CF tube through P1-P4 ribs
-4. Install transition sleeve at P4/P5 joint (inside P4 end-rib)
-5. Route 5mm CF rod through P5 ribs into sleeve
-6. Install spruce rear spar through P1-P4 rib slots
-7. Install servo mounts, servos, pushrods
-8. Bond panel joints with CA (P1/P2 → P2/P3 → P3/P4 → P4/P5)
-9. Install winglet
-10. Apply TPU hinges + gap seals
-11. Install control horns with tungsten mass balance
-12. Route servo wiring to root
-13. Weigh and verify under 260g per half
+3. Route 10mm CF tube through P1-P3 ribs
+4. Install transition sleeve at P3/P4 joint (inside P3 end-rib)
+5. Route 8mm CF tube through P3-P4 ribs into sleeve
+6. Install transition sleeve at P4/P5 joint (inside P4 end-rib)
+7. Route 4mm CF rod through P5-P6 ribs into sleeve
+8. Install spruce rear spar through P1-P4 rib slots
+9. Install servo mounts, servos, pushrods
+10. Bond panel joints with CA (P1/P2→P2/P3→P3/P4→P4/P5→P5/P6)
+11. Apply TPU hinges + gap seals
+12. Install control horns with tungsten mass balance
+13. Route servo wiring to root
+14. Weigh and verify under 244g per half
+
+---
+
+## Comparison to v1 (2560mm Linear Taper)
+
+| Parameter | v1 | R4 (v2) | Delta |
+|-----------|-----|---------|-------|
+| Span | 2560mm | 2816mm | +10% |
+| Panels per half | 5 | 6 | +1 |
+| Planform | Linear taper | Superelliptical n=2.3 | Improved Oswald |
+| AR | 15.7 | 19.5 | +24% |
+| CDi at CL=0.8 | 0.01040 | 0.00829 | -20.3% |
+| Root spar | 8mm tube | 10mm tube | Upgraded |
+| Tip spar | 5mm rod | 4mm rod | Downsized (less chord) |
+| Wing mass | 430g | 490g | +60g |
+| Wing loading (850g) | 20.4 g/dm² | 20.9 g/dm² | +2.4% |
 
 ---
 
 ## Round History
 
-**Round 1:**
-- Aero: Option C proposed (AG24-AG03 optimized twist, 3 options compared). L/D 55.5 root, 35.9 tip, non-linear 4° washout, 7° EDA, 28% controls.
-- Struct: **MODIFY** — 4 required changes: (1) stepped spar at P4/P5 (8mm tube doesn't fit in thin tip), (2) rear spar terminates at P4/P5, (3) P5 servo downgraded to 5g low-profile, (4) mass balance locked as structural requirement.
-
-**Round 2:**
-- Aero: **ACCEPT ALL** — Quantitative analysis confirms < 0.1% total L/D impact from all modifications. Spar step is fully internal (0% aero penalty). Spar offset at 27% actually improves D-box area. Rear spar termination causes only 0.52° twist at VNE. Consensus reached.
+**R1 (2026-04-03):**
+- Aero: Proposed superelliptical n=2.3 planform with AG24→AG09→AG03 blend. Compared 3 planform options, 4 tip treatments, 3 dihedral schemes. NeuralFoil polars at 7 span stations. 4.0 deg eta^2.5 washout. Schuemann integrated + raked tip. Hybrid dihedral.
+- Struct: **MODIFY** — 3 required changes: (1) upgrade root spar to 10mm CF tube (8mm fails at SF=0.97 at 8g launch), (2) confirm rear spar terminates at P4/P5 (D-box adequate for P5/P6 torsion), (3) accept 490g full wing mass (+60g vs v1). 2 recommended changes: tungsten mass balance for flutter prevention, P3/P4 joint designed for 10→8mm transition.
 
 ---
 
 ## References
 
-- Aero proposal R1: `AERO_PROPOSAL_WING_R1.md`
-- Aero response R2: `AERO_RESPONSE_WING_R2.md`
-- Structural review R1: `STRUCTURAL_REVIEW_WING_R1.md`
+- Aero proposal R4 R1: `AERO_PROPOSAL_WING_R4_R1.md`
+- Structural review R4 R1: `STRUCTURAL_REVIEW_WING_R4_R1.md`
 - Specifications: `docs/specifications.md`
 - HStab consensus: `cad/assemblies/empennage/HStab_Assembly/DESIGN_CONSENSUS.md`
+- Fuselage consensus: `cad/assemblies/fuselage/Fuselage_Assembly/DESIGN_CONSENSUS.md`
+- Aircraft consensus R4: `cad/assemblies/Iva_Aeroforge/DESIGN_CONSENSUS.md`

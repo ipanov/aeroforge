@@ -1,4 +1,8 @@
-# AeroForge - AI-Enabled RC Sailplane Design System
+# AeroForge - AI-Enabled RC Aircraft Design System
+
+> **Current project:** Iva Aeroforge F5J thermal sailplane (2.816m span).
+> The glider is the first example application. The framework is generic — it applies to any
+> RC aircraft type: sailplane, aerobatic, pylon racer, drone, interceptor.
 
 ## MANDATORY: Automation Rule
 
@@ -313,6 +317,22 @@ Does NOT apply to: `hardware/`, `propulsion/` (unless designing a fairing).
 4. When both agree: `DESIGN_CONSENSUS.md` written to the component/assembly folder
 5. **Only then** can a 2D drawing be created
 
+**Every aerodynamic component/assembly MUST be designed by the two-agent team before any drawing is created.**
+
+This applies to components in: `empennage/`, `wing/`, `fuselage/` (aerodynamic surfaces only).
+Does NOT apply to: `hardware/`, `propulsion/` (unless designing a fairing).
+
+### The Agents
+- **Aerodynamicist** (`.claude/agents/aerodynamicist.md`): Proposes airfoil, planform, dimensions with NeuralFoil polar data
+- **Structural Engineer** (`.claude/agents/structural-engineer.md`): Reviews for mass, printability, structural integrity
+
+### The Protocol
+1. Main thread spawns aerodynamicist → produces **Aero Proposal** (MUST compare at least 3 design options)
+2. Main thread spawns structural engineer with the proposal → produces **Structural Review**
+3. If modifications needed: aerodynamicist gets another pass (max 3 rounds)
+4. When both agree: `DESIGN_CONSENSUS.md` written to the component/assembly folder
+5. **Only then** can a 2D drawing be created
+
 ### Assembly-Level Agent Review
 When assembling multiple aerodynamic components into an assembly:
 - The agent team MUST review the assembly integration (not just individual components)
@@ -325,6 +345,111 @@ When assembling multiple aerodynamic components into an assembly:
 - Hook (`hooks/aero_consensus_check.py`) checks this automatically and BLOCKS if missing
 - Hook (`hooks/complexity_check.py`) WARNS if consensus contains unjustified simplification
 - Hook (`hooks/assembly_validate.py`) reminds to run collision/containment checks on assemblies
+
+## MANDATORY: CFD & FEA Iterative Analysis Loop
+
+**After component design and 3D model creation, every aircraft MUST go through the
+virtual wind tunnel and structural test loop before final release.**
+
+### The Analysis Agents
+
+| Agent | Role | When |
+|-------|------|------|
+| **Wind-Tunnel Engineer** (`.claude/agents/wind-tunnel-engineer.md`) | SU2 CFD: Euler/RANS sweeps, polar generation, interference drag, stability derivatives | After 3D models exist |
+| **Structures Analyst** (`.claude/agents/structures-analyst.md`) | FreeCAD FEA: bending, torsion, buckling, flutter margin, safety factors | After 3D models exist |
+| **Aerodynamicist** (`.claude/agents/aerodynamicist.md`) | Proposes shape changes based on CFD results | Before design revision |
+| **Structural Engineer** (`.claude/agents/structural-engineer.md`) | Reviews structural test results, approves mass/strength tradeoffs | Before design revision |
+
+### The Analysis Pipeline
+
+```
+1. Design Phase (Aerodynamicist + Structural Engineer)
+   ↓ produces DESIGN_CONSENSUS.md → 2D Drawing → 3D Model
+
+2. Verification Phase (Analysis Agents)
+   ↓
+   Wind-Tunnel Engineer: STEP → Gmsh mesh → SU2 CFD → Aero Test Report
+   Structures Analyst:   STEP → FreeCAD FEM → CalculiX FEA → Structural Test Report
+
+3. Iteration Phase
+   ↓
+   Aero Test Report → identifies drag hotspots, stall, interference issues
+   Structural Test Report → identifies weak points, flutter risk, buckling
+
+4. Design Revision
+   ↓
+   Aero findings → Aerodynamicist revises shape
+   Structural findings → Structural Engineer revises layout/materials
+   Both agree → update DESIGN_CONSENSUS.md → revise drawings → revise 3D
+
+5. Convergence Check
+   ↓
+   - L/D target met?
+   - Drag budget met?
+   - Structural safety factors met?
+   - Flutter margin met?
+   - Mass budget met?
+   If ALL pass → Release. Otherwise → back to step 3.
+```
+
+### SU2 CFD Pipeline
+
+**Tools:** Gmsh (mesher, already installed) + SU2 8.1.0 (GPU-accelerated solver)
+
+**Workflow:**
+1. Export STEP from Build123d
+2. Gmsh generates volume mesh (boundary layer y+=1 for RANS, 20x chord farfield)
+3. SU2 config file (`.cfg`) defines: solver type, Re, speed, alpha sweep range
+4. Run `SU2_CFD` for single point or `compute_polar.py` for batch sweep
+5. Extract: CL, CD, CM, Cp distributions, surface pressure contours
+6. Analyze: interference drag, separation, stall behavior, control authority
+
+**GPU acceleration:** SU2 supports CUDA (RTX 3070 compatible). Use for linear solver speedup.
+
+**Mesh sizing guidelines:**
+| Analysis Type | Mesh Size | Wall Time (RTX 3070) | Use Case |
+|---------------|-----------|---------------------|----------|
+| 2D airfoil (XFOIL) | N/A | <1 sec | Airfoil screening |
+| 3D Euler | ~2M cells | 1-2 hours | Planform iteration |
+| 3D RANS coarse | ~5M cells | 4-12 hours | Validation |
+| 3D RANS fine | ~10M cells | 1-3 days | Final release |
+
+**Always use symmetry plane (half-model) when possible.**
+
+### FreeCAD FEA Pipeline
+
+**Tools:** FreeCAD 1.0 headless + CalculiX solver
+
+**Load cases for RC aircraft:**
+
+| Case | Load Factor | Speed | Notes |
+|------|------------|-------|-------|
+| Launch / motor climb | 8-12g | V_launch | Peak loads |
+| Max L/D cruise | 1g | V_cruise | Steady state |
+| Pullout from dive | 5g | VNE | Max bending |
+| Turbulence gust | 3g | V_cruise | Fatigue consideration |
+| Landing impact | 2g+impact | V_landing | Keel/gear loads |
+
+**Safety factors (NON-NEGOTIABLE):**
+- Static strength: SF ≥ 1.5
+- Flutter speed: V_flutter ≥ 1.2 × VNE
+- Buckling: λ ≥ 1.0 at max load
+- Impact: SF ≥ 2.0
+
+### Convergence Criteria
+
+The iterative design loop terminates when ALL criteria are satisfied:
+
+| Criterion | Target | Verified By |
+|-----------|--------|-------------|
+| L/D at design CL | ≥ 15:1 (sailplane) / type-specific | SU2 CFD |
+| Interference drag | < 5% of total CD | SU2 CFD |
+| Static margin | 5-15% MAC | SU2 CFD + calculations |
+| Control authority | Surfaces achieve required moments | SU2 CFD |
+| Structural SF | ≥ 1.5 all components | FreeCAD FEA |
+| Flutter margin | ≥ 1.2 × VNE | FreeCAD modal + SU2 aero |
+| AUW | Within target range | Mass tracking |
+| No assembly collisions | Zero intersections | Collision check |
 
 ## MANDATORY: Specification Consistency Rule
 
@@ -346,8 +471,8 @@ If you create a new file that references any design parameter, add it to
 
 ## Project Mission
 
-Design a **groundbreaking 3D-printed RC sailplane** using AI-driven complexity
-to exceed commercial kits in aerodynamic performance at a fraction of the cost.
+Design **high-performance RC aircraft** using AI-driven complexity to exceed
+commercial offerings in performance at a fraction of the cost.
 
 **Motto: "Why make it simple when it can be complex - for the same price?"**
 
@@ -355,8 +480,15 @@ The 3D printer has zero marginal cost for complexity. A topology-optimized latti
 rib costs the same as a flat plate. We exploit this to produce aerodynamic surfaces
 that commercial kits cannot economically manufacture.
 
+The framework is aircraft-type agnostic:
+- **Sailplanes** (F5J, F3J, RES, ALES) — thermal efficiency, minimum sink
+- **Aerobatic** (F3A, pattern) — precision, authority, structural strength
+- **Racing** (F5D, pylon) — low drag, high speed, stiffness
+- **Drones / UAVs** — endurance, payload, stability
+- **Interceptors** — speed, maneuverability, structural margins
+
 See `docs/philosophy.md` for the full design philosophy.
-See `docs/specifications.md` for locked-in dimensions and weight budget.
+See `docs/specifications.md` for the current project dimensions and weight budget.
 
 ## Architecture
 
@@ -366,7 +498,8 @@ See `docs/specifications.md` for locked-in dimensions and weight budget.
 - **FreeCAD 1.0+** (headless via FreeCADCmd) - FEM analysis ONLY (CalculiX solver)
 - Both Build123d and FreeCAD share the OpenCascade (OCCT) kernel. STEP files interchange losslessly.
 - FreeCAD path: C:\Users\ilija\AppData\Local\Programs\FreeCAD 1.0
-- **SU2** (planned) - GPU-accelerated CFD analysis on RTX 3070, replaces OpenFOAM
+- **SU2 8.1.0+** - GPU-accelerated CFD analysis on RTX 3070 (CUDA)
+- **Gmsh 4.15.2** - Mesh generation for both SU2 CFD and CalculiX FEA
 
 ### Screenshot Method (OCP Viewer)
 All 3D screenshots use OCP Viewer, never FreeCAD:
@@ -401,7 +534,7 @@ These are SEPARATE concepts with IDENTICAL folder structure (see CAD_FRAMEWORK.m
 Every item (component or assembly) has: mass, CG, inertia tensor, local coordinate system, bounding box.
 Even the smallest screw is a component.
 
-## Sailplane Quick Reference
+## Iva Aeroforge Sailplane Quick Reference (Current Project)
 
 | Parameter | Value |
 |-----------|-------|
@@ -425,8 +558,10 @@ Even the smallest screw is a component.
 2. **Minimize hand labor** - carbon tube slides through holes, spruce glues into slots,
    no cutting carbon cloth or cap strips
 3. **AI optimizes everything** - airfoils, twist, planform, control sizing, Tx programming
-4. **Every detail matters** - squeeze 2% from every surface. Printer doesn't charge extra.
-5. **Cheap materials** - complex geometry is free, keep material cost under $60
+4. **Every detail matters** - squeeze every percent from every surface. Printer doesn't charge extra.
+5. **Cheap materials** - complex geometry is free, keep material cost minimal
+6. **Iterate with data** - CFD (SU2) and FEA (FreeCAD CalculiX) validate every design decision
+7. **Never simplify** - the manufacturing process does not penalize geometric complexity
 
 ## Tech Stack
 
@@ -436,9 +571,10 @@ Even the smallest screw is a component.
 - **Pydantic** - Spec validation
 
 ### Analysis
-- **FreeCAD FEM** - Structural analysis ONLY (CalculiX solver)
-- **SU2** (planned) - GPU-accelerated CFD on RTX 3070 (replaces OpenFOAM)
-- **xfoil** - 2D airfoil polars
+- **SU2** - GPU-accelerated CFD on RTX 3070 (Euler, RANS, transition, DES)
+- **FreeCAD FEM** - Structural analysis (CalculiX solver)
+- **Gmsh** - Volume meshing for CFD and FEA
+- **xfoil / NeuralFoil** - 2D airfoil polars (screening, not final)
 
 ### Manufacturing
 - **OrcaSlicer** CLI for headless slicing

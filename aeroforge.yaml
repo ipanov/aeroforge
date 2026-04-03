@@ -1,0 +1,160 @@
+project:
+  project_name: Iva Aeroforge F5J
+  design_family: AIR4
+  current_round: R4
+  next_round: R5
+  heavier_than_air: true
+  project_scope: aircraft
+  top_object: Iva_Aeroforge
+  aircraft_type: thermal_electric_sailplane
+  aircraft_type_source: llm_or_user
+  mission_prompt: >
+    Design a heavier-than-air aircraft through a top-down iterative workflow.
+    The current project is a thermal electric sailplane with a full-aircraft
+    validation loop at the end.
+  selected_tooling: fdm_printer_primary
+  available_tooling:
+    - fdm_printer_primary
+    - off_the_shelf_procurement
+  manufacturing_strategy:
+    - thin_wall_additive_shells
+    - carbon_spar_hybrid_structure
+    - procured_electronics_and_propulsion
+  material_strategy:
+    - lw_pla_shells
+    - cf_pla_hardpoints
+    - tpu_flexible_features
+    - carbon_tube_primary_spars
+  production_strategy:
+    - hybrid_in_house_and_procured
+  output_artifacts:
+    - technical_drawings
+    - print_files
+  location_context:
+    country: North Macedonia
+    region: Skopje
+  provider_preferences:
+    - temu
+    - aliexpress
+    - amazon
+    - hobbyking
+  workflow_backend: n8n
+  workflow_monitor_port: 8787
+  n8n_port: 5678
+  full_aircraft_validation_only: true
+  validation_backend: CUDA-capable GPU when available
+  notes:
+    - Aircraft type, tooling, process, and material choices are project decisions, not code defaults.
+    - The dashboard and n8n monitor must always expose the currently running workflow step.
+
+tooling:
+  - tooling_id: fdm_printer_primary
+    display_name: FDM 3D Printer
+    category: additive
+    process: thin_wall_fdm
+    description: Primary custom-part fabrication path for the current AIR4 project.
+    strengths:
+      - High geometric freedom for aerodynamic shells and integrated joints
+      - Fast iteration for custom components
+    tradeoffs:
+      - Segment interfaces and anisotropy require explicit structural design
+    typical_materials:
+      - LW-PLA
+      - PLA
+      - CF-PLA
+      - TPU
+  - tooling_id: off_the_shelf_procurement
+    display_name: Off-The-Shelf Procurement
+    category: procurement
+    process: purchased_subsystems
+    description: Used for electronics, propulsion, fasteners, and standard hardware.
+    strengths:
+      - Rapid integration of mature subsystems
+    tradeoffs:
+      - Geometry fidelity depends on supplied CAD or reverse-engineering
+    typical_materials:
+      - vendor_hardware
+      - electronics
+
+workflow_profile:
+  aircraft_type: thermal_electric_sailplane
+  project_scope: aircraft
+  top_object_name: Iva_Aeroforge
+  round_label: R4
+  sub_assemblies:
+    - name: wing
+      level: 1
+      analysis_scope: aero_critical
+      dependencies: []
+      notes: Primary lifting system and current focus area for round five.
+      deliverables:
+        - technical_drawings
+        - step_model
+        - 3mf_mesh
+      step_deliverables:
+        DRAWING_2D:
+          - dxf_drawing
+          - png_drawing
+        MODEL_3D:
+          - step_model
+        MESH:
+          - stl_mesh
+          - 3mf_mesh
+        VALIDATION:
+          - validation_report
+    - name: fuselage
+      level: 1
+      analysis_scope: aero_structural
+      dependencies: []
+      notes: Houses propulsion, packaging, cooling, and wing/tail interfaces.
+      deliverables:
+        - technical_drawings
+        - step_model
+        - 3mf_mesh
+    - name: empennage
+      level: 1
+      analysis_scope: aero_critical
+      dependencies:
+        - wing
+      notes: Tail sizing and control authority follow approved wing geometry.
+      deliverables:
+        - technical_drawings
+        - step_model
+        - 3mf_mesh
+    - name: control_surfaces
+      level: 2
+      parent: wing
+      analysis_scope: aero_structural
+      dependencies:
+        - wing
+      notes: Derived from the approved wing assembly and control architecture.
+      deliverables:
+        - technical_drawings
+        - step_model
+        - 3mf_mesh
+    - name: propulsion
+      level: 1
+      analysis_scope: procurement_only
+      dependencies: []
+      notes: Modeled as procured hardware with integration geometry and metadata.
+      deliverables:
+        - integration_envelope
+        - metadata_record
+    - name: landing_gear
+      level: 1
+      analysis_scope: structural_only
+      dependencies: []
+      notes: Minimal support hardware for launch/landing handling.
+      deliverables:
+        - technical_drawings
+        - step_model
+  validation_criteria:
+    ld_ratio_target: 15.0
+    interference_drag_pct: 5.0
+    static_margin_range:
+      - 5.0
+      - 15.0
+    structural_sf: 1.5
+    flutter_margin: 1.2
+    auw_target_g: 850.0
+    no_collisions: true

@@ -1,6 +1,32 @@
 {
+  "env": {
+    "ANTHROPIC_AUTH_TOKEN": "78f275fb33f847b1a0a61d474c4e2b7a.2jOjEAUb7grGArE7",
+    "ANTHROPIC_BASE_URL": "https://api.z.ai/api/anthropic",
+    "API_TIMEOUT_MS": "3000000",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "glm-4.5-air",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "glm-4.7",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "glm-5.1"
+  },
   "hooks": {
     "PostToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python hooks/deliverable_bom_sync.py"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python hooks/deliverable_bom_sync.py"
+          }
+        ]
+      },
       {
         "matcher": "mcp__freecad__execute_code",
         "hooks": [
@@ -59,11 +85,32 @@
         "hooks": [
           {
             "type": "command",
+            "command": "python hooks/workflow_step_guard.py"
+          },
+          {
+            "type": "command",
             "command": "python hooks/aero_consensus_check.py"
           },
           {
             "type": "command",
             "command": "python hooks/complexity_check.py"
+          },
+          {
+            "type": "command",
+            "command": "python hooks/anti_simplification_hook.py"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python hooks/workflow_step_guard.py"
+          },
+          {
+            "type": "command",
+            "command": "python hooks/anti_simplification_hook.py"
           }
         ]
       }

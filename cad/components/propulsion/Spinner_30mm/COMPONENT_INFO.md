@@ -15,7 +15,7 @@
 | Length | 28.0 mm |
 | Wall thickness | 1.2 mm |
 | Material | Aluminum (polished silver) |
-| Shaft bore | 4.0 mm |
+| Shaft bore | 3.0 mm |
 | Set screw | M3 (radial) |
 | Blade slots | 2x 18.0 x 3.5 mm |
 | Rear recess | 22mm dia x 5mm deep |

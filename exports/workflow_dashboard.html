@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="10">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Para Wing - Workflow Monitor</title>
+    <style>
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: "Segoe UI", system-ui, sans-serif;
+            background: linear-gradient(180deg, #08131f 0%, #0f1722 100%);
+            color: #e8eaed;
+            padding: 24px;
+            line-height: 1.5;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        }
+        .eyebrow { color: #8ab4f8; letter-spacing: 0.12em; text-transform: uppercase; font-size: 0.78rem; }
+        h1 { font-size: 2rem; margin-top: 6px; }
+        h2 { margin-bottom: 12px; font-size: 1.1rem; color: #9ec7ff; }
+        .meta { display: flex; gap: 12px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
+        .badge {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 999px;
+            padding: 4px 12px;
+            font-size: 0.84rem;
+        }
+        .type-badge { color: #8ab4f8; }
+        .timestamp { color: #94a3b8; font-size: 0.82rem; }
+        main { display: grid; gap: 18px; }
+        section {
+            background: rgba(7, 14, 24, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 18px;
+            padding: 18px;
+            backdrop-filter: blur(6px);
+        }
+        .hero {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.2) 0%, rgba(15, 157, 88, 0.12) 100%);
+            border-color: rgba(138, 180, 248, 0.35);
+        }
+        .hero-label { color: #9ec7ff; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.12em; }
+        .hero-title { font-size: 1.5rem; margin: 8px 0; font-weight: 700; }
+        .hero-note, .active-detail { color: #cbd5e1; font-size: 0.92rem; }
+        .cards { display: flex; gap: 16px; flex-wrap: wrap; }
+        .card {
+            min-width: 130px;
+            padding: 14px 18px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .card-value { font-size: 1.8rem; font-weight: 700; }
+        .card-label { color: #94a3b8; font-size: 0.85rem; margin-top: 4px; }
+        .flow-row, .settings-grid, .dependency-grid, .analysis-grid {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+        }
+        .flow-stage, .settings-card, .dependency-item, .analysis-card {
+            border-radius: 14px;
+            padding: 14px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .flow-stage strong, .settings-card strong, .dependency-item strong {
+            display: block;
+            margin-bottom: 6px;
+            color: #dbeafe;
+        }
+        .flow-stage span, .settings-card span, .dependency-item span, .detail {
+            color: #cbd5e1;
+            font-size: 0.9rem;
+        }
+        .flow-sequence {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+            gap: 8px;
+            margin-top: 14px;
+        }
+        .flow-step {
+            padding: 10px 12px;
+            text-align: center;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.03);
+            font-size: 0.86rem;
+        }
+        .flow-step.active {
+            border-color: #fbbc04;
+            background: rgba(251, 188, 4, 0.18);
+            color: #fff7d6;
+            font-weight: 700;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.84rem;
+        }
+        th, td {
+            padding: 8px 6px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        th {
+            color: #9ec7ff;
+            text-align: center;
+            font-weight: 600;
+        }
+        .name-cell { font-weight: 600; white-space: nowrap; }
+        .center { text-align: center; }
+        .step-cell {
+            text-align: center;
+            color: #111827;
+            font-size: 1rem;
+            border-radius: 6px;
+            min-width: 30px;
+        }
+        .highlighted-step { outline: 2px solid rgba(255, 255, 255, 0.9); }
+        .active-row td { background-color: rgba(255, 255, 255, 0.035); }
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 999px;
+            height: 18px;
+            overflow: hidden;
+            position: relative;
+        }
+        .progress-fill { height: 100%; }
+        .progress-text {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+        .criteria-grid {
+            display: grid;
+            gap: 10px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        }
+        .criterion {
+            padding: 12px;
+            border: 1px solid;
+            border-radius: 12px;
+            color: #111827;
+            font-weight: 600;
+        }
+        .status-line { font-weight: 700; margin-bottom: 8px; }
+        .history-table { width: 100%; }
+        .history-table td, .history-table th { text-align: left; }
+        .mono { font-family: Consolas, monospace; color: #9ca3af; white-space: nowrap; }
+        @media (max-width: 900px) {
+            body { padding: 14px; }
+            section { padding: 14px; }
+            .hero-title { font-size: 1.2rem; }
+            table { display: block; overflow-x: auto; white-space: nowrap; }
+        }
+        
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <div class="eyebrow">AIR4 / R1</div>
+            <h1>Para Wing</h1>
+            <div class="meta">
+                <span class="badge">Iteration 1</span>
+                <span class="badge type-badge">paraglider_wing</span>
+                <span class="timestamp">Updated: 2026-04-03T08:28:38Z</span>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class='hero'><div class='hero-label'>Idle</div><div class='hero-title'>No step is running right now. The next permitted step can be started from the orchestrator CLI.</div><div class='hero-note'>Synthetic wind tunnel and structural calculations run on the assembled top object, not on isolated parts.</div></section>
+        <section class="summary">
+        <div class="cards">
+            <div class="card">
+                <div class="card-value">1</div>
+                <div class="card-label">Iteration</div>
+            </div>
+            <div class="card">
+                <div class="card-value">1</div>
+                <div class="card-label">Tracked Nodes</div>
+            </div>
+            <div class="card" style="border-color:#0f9d58;">
+                <div class="card-value" style="color:#0f9d58;">0</div>
+                <div class="card-label">Released</div>
+            </div>
+            <div class="card" style="border-color:#fbbc04;">
+                <div class="card-value" style="color:#fbbc04;">0</div>
+                <div class="card-label">Running</div>
+            </div>
+            <div class="card" style="border-color:#d93025;">
+                <div class="card-value" style="color:#d93025;">0</div>
+                <div class="card-label">Failed</div>
+            </div>
+        </div></section>
+        <section class="flow"><h2>Strict Workflow Chart</h2><div class='flow-row'><div class='flow-stage'><strong>Top-Down</strong><span>Requirements -> parent geometry -> assembly refinement</span></div><div class='flow-stage'><strong>Drill-Down</strong><span>Components and details inherit from approved assemblies</span></div><div class='flow-stage'><strong>Bottom-Up</strong><span>Rebuild dependent 3D outputs, then validate the assembled top object</span></div></div><div class='flow-sequence'><div class='flow-step'>REQUIREMENTS</div><div class='flow-step'>RESEARCH</div><div class='flow-step'>AERO_PROPOSAL</div><div class='flow-step'>STRUCTURAL_REVIEW</div><div class='flow-step'>AERO_RESPONSE</div><div class='flow-step'>CONSENSUS</div><div class='flow-step'>DRAWING_2D</div><div class='flow-step'>MODEL_3D</div><div class='flow-step'>MESH</div><div class='flow-step'>VALIDATION</div><div class='flow-step'>RELEASE</div></div></section>
+        <section class="settings"><h2>Project Settings</h2><div class='settings-grid'><div class='settings-card'><strong>Top object</strong><span>Iva_Aeroforge</span></div><div class='settings-card'><strong>Scope</strong><span>aircraft</span></div><div class='settings-card'><strong>Selected tooling</strong><span>fdm_printer_primary</span></div><div class='settings-card'><strong>Available tooling</strong><span>fdm_printer_primary, off_the_shelf_procurement</span></div><div class='settings-card'><strong>Manufacturing</strong><span>thin_wall_additive_shells, carbon_spar_hybrid_structure, procured_electronics_and_propulsion</span></div><div class='settings-card'><strong>Materials</strong><span>lw_pla_shells, cf_pla_hardpoints, tpu_flexible_features, carbon_tube_primary_spars</span></div><div class='settings-card'><strong>Production</strong><span>hybrid_in_house_and_procured</span></div><div class='settings-card'><strong>Outputs</strong><span>technical_drawings, print_files</span></div></div></section>
+        <section class="workflow-grid">
+            <h2>Tracked Sub-Assemblies</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Sub-Assembly</th>
+                        <th>Iteration</th>
+                        <th>Round</th>
+                        <th>Progress</th>
+                        <th>REQUIREMENTS</th> <th>RESEARCH</th> <th>AERO_PROPOSAL</th> <th>STRUCTURAL_REVIEW</th> <th>AERO_RESPONSE</th> <th>CONSENSUS</th> <th>DRAWING_2D</th> <th>MODEL_3D</th> <th>MESH</th> <th>VALIDATION</th> <th>RELEASE</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class=""><td class="name-cell">canopy</td><td class="center">1</td><td class="center">R1 / 0</td><td><div class="progress-bar"><div class="progress-fill" style="width:0%;background:#5f6368;"></div><span class="progress-text">0%</span></div></td><td class="step-cell highlighted-step" style="background:#5f6368;" title="Pending | Current required step">&#9675;</td><td class="step-cell" style="background:#5f6368;" title="Pending">&#9675;</td><td class="step-cell" style="background:#5f6368;" title="Pending">&#9675;</td><td class="step-cell" style="background:#5f6368;" title="Pending">&#9675;</td><td class="step-cell" style="background:#5f6368;" title="Pending">&#9675;</td><td class="step-cell" style="background:#5f6368;" title="Pending">&#9675;</td><td class="step-cell" style="background:#5f6368;" title="Pending | Deliverables: panel_pattern, three_view">&#9675;</td><td class="step-cell" style="background:#5f6368;" title="Pending">&#9675;</td><td class="step-cell" style="background:#5f6368;" title="Pending">&#9675;</td><td class="step-cell" style="background:#5f6368;" title="Pending | Deliverables: validation_report">&#9675;</td><td class="step-cell" style="background:#5f6368;" title="Pending">&#9675;</td></tr>
+                </tbody>
+            </table>
+        </section>
+        <section class="dependency"><h2>Dependency Graph</h2><div class='dependency-grid'><div class='dependency-item'><strong>canopy</strong><span>root node</span></div></div></section>
+        <section class="convergence"><h2>Convergence Criteria</h2><div class='criteria-grid'><div class="criterion" style="background:#fde4e1;border-color:#d93025;"><span style="color:#d93025;">&#10008;</span> Ld Ratio Met</div><div class="criterion" style="background:#fde4e1;border-color:#d93025;"><span style="color:#d93025;">&#10008;</span> Interference Drag Met</div><div class="criterion" style="background:#fde4e1;border-color:#d93025;"><span style="color:#d93025;">&#10008;</span> Static Margin Met</div><div class="criterion" style="background:#fde4e1;border-color:#d93025;"><span style="color:#d93025;">&#10008;</span> Control Authority Met</div><div class="criterion" style="background:#fde4e1;border-color:#d93025;"><span style="color:#d93025;">&#10008;</span> Structural Sf Met</div><div class="criterion" style="background:#fde4e1;border-color:#d93025;"><span style="color:#d93025;">&#10008;</span> Flutter Margin Met</div><div class="criterion" style="background:#fde4e1;border-color:#d93025;"><span style="color:#d93025;">&#10008;</span> Auw Met</div><div class="criterion" style="background:#fde4e1;border-color:#d93025;"><span style="color:#d93025;">&#10008;</span> No Collisions Met</div></div></section>
+        <section class="analysis"><h2>Final Top-Object Validation</h2><div class='analysis-grid'><div class='analysis-card' style='border-color:#5f6368;'><h3>Synthetic Wind Tunnel / CFD</h3><div class='status-line' style='color:#5f6368;'>Pending</div><div class='detail'>Started: None</div><div class='detail'>Completed: None</div><div class='detail'></div></div><div class='analysis-card' style='border-color:#5f6368;'><h3>Structural / Strength / FEM</h3><div class='status-line' style='color:#5f6368;'>Pending</div><div class='detail'>Started: None</div><div class='detail'>Completed: None</div><div class='detail'></div></div></div></section>
+        <section class="history"><h2>Recent History</h2><p>No events recorded.</p></section>
+    </main>
+</body>
+</html>

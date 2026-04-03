@@ -1,10 +1,10 @@
-# AeroForge F5J Sailplane - Bill of Materials
+# Bill of Materials
 
-> Consolidated procurement document with final selections, prices, weights, and ordering links
-> Date: 2026-04-01
-> Status: DRAFT -- Subject to component availability verification before ordering
-> Sources: MOTOR_OPTIONS.md, BATTERY_OPTIONS.md, CONTROLS_OPTIONS.md
-> Branch: feat/hstab-complete-vstab-design
+> Living BOM artifact. This document is now expected to stay synchronized with
+> deliverable generation, custom-part cost refreshes, and procurement shortlist
+> updates. Historical project-specific notes can remain below, but the BOM is no
+> longer treated as a static one-off report.
+> Date: 2026-04-03
 
 ---
 
