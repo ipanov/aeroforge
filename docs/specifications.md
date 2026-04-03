@@ -1,5 +1,16 @@
 # AeroForge Specifications
 
+> Compatibility note: framework specifications are now organized under
+> `docs/framework/`.
+>
+> Use:
+> - [`docs/framework/overview.md`](framework/overview.md)
+> - [`docs/framework/initialization-and-profile.md`](framework/initialization-and-profile.md)
+> - [`docs/framework/components-assemblies-tooling-and-deliverables.md`](framework/components-assemblies-tooling-and-deliverables.md)
+>
+> This file remains as a mixed framework/example bridge while the AIR4 example
+> project continues to carry concrete accepted geometry.
+
 ## Framework Scope
 
 This file now serves two roles:

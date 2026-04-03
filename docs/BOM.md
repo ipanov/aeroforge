@@ -1,5 +1,12 @@
 # Bill of Materials
 
+> Classification note: this file is the **current AIR4 example-project BOM
+> artifact**.
+>
+> The generic framework behavior for BOM/procurement now lives in
+> [`docs/framework/bom-and-procurement.md`](framework/bom-and-procurement.md).
+> This document remains the living project BOM for the current example program.
+
 > Living BOM artifact. This document is now expected to stay synchronized with
 > deliverable generation, custom-part cost refreshes, and procurement shortlist
 > updates. Historical project-specific notes can remain below, but the BOM is no
