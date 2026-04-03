@@ -1,7 +1,13 @@
 # Automatic Glider Workflow
 
+> Classification note: this is an **AIR4 example-project workflow document**.
+>
+> The generic framework workflow now lives in
+> [`docs/framework/workflow.md`](framework/workflow.md).
+> This page is preserved as a project-specific derivative.
+
 This document is now a project-specific derivative of the generic framework
-workflow described in `docs/workflow.md`.
+workflow described in `docs/framework/workflow.md`.
 
 Date: 2026-04-02
 

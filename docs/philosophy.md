@@ -1,5 +1,11 @@
 # AeroForge Design Philosophy
 
+> Classification note: this document reflects the philosophy of the current
+> AIR4 sailplane example and its manufacturing assumptions.
+>
+> It is preserved as example-project context, not as universal framework
+> policy.
+
 ## The Core Idea
 
 **"Why make it simple when it can be complex - for the same price?"**

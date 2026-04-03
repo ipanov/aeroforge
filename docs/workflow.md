@@ -1,12 +1,17 @@
 # AeroForge Workflow
 
+> Compatibility note: the canonical framework workflow document now lives at
+> [`docs/framework/workflow.md`](framework/workflow.md).
+>
+> This page remains as a stable entry point and summary for existing links.
+
 ## Purpose
 
-This document defines the initialization boundary, workflow boundary, and
+This document summarizes the initialization boundary, workflow boundary, and
 domain model boundary for AeroForge.
 
-The goal is to keep non-deterministic reasoning in the right place and keep
-deterministic execution strict, visible, and reliable.
+For the maintained framework version, use the canonical page in
+`docs/framework/workflow.md`.
 
 ## Boundary Rule
 
@@ -218,6 +223,11 @@ Every tracked node follows the same deterministic stage order:
 `REQUIREMENTS -> RESEARCH -> AERO_PROPOSAL -> STRUCTURAL_REVIEW -> AERO_RESPONSE -> CONSENSUS -> DRAWING_2D -> MODEL_3D -> MESH -> VALIDATION -> RELEASE`
 
 The dashboard and workflow monitor always show which step is active.
+
+For Mermaid workflow charts and the maintained explanation, use:
+
+- [Framework workflow and iteration model](framework/workflow.md)
+- [Monitoring, hooks, and n8n](framework/monitoring-hooks-and-n8n.md)
 
 ## Deliverables by Node
 
