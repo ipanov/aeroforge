@@ -21,15 +21,16 @@ class WorkflowEngine:
     def __init__(
         self,
         state_file: Optional[Path] = None,
-        n8n_enabled: bool = False,
     ) -> None:
         self._sm = StateManager(state_file)
-        self._n8n_enabled = n8n_enabled
         self._type_def: Optional[Any] = None
         self._n8n_client: Any = None
+        self._init_n8n()
 
-        if n8n_enabled:
-            self._init_n8n()
+    @property
+    def n8n_available(self) -> bool:
+        """Whether the n8n visibility layer is reachable."""
+        return self._n8n_client is not None
 
     # ── Project lifecycle ──────────────────────────────────────────
 
@@ -82,7 +83,7 @@ class WorkflowEngine:
         self._refresh_monitoring_assets()
         final_state = self._sm.state
 
-        if self._n8n_enabled and self._n8n_client:
+        if self._n8n_client:
             self._n8n_client.create_workflow(project_name, aircraft_type.value)
             self._n8n_client.sync_project(
                 project_name=project_name,
@@ -137,7 +138,7 @@ class WorkflowEngine:
         self._sm.save()
         self._refresh_monitoring_assets()
         final_state = self._sm.state
-        if self._n8n_enabled and self._n8n_client:
+        if self._n8n_client:
             self._n8n_client.sync_project(
                 project_name=project_name,
                 aircraft_type=profile.aircraft_type,
@@ -185,7 +186,7 @@ class WorkflowEngine:
     def start_iteration(self, sub_assembly: str, round_label: Optional[str] = None) -> int:
         iteration = self._sm.start_new_iteration(sub_assembly, round_label=round_label)
         self._refresh_monitoring_assets()
-        if self._n8n_enabled and self._n8n_client:
+        if self._n8n_client:
             self._n8n_client.execute_step(sub_assembly, "start_iteration", {"iteration": iteration})
         return iteration
 
@@ -203,7 +204,7 @@ class WorkflowEngine:
         self._sm.start_step(sub_assembly, step_name, agent=agent)
         self._refresh_monitoring_assets()
 
-        if self._n8n_enabled and self._n8n_client:
+        if self._n8n_client:
             self._n8n_client.execute_step(sub_assembly, step_name)
 
     def complete_step(
@@ -222,7 +223,7 @@ class WorkflowEngine:
         )
         self._refresh_monitoring_assets()
 
-        if self._n8n_enabled and self._n8n_client:
+        if self._n8n_client:
             self._n8n_client.update_status(sub_assembly, step_name, "done", notes=notes)
 
     def fail_step(
@@ -235,7 +236,7 @@ class WorkflowEngine:
         self._sm.fail_step(sub_assembly, step_name, reason=reason)
         self._refresh_monitoring_assets()
 
-        if self._n8n_enabled and self._n8n_client:
+        if self._n8n_client:
             self._n8n_client.update_status(sub_assembly, step_name, "failed", notes=reason)
 
     def reset_step(self, sub_assembly: str, step: str | WorkflowStep) -> None:
@@ -304,7 +305,7 @@ class WorkflowEngine:
 
     def get_status(self) -> dict[str, Any]:
         state = self._sm.state
-        return {
+        status: dict[str, Any] = {
             "project": state.get("project", "Unknown"),
             "project_code": state.get("project_code", "AIR4"),
             "project_scope": state.get("project_scope", "aircraft"),
@@ -316,8 +317,21 @@ class WorkflowEngine:
             "sub_assemblies": self._sm.get_full_progress(),
             "convergence": state.get("analysis", {}).get("convergence", {}),
             "analysis_policy": state.get("analysis", {}).get("policy", {}),
+            "n8n_available": self.n8n_available,
             "all_complete": self._sm.all_complete(),
         }
+
+        # RAG database status
+        try:
+            from src.rag.database import RAGDatabase
+            from src.rag.config import RAGConfig
+
+            db = RAGDatabase(RAGConfig())
+            status["rag_database"] = db.get_collection_stats() if db.collection_exists() else None
+        except Exception:
+            status["rag_database"] = None
+
+        return status
 
     def get_sub_assembly_status(self, name: str) -> dict[str, Any]:
         sa = self._sm.get_sub_assembly(name)
@@ -518,8 +532,15 @@ class WorkflowEngine:
         try:
             from .n8n_client import N8nClient
 
-            self._n8n_client = N8nClient()
-            self._n8n_client.health_check()
+            client = N8nClient()
+            if client.health_check():
+                self._n8n_client = client
+            else:
+                import logging
+                logging.getLogger(__name__).warning(
+                    "n8n not reachable at %s — workflow continues without live visibility",
+                    client._base_url,
+                )
+                self._n8n_client = None
         except Exception:
             self._n8n_client = None
-            self._n8n_enabled = False

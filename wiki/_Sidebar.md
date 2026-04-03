@@ -7,5 +7,6 @@
 - [Components, Assemblies, Tooling, and Deliverables](Components-Assemblies-Tooling-and-Deliverables)
 - [Living BOM and Procurement](Living-BOM-and-Procurement)
 - [Monitoring, Hooks, and n8n](Monitoring-Hooks-and-n8n)
+- [RAG Knowledge Base](RAG-Knowledge-Base)
 - [Example Project: AIR4](Example-Project-AIR4)
 - [Reference and Research Index](Reference-and-Research-Index)

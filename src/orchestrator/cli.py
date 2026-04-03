@@ -102,7 +102,7 @@ def cmd_status(args: argparse.Namespace) -> None:
 
 
 def cmd_start_legacy(args: argparse.Namespace) -> None:
-    engine = WorkflowEngine(n8n_enabled=args.n8n)
+    engine = WorkflowEngine()
     ac_type = AircraftType(args.type)
     state = engine.create_project(
         ac_type,
@@ -120,7 +120,7 @@ def cmd_start_legacy(args: argparse.Namespace) -> None:
 
 
 def cmd_start_profile(args: argparse.Namespace) -> None:
-    engine = WorkflowEngine(n8n_enabled=args.n8n)
+    engine = WorkflowEngine()
     state = engine.create_project_from_profile_file(
         Path(args.profile),
         args.name,
@@ -151,6 +151,24 @@ def cmd_init(args: argparse.Namespace) -> None:
     )
     target = save_project_settings(settings)
     print(f"{_C.GREEN}Project settings saved{_C.RESET}: {target}")
+
+    # Populate RAG knowledge base
+    try:
+        from src.rag import init_rag_database
+
+        print(f"{_C.CYAN}Populating RAG knowledge base...{_C.RESET}")
+        db = init_rag_database(
+            aircraft_type=settings.aircraft_type,
+            project_scope=settings.project_scope,
+            project_code=settings.design_family,
+        )
+        stats = db.get_collection_stats()
+        print(
+            f"{_C.GREEN}RAG database ready{_C.RESET}: "
+            f"{stats['document_count']} documents in {stats['collection']}"
+        )
+    except Exception as exc:
+        print(f"{_C.YELLOW}RAG population skipped{_C.RESET}: {exc}")
 
 
 def cmd_step(args: argparse.Namespace) -> None:
@@ -231,11 +249,9 @@ def cmd_serve(args: argparse.Namespace) -> None:
     server = WorkflowMonitorServer(
         host=args.host,
         port=args.port,
-        launch_n8n=args.launch_n8n,
     )
     print(f"Serving workflow monitor on http://{args.host}:{args.port}")
-    if args.launch_n8n:
-        print("Launching n8n on http://127.0.0.1:5678")
+    print("Launching n8n on http://127.0.0.1:5678")
     server.serve_forever()
 
 
@@ -272,14 +288,12 @@ def main() -> None:
     p_start_legacy.add_argument("--project-code", default="AIR4")
     p_start_legacy.add_argument("--project-scope", default="aircraft")
     p_start_legacy.add_argument("--round", default="R1")
-    p_start_legacy.add_argument("--n8n", action="store_true", help="Enable n8n integration")
     p_start_legacy.set_defaults(func=cmd_start_legacy)
 
     p_start_profile = sub.add_parser("start-profile", help="Start from the external workflow profile")
     p_start_profile.add_argument("--profile", default=str(PROJECT_SETTINGS_FILE), help="Path to aeroforge.yaml")
     p_start_profile.add_argument("--name", required=True, help="Project name")
     p_start_profile.add_argument("--project-code", default="AIR4")
-    p_start_profile.add_argument("--n8n", action="store_true", help="Enable n8n integration")
     p_start_profile.set_defaults(func=cmd_start_profile)
 
     p_step = sub.add_parser("step", help="Manage a workflow step")
@@ -317,7 +331,6 @@ def main() -> None:
     p_serve = sub.add_parser("serve", help="Launch the workflow monitor server")
     p_serve.add_argument("--host", default="127.0.0.1")
     p_serve.add_argument("--port", type=int, default=8787)
-    p_serve.add_argument("--launch-n8n", action="store_true")
     p_serve.set_defaults(func=cmd_serve)
 
     args = parser.parse_args()

@@ -15,4 +15,5 @@ manufacturing path.
 - [Components, assemblies, tooling, and deliverables](components-assemblies-tooling-and-deliverables.md)
 - [Living BOM and procurement](bom-and-procurement.md)
 - [Monitoring, hooks, and n8n](monitoring-hooks-and-n8n.md)
+- [RAG knowledge base](rag-knowledge-base.md)
 - [Documentation governance](documentation-governance.md)

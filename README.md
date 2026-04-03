@@ -22,7 +22,7 @@ flowchart LR
     C --> D[Workflow engine]
     D --> E[Dashboard]
     D --> F[Monitor server]
-    D --> G[Optional n8n runtime]
+    D --> G[n8n visibility layer]
     D --> H[Deliverables]
     H --> I[Living BOM and procurement]
     D --> J[Full assembled-object validation]
@@ -36,7 +36,7 @@ flowchart LR
 - captures a project brief for a heavier-than-air flying object
 - records non-deterministic project choices through a wizard and project profile
 - enforces deterministic workflow sequencing and dependency ordering
-- shows the active step through a dashboard, hooks, and optional `n8n`
+- shows the active step through a dashboard, hooks, and `n8n` (always started)
 - treats deliverables, BOM state, and procurement state as living artifacts
 - runs final aerodynamic and structural validation on the assembled top object
 
@@ -64,6 +64,15 @@ See:
 - [Initialization and project profile](docs/framework/initialization-and-profile.md)
 - [Monitoring, hooks, and n8n](docs/framework/monitoring-hooks-and-n8n.md)
 - [Living BOM and procurement](docs/framework/bom-and-procurement.md)
+
+## RAG Knowledge Base
+
+After the initialization wizard, a ChromaDB-backed vector database is
+automatically populated with domain-specific research data: similar aircraft,
+competition rules, regulations, construction techniques, and design references.
+Agents query it during the RESEARCH step for semantic context retrieval.
+
+See [RAG knowledge base](docs/framework/rag-knowledge-base.md).
 
 ## Documentation Map
 
@@ -95,7 +104,7 @@ The workflow monitor stack currently includes:
 - `exports/workflow_dashboard.html` as the graphical status board
 - the local monitor server exposed by the orchestrator CLI
 - guard hooks that enforce step discipline
-- optional `n8n` integration for runtime visibility and event handling
+- `n8n` integration for runtime visibility and event handling (always started)
 
 Use the framework docs for the canonical behavior description. Use the AIR4
 example docs for one concrete project interpretation of that behavior.

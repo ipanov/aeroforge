@@ -20,10 +20,7 @@ from src.orchestrator.workflow_engine import WorkflowEngine
 from src.orchestrator.state_manager import StateManager
 from src.orchestrator.dashboard import DashboardGenerator
 
-try:
-    from src.orchestrator.n8n_client import N8nClient
-except ModuleNotFoundError:  # pragma: no cover - optional dependency path
-    N8nClient = None
+from src.orchestrator.n8n_client import N8nClient
 
 __all__ = [
     "WorkflowEngine",

@@ -40,7 +40,7 @@ flowchart LR
     D --> E[Step guards]
     D --> F[Dashboard]
     D --> G[Monitor server]
-    D --> H[Optional n8n]
+    D --> H[n8n visibility layer]
     D --> I[Deliverables]
     I --> J[Living BOM and procurement]
     D --> K[Assembled-object validation]

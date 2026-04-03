@@ -1,4 +1,9 @@
-"""REST API client for n8n workflow automation."""
+"""REST API client for the n8n workflow visibility layer.
+
+n8n is always started with the workflow engine. If unreachable, the engine
+logs a warning but continues — n8n is a monitoring tool, not a control-flow
+dependency.
+"""
 
 from __future__ import annotations
 
@@ -17,7 +22,7 @@ DEFAULT_TIMEOUT_S = 10
 
 
 class N8nClient:
-    """REST API client for optional n8n integration."""
+    """REST API client for the n8n workflow visibility layer."""
 
     def __init__(
         self,
@@ -157,6 +162,13 @@ class N8nClient:
         except Exception as exc:
             logger.debug("Failed to update n8n status: %s", exc)
             return False
+
+    def status_summary(self) -> dict[str, Any]:
+        """Return a summary for dashboard display."""
+        return {
+            "available": self.available,
+            "base_url": self._base_url,
+        }
 
     def _load_template(self, path: Optional[Path] = None) -> Optional[dict[str, Any]]:
         target = path or (Path(__file__).parent / "workflow_template.json")

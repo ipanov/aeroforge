@@ -12,4 +12,4 @@ if ($InstallNodeDeps -or -not (Test-Path (Join-Path $repoRoot "node_modules"))) 
     npm install
 }
 
-python -m src.orchestrator.cli serve --host $Host --port $Port --launch-n8n
+python -m src.orchestrator.cli serve --host $Host --port $Port

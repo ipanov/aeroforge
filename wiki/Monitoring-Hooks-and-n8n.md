@@ -9,8 +9,9 @@ flowchart LR
     B --> C[Dashboard]
     B --> D[Monitor server]
     B --> E[Guard hooks]
-    D --> F[Optional n8n]
+    D --> F[n8n visibility layer]
 ```
 
-The persisted workflow state remains authoritative. `n8n` is an optional
-visibility/runtime layer, not the sole source of truth.
+`n8n` is always started alongside the workflow monitor server. The persisted
+workflow state remains the authoritative source of truth. If n8n becomes
+unreachable, the engine continues without it.

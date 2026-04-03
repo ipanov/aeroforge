@@ -79,6 +79,12 @@ exports/workflow_status.json
 # Local package-manager cache
 ChocolateyHttpCache/
 
+# RAG vector database (project-local, regenerated)
+.aeroforge/rag_db/
+
+# Node.js
+node_modules/
+
 # Local config
 .env
 .env.local
