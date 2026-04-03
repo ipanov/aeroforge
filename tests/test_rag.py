@@ -144,21 +144,22 @@ def test_loader_reads_docs_rag():
         assert any("aircraft" in c.text for c in chunks)
 
 
-def test_scraper_builds_queries_for_different_types():
-    """Verify query generation produces reasonable queries for various aircraft types."""
+def test_scraper_builds_baseline_queries_from_prompt():
+    """Verify baseline query generation from mission prompt."""
     from src.rag.scraper import DomainScraper
 
     scraper = DomainScraper()
 
-    sailplane_queries = scraper.build_search_queries("thermal_electric_sailplane")
-    assert len(sailplane_queries) >= 3
-    assert any("sailplane" in q.lower() for q in sailplane_queries)
+    queries = scraper.build_baseline_queries("F5J thermal electric sailplane")
+    assert len(queries) >= 3
+    assert any("F5J" in q for q in queries)
+    assert any("design" in q.lower() for q in queries)
 
-    drone_queries = scraper.build_search_queries("surveillance_drone")
+    drone_queries = scraper.build_baseline_queries("interceptor racing drone")
     assert len(drone_queries) >= 3
     assert any("drone" in q.lower() for q in drone_queries)
 
-    paper_queries = scraper.build_search_queries("paper_airplane")
+    paper_queries = scraper.build_baseline_queries("paper airplane")
     assert len(paper_queries) >= 3
     assert any("paper" in q.lower() for q in paper_queries)
 
@@ -184,5 +185,5 @@ def test_init_rag_database_local_only():
     stats = db.get_collection_stats()
     # Should have loaded whatever exists in docs/rag/ (may be 0 if CI has no docs)
     assert stats["document_count"] >= 0
-    assert "test_test_aircraft" in stats["collection"]
+    assert "test_research" in stats["collection"]
     db.close()

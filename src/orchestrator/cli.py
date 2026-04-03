@@ -151,24 +151,7 @@ def cmd_init(args: argparse.Namespace) -> None:
     )
     target = save_project_settings(settings)
     print(f"{_C.GREEN}Project settings saved{_C.RESET}: {target}")
-
-    # Populate RAG knowledge base
-    try:
-        from src.rag import init_rag_database
-
-        print(f"{_C.CYAN}Populating RAG knowledge base...{_C.RESET}")
-        db = init_rag_database(
-            aircraft_type=settings.aircraft_type,
-            project_scope=settings.project_scope,
-            project_code=settings.design_family,
-        )
-        stats = db.get_collection_stats()
-        print(
-            f"{_C.GREEN}RAG database ready{_C.RESET}: "
-            f"{stats['document_count']} documents in {stats['collection']}"
-        )
-    except Exception as exc:
-        print(f"{_C.YELLOW}RAG population skipped{_C.RESET}: {exc}")
+    print(f"{_C.DIM}RAG database available — agents populate it during RESEARCH step{_C.RESET}")
 
 
 def cmd_step(args: argparse.Namespace) -> None:

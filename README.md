@@ -65,12 +65,12 @@ See:
 - [Monitoring, hooks, and n8n](docs/framework/monitoring-hooks-and-n8n.md)
 - [Living BOM and procurement](docs/framework/bom-and-procurement.md)
 
-## RAG Knowledge Base
+## RAG Knowledge Base (Optional)
 
-After the initialization wizard, a ChromaDB-backed vector database is
-automatically populated with domain-specific research data: similar aircraft,
-competition rules, regulations, construction techniques, and design references.
-Agents query it during the RESEARCH step for semantic context retrieval.
+A ChromaDB-backed vector database is available as a fast competitive
+intelligence cache. Agents populate it during the RESEARCH step if they
+decide it would be useful, then query it in ~10ms during iterative design
+decisions instead of doing repeated web searches.
 
 See [RAG knowledge base](docs/framework/rag-knowledge-base.md).
 
