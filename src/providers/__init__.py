@@ -17,26 +17,32 @@ from .base import ProviderInfo, ProviderRegistry
 from .hardware import HardwareProfile, detect_hardware
 
 # Import all built-in providers to trigger auto-registration.
-# Each provider module registers itself at import time.
-from . import cfd as _cfd_pkg  # noqa: F401
-from . import fea as _fea_pkg  # noqa: F401
-from . import manufacturing as _mfg_pkg  # noqa: F401
-from . import slicer as _slicer_pkg  # noqa: F401
-from . import airfoil as _airfoil_pkg  # noqa: F401
+# Imports are guarded so missing optional dependencies don't crash.
+import importlib as _il
+import logging as _log
 
-# Import concrete implementations
-from .cfd import mock as _cfd_mock  # noqa: F401
-from .cfd import su2_cuda as _cfd_su2_cuda  # noqa: F401
-from .cfd import su2_cpu as _cfd_su2_cpu  # noqa: F401
-from .fea import mock as _fea_mock  # noqa: F401
-from .fea import freecad_calculix as _fea_fc  # noqa: F401
-from .manufacturing import mock as _mfg_mock  # noqa: F401
-from .manufacturing import fdm as _mfg_fdm  # noqa: F401
-from .manufacturing import manual as _mfg_manual  # noqa: F401
-from .slicer import mock as _slicer_mock  # noqa: F401
-from .slicer import orcaslicer as _slicer_orca  # noqa: F401
-from .airfoil import mock as _airfoil_mock  # noqa: F401
-from .airfoil import neuralfoil as _airfoil_nf  # noqa: F401
+_logger = _log.getLogger(__name__)
+
+_PROVIDER_MODULES = [
+    "src.providers.cfd.mock",
+    "src.providers.cfd.su2_cuda",
+    "src.providers.cfd.su2_cpu",
+    "src.providers.fea.mock",
+    "src.providers.fea.freecad_calculix",
+    "src.providers.manufacturing.mock",
+    "src.providers.manufacturing.fdm",
+    "src.providers.manufacturing.manual",
+    "src.providers.slicer.mock",
+    "src.providers.slicer.orcaslicer",
+    "src.providers.airfoil.mock",
+    "src.providers.airfoil.neuralfoil",
+]
+
+for _mod in _PROVIDER_MODULES:
+    try:
+        _il.import_module(_mod)
+    except ImportError:
+        _logger.debug("Optional provider %s not available", _mod)
 
 
 __all__ = [

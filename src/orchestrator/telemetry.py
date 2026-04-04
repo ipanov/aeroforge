@@ -124,8 +124,6 @@ class TelemetryEmitter:
 
     def emit(self, event: TelemetryEvent) -> dict[str, Any]:
         """Emit a telemetry event through all channels."""
-        event_dict = event.to_dict()
-
         # 1. Structured log
         log_line = event.to_log_line()
         level = self._event_log_level(event.event_type)

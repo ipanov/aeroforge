@@ -9,8 +9,6 @@ Covers:
 
 from __future__ import annotations
 
-import pytest
-
 from src.rag.agent_context import (
     _build_queries,
     _format_results,

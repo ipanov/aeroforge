@@ -284,7 +284,7 @@ def cmd_project_create(args: argparse.Namespace) -> None:
     pm.switch(args.slug)
     print(f"{_C.GREEN}Created and activated project: {args.slug}{_C.RESET}")
     print(f"  Path: {path}")
-    print(f"  Run 'orchestrator init' to configure project settings.")
+    print("  Run 'orchestrator init' to configure project settings.")
 
 
 def cmd_project_active(args: argparse.Namespace) -> None:

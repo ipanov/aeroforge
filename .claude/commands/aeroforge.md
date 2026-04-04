@@ -1,22 +1,50 @@
 ---
 trigger: /aeroforge
-description: AeroForge aircraft design workflow. Activates for any aircraft design task — initializing projects, running design iterations, spawning aerodynamicist/structural agents, managing workflow steps, reviewing deliverables. This is the primary entry point for the AeroForge design system.
+description: AeroForge aircraft design workflow. Activates for any aircraft design task — initializing projects, running design iterations, spawning aerodynamicist/structural agents, managing workflow steps, reviewing deliverables.
 model: opus
 tools: ["Bash", "Read", "Write", "Edit", "Grep", "Glob", "Agent", "WebSearch", "WebFetch"]
 ---
 
-You are operating the AeroForge autonomous aircraft design system. You drive the
-workflow — the deterministic engine constrains you, but YOU decide what to do next.
+You are operating the AeroForge autonomous aircraft design system.
 
-## How This Works
+## Architecture
 
-AeroForge uses a **deterministic workflow engine** that tracks step ordering,
-quality gates, and state persistence. YOU (the LLM) make all design decisions:
-which agents to spawn, when to iterate, how to handle errors, when to advance.
+AeroForge uses a **hierarchical node tree** where each component and assembly
+has its own design cycle. The workflow has two phases:
 
-The workflow is NOT a CLI tool. It runs inside this conversation. The user gives
-natural language direction ("design the wing", "I don't like this shape"). You
-read the state, decide what to do, execute it, and update the state.
+1. **Top-down design phase** — from the aircraft level, drill down through
+   assemblies to components. Each node gets its own aero/structural cycle.
+2. **Bottom-up implementation phase** — build 3D models from leaves up,
+   assemble into parent assemblies.
+
+### Node Types
+
+| Type | Design Cycle | Examples |
+|------|-------------|----------|
+| **component** | Full cycle | Wing panel, elevator, fuselage nose |
+| **assembly** | Full cycle | Wing assembly, H-stab assembly, the whole aircraft |
+| **off_shelf** | None | Servo, battery, carbon rod, screw |
+
+### Per-Node Design Cycle (7 steps)
+
+```
+AERO_PROPOSAL → STRUCTURAL_REVIEW → AERO_RESPONSE → CONSENSUS → DRAWING_2D → MODEL_3D → OUTPUT
+```
+
+- **OUTPUT** (not "mesh") — format determined by manufacturing provider
+- Up to 3 agent rounds per node before user decides
+- DRAWING_2D must be approved by user before MODEL_3D starts
+
+### Project Phases (top level only)
+
+```
+REQUIREMENTS → RESEARCH → DESIGN → IMPLEMENTATION → VALIDATION → RELEASE
+```
+
+- **DESIGN gate**: ALL nodes must have approved 2D drawings before IMPLEMENTATION starts
+- **IMPLEMENTATION order**: Leaves first (components), then assemblies, bottom-up
+- **VALIDATION**: CFD + FEA on assembled top object only
+- **VALIDATION cascade**: If changes needed, LLM decides which nodes to re-run
 
 ## Step 1: Read Current State
 
@@ -30,9 +58,6 @@ state = engine.load_project()
 print(engine.get_workflow_summary())
 ```
 
-This tells you: which project is active, what step each sub-assembly is on,
-what's been completed, what's pending, and any rejection/rework history.
-
 ## Step 2: Determine Next Action
 
 ```python
@@ -40,129 +65,76 @@ action = engine.get_next_recommended_action()
 print(action)
 ```
 
-This returns the recommended next step, which agent to use, and any rework
-context from previous rejections. Use this to decide what to do.
+## Step 3: Execute
 
-## Step 3: Execute the Action
-
-### For design steps (AERO_PROPOSAL, STRUCTURAL_REVIEW):
-Spawn the appropriate agent:
-- **AERO_PROPOSAL**: Spawn aerodynamicist agent
-- **STRUCTURAL_REVIEW**: Spawn structural-engineer agent
-- **AERO_RESPONSE**: Spawn aerodynamicist agent (with structural review context)
-- **CONSENSUS**: Check if both agents agree, write DESIGN_CONSENSUS.md
-
-Before spawning agents, update the workflow state:
+### Design steps — spawn agents:
 ```python
 engine.start_step("wing", "AERO_PROPOSAL", agent="aerodynamicist")
+# ... spawn aerodynamicist agent ...
+engine.complete_step("wing", "AERO_PROPOSAL", output_files=["..."])
 ```
 
-After the agent completes:
+### User rejects deliverable:
 ```python
-engine.complete_step("wing", "AERO_PROPOSAL", output_files=["..."], notes="...")
+engine.reject_step("wing", "DRAWING_2D", reason="planform too rectangular",
+                   rework_notes="make it elliptical")
 ```
 
-### For CAD steps (DRAWING_2D, MODEL_3D, MESH):
-Execute the Build123d/ezdxf pipeline directly. The hooks enforce quality gates.
-
-### For validation steps (VALIDATION):
-Use the provider system to resolve the right analysis backend:
+### User gives feedback:
 ```python
-cfd_provider = engine.resolve_provider("cfd")
-fea_provider = engine.resolve_provider("fea")
+engine.record_user_feedback("wing", "AERO_PROPOSAL", "higher aspect ratio")
 ```
 
-## Step 4: Handle User Feedback
-
-When the user rejects a deliverable or gives design direction:
-
+### Approve drawing (gate for implementation):
 ```python
-# User rejects a drawing
-engine.reject_step("wing", "DRAWING_2D", reason="planform too rectangular", 
-                   rework_notes="make it more elliptical with rounded tips")
+from src.orchestrator.state_manager import StateManager
+sm = StateManager()
+sm.approve_drawing("wing")
 
-# User gives feedback without rejecting
-engine.record_user_feedback("wing", "AERO_PROPOSAL", 
-                            "I want higher aspect ratio, at least 12:1")
+# Check if all drawings approved:
+print(sm.check_design_phase_complete())
 ```
 
-The rejection resets the step to PENDING with context preserved. When the
-agent re-runs, it sees the rejection history and rework notes.
-
-## Step 5: Manage Iterations
-
-When agents disagree or deliverables are rejected, iterate:
+### Get implementation order (leaves first):
 ```python
-# Start a new iteration (resets all steps for this sub-assembly)
-engine.start_iteration("wing", round_label="R2")
+order = sm.get_implementation_order()
+# Returns: ["Wing_Panel_P1", "Wing_Panel_P2", ..., "Wing_Assembly", ..., "Iva_Aeroforge"]
 ```
 
-Check if iteration is needed:
+### After validation, cascade changes:
 ```python
-recommendation = engine.get_next_recommended_action()
-if recommendation.get("rework_context"):
-    # Previous step was rejected — handle rework
-    print(recommendation["rework_context"])
+sm.invalidate_node("HStab_Assembly")  # Reset just this node
+sm.invalidate_subtree("empennage")     # Reset node + all descendants
 ```
 
-## Workflow Steps (in order)
+## Agent Configuration
 
-| Step | Who | What |
-|------|-----|------|
-| REQUIREMENTS | System/LLM | Capture design requirements |
-| RESEARCH | LLM + RAG | Research reference designs, populate knowledge base |
-| AERO_PROPOSAL | Aerodynamicist agent | Propose airfoil, planform, dimensions |
-| STRUCTURAL_REVIEW | Structural engineer agent | Review for mass, printability, strength |
-| AERO_RESPONSE | Aerodynamicist agent | Respond to structural feedback |
-| CONSENSUS | System | Write DESIGN_CONSENSUS.md when both agree |
-| DRAWING_2D | System/LLM | Create DXF technical drawing |
-| MODEL_3D | System/LLM | Create STEP model (Build123d) |
-| MESH | System/LLM | Generate STL → geodesic ribs → 3MF |
-| VALIDATION | Analysis agents | CFD (wind tunnel) + FEA (structural) |
-| RELEASE | System | Final package with BOM |
+Agents (aerodynamicist, structural-engineer) are parameterized per project.
+Read the project's `aeroforge.yaml` for:
+- Aircraft type and mission
+- Manufacturing technique and tooling
+- Materials
+- Provider selections
 
-## RAG Knowledge Base
+The agent prompts in `.claude/agents/` provide the base role. The LLM
+customizes behavior based on the project context — materials, tooling,
+constraints are NOT hardcoded in the agent definitions.
 
-Before design decisions, query the knowledge base:
+## Providers
+
+System-level (shared): `config/system_providers.yaml`
 ```python
-from src.rag import query_rag
-results = query_rag("your question", project_code="AIR4")
-```
-
-During RESEARCH step, populate it:
-```python
-from src.rag import populate_rag
-populate_rag(project_code="AIR4", mission_prompt="F5J thermal sailplane")
-```
-
-## Provider System
-
-Providers are resolved automatically based on project config:
-- **System-level** (CFD, FEA, airfoil): `config/system_providers.yaml`
-- **Project-level** (manufacturing, slicer): `projects/{slug}/aeroforge.yaml`
-
-```python
-# Show all providers
 print(engine.get_provider_status())
 ```
 
-## Project Management
-
-```python
-from src.orchestrator.project_manager import ProjectManager
-pm = ProjectManager()
-pm.list_projects()      # See all projects
-pm.switch("paper-plane") # Switch active project
-pm.create("new-project", {...})  # Create new project
-```
+Project-level (per-project): `projects/{slug}/aeroforge.yaml`
 
 ## Rules
 
-1. **NEVER skip the workflow state check** — always read state before acting
-2. **NEVER hardcode aircraft types** — the user/LLM decides what to build
-3. **ALWAYS spawn agents for design decisions** — don't make aero/structural choices yourself
-4. **ALWAYS update workflow state** — start_step before work, complete_step after
-5. **ALWAYS show the user what's happening** — transparency is non-negotiable
-6. **The hooks enforce quality** — if a hook blocks you, fix the issue, don't bypass
-7. **Use RAG before design decisions** — query the knowledge base first
-8. **Handle errors by recovering** — if a web search fails, try a different query; if an agent fails, retry with more context
+1. **Read state before acting** — always check workflow_state.json
+2. **Aircraft types are free-form** — decided by LLM, not an enum
+3. **Spawn agents for design decisions** — don't make aero/structural choices yourself
+4. **Update workflow state** — start_step before, complete_step after
+5. **Hooks enforce quality** — if blocked, fix the issue
+6. **Query RAG before design decisions**
+7. **Errors: recover, don't crash** — retry with different approach
