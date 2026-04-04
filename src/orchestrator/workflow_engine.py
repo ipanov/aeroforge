@@ -68,7 +68,7 @@ class WorkflowEngine:
         self._sm.set_project_metadata(
             project=project_name,
             aircraft_type=ac_key,
-            project_code=metadata.get("project_code", "AIR4"),
+            project_code=metadata.get("project_code", "PRJ1"),
             project_scope=metadata.get("project_scope", "aircraft"),
             round_label=metadata.get("round_label", "R1"),
         )
@@ -120,7 +120,7 @@ class WorkflowEngine:
         self._sm.set_project_metadata(
             project=project_name,
             aircraft_type=profile.aircraft_type,
-            project_code=metadata.get("project_code", "AIR4"),
+            project_code=metadata.get("project_code", "PRJ1"),
             project_scope=profile.project_scope,
             round_label=profile.round_label,
         )
@@ -315,7 +315,7 @@ class WorkflowEngine:
         state = self._sm.state
         status: dict[str, Any] = {
             "project": state.get("project", "Unknown"),
-            "project_code": state.get("project_code", "AIR4"),
+            "project_code": state.get("project_code", "PRJ1"),
             "project_scope": state.get("project_scope", "aircraft"),
             "aircraft_type": state.get("aircraft_type", "Unknown"),
             "project_phase": state.get("project_phase", "DESIGN"),

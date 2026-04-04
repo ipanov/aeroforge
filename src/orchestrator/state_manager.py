@@ -1028,7 +1028,7 @@ class StateManager:
         normalized["version"] = STATE_VERSION
 
         # Carry forward top-level metadata
-        normalized.setdefault("project_code", "AIR4")
+        normalized.setdefault("project_code", "UNSET")
         normalized.setdefault("project_scope", "aircraft")
         normalized.setdefault("project_phase", ProjectPhase.REQUIREMENTS.value)
         normalized.setdefault("root_node", None)

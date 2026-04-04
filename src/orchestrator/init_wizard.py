@@ -66,10 +66,10 @@ def run_project_init_wizard(
     production: Optional[list[str]] = None,
     outputs: Optional[list[str]] = None,
     scope: str = ProjectScope.AIRCRAFT.value,
-    top_object: str = "Iva_Aeroforge",
-    project_code: str = "AIR4",
-    current_round: str = "R4",
-    next_round: str = "R5",
+    top_object: str = "Aircraft",
+    project_code: str = "PRJ1",
+    current_round: str = "R1",
+    next_round: str = "R2",
 ) -> ProjectSettings:
     """Guide the user through initialization without auto-deciding project strategy."""
 

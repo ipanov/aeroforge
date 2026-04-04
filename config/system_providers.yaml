@@ -12,17 +12,12 @@ cfd:
 fea:
   selected: freecad_calculix
   config:
-    freecad_path: "C:/Users/ilija/AppData/Local/Programs/FreeCAD 1.0/bin/FreeCADCmd.exe"
+    freecad_path: auto  # Auto-detected during system setup; override with absolute path
 
 airfoil:
   selected: neuralfoil
 
 # Hardware profile (populated by detect_hardware() during setup)
-hardware:
-  gpu_type: nvidia_cuda
-  gpu_name: "NVIDIA GeForce RTX 3070"
-  cuda_available: true
-  detected_software:
-    su2: null
-    gmsh: "4.15.2"
-    freecad: "1.0"
+# Hardware profile is populated by detect_hardware() during system setup.
+# Do not hardcode user-specific values here.
+hardware: {}

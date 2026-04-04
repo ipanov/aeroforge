@@ -6,6 +6,7 @@ Wraps the existing ``src.analysis.structural_fem`` module.
 from __future__ import annotations
 
 import os
+import shutil
 from pathlib import Path
 
 from ..base import ProviderInfo, ProviderRegistry
@@ -17,7 +18,26 @@ from .protocol import (
     StaticResult,
 )
 
-FREECAD_CMD = r"C:\Users\ilija\AppData\Local\Programs\FreeCAD 1.0\bin\FreeCADCmd.exe"
+def _find_freecad_cmd() -> str:
+    """Find FreeCADCmd executable via PATH or known install locations."""
+    import shutil
+    import sys
+
+    found = shutil.which("FreeCADCmd")
+    if found:
+        return found
+
+    # Check known Windows install paths
+    if sys.platform == "win32":
+        candidates = [
+            os.path.expandvars(r"%LOCALAPPDATA%\Programs\FreeCAD 1.0\bin\FreeCADCmd.exe"),
+            os.path.expandvars(r"%PROGRAMFILES%\FreeCAD 1.0\bin\FreeCADCmd.exe"),
+        ]
+        for c in candidates:
+            if os.path.exists(c):
+                return c
+
+    return "FreeCADCmd"  # Fallback — will fail gracefully if not found
 
 
 class FreeCADCalculixProvider:
@@ -27,7 +47,8 @@ class FreeCADCalculixProvider:
     display_name: str = "FreeCAD + CalculiX"
 
     def is_available(self) -> bool:
-        return os.path.exists(FREECAD_CMD)
+        cmd = _find_freecad_cmd()
+        return os.path.exists(cmd) if os.path.isabs(cmd) else shutil.which(cmd) is not None
 
     def run_static(
         self,

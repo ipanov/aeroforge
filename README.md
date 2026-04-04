@@ -1,110 +1,158 @@
 # AeroForge
 
-**AeroForge is a generic AI-guided design framework for heavier-than-air flying
-objects.**
+**AI-autonomous design framework for heavier-than-air aircraft.**
 
-It is not limited to one aircraft class, one manufacturing method, or one
-deliverable type. A project starts from a user brief, captures upstream
-decisions such as aircraft/body class, tooling, manufacturing technique,
-material strategy, and output artifacts, then runs a strict staged workflow
-with visible progress, hooks, and living BOM/procurement synchronization.
+AeroForge runs inside any LLM agent (Claude Code, Codex, etc.) as an autonomous
+design assistant. The LLM drives the workflow; a deterministic engine enforces
+quality gates, step sequencing, and validation. The user gives design direction
+in natural language — the system handles everything else.
 
-The current repository includes `AIR4`, an electric thermal sailplane, as the
-main example project. That project is an example implementation, not the
-definition of the framework itself.
+Not limited to one aircraft class, manufacturing method, or deliverable type.
+Paper airplane to interceptor drone — same framework, different providers.
 
-## System Overview
+## How It Works
+
+```mermaid
+flowchart TD
+    A[User: natural language] --> B[LLM Agent]
+    B --> C["/aeroforge skill"]
+    C --> D[Read workflow state]
+    D --> E{Project phase?}
+    E -->|REQUIREMENTS| F[Capture brief]
+    E -->|RESEARCH| G[RAG + web search]
+    E -->|DESIGN| H[Top-down drill]
+    E -->|IMPLEMENTATION| I[Bottom-up build]
+    E -->|VALIDATION| J[CFD + FEA]
+    E -->|RELEASE| K[Package]
+    H --> L[Spawn agents per node]
+    L --> M[Aerodynamicist]
+    L --> N[Structural Engineer]
+    M --> O{Consensus?}
+    N --> O
+    O -->|No, ≤3 rounds| L
+    O -->|Yes| P[2D Drawing]
+    P --> Q[User approves?]
+    Q -->|No| L
+    Q -->|Yes| R[All drawings done?]
+    R -->|No| H
+    R -->|Yes| I
+    I --> S[3D Model → OUTPUT]
+    J --> T{Pass?}
+    T -->|No| U[LLM selects nodes to redesign]
+    U --> H
+    T -->|Yes| K
+```
+
+## Architecture
+
+### Hierarchical Node Tree
+
+Every component and assembly has its own design cycle. The workflow is a
+recursive tree, not a flat list.
 
 ```mermaid
 flowchart LR
-    A[User brief] --> B[Initialization wizard]
-    B --> C[Project profile<br/>aeroforge.yaml]
-    C --> D[Workflow engine]
-    D --> E[Dashboard]
-    D --> F[Monitor server]
-    D --> G[n8n visibility layer]
-    D --> H[Deliverables]
-    H --> I[Living BOM and procurement]
-    D --> J[Full assembled-object validation]
-    J --> K{Converged?}
-    K -- No --> D
-    K -- Yes --> L[Release package]
+    subgraph "Per-Node Design Cycle (7 steps)"
+        AP[AERO_PROPOSAL] --> SR[STRUCTURAL_REVIEW]
+        SR --> AR[AERO_RESPONSE]
+        AR --> CO[CONSENSUS]
+        CO --> D2[DRAWING_2D]
+        D2 --> M3[MODEL_3D]
+        M3 --> OU[OUTPUT]
+    end
 ```
 
-## What AeroForge Does
+| Node Type | Design Cycle | Examples |
+|-----------|-------------|----------|
+| **component** | Full 7-step cycle | Wing panel, elevator, fuselage section |
+| **assembly** | Full 7-step cycle | Wing assembly, H-stab assembly, the whole aircraft |
+| **off_shelf** | None | Servo, battery, carbon rod, screw |
 
-- captures a project brief for a heavier-than-air flying object
-- records non-deterministic project choices through a wizard and project profile
-- enforces deterministic workflow sequencing and dependency ordering
-- shows the active step through a dashboard, hooks, and `n8n` (always started)
-- treats deliverables, BOM state, and procurement state as living artifacts
-- runs final aerodynamic and structural validation on the assembled top object
+### Project Phases (top level)
 
-## Core Concepts
+```
+REQUIREMENTS → RESEARCH → DESIGN → IMPLEMENTATION → VALIDATION → RELEASE
+```
 
-- `Project profile`: the persisted contract between upstream reasoning and the
-  deterministic engine
-- `Component`: the lowest tracked part, either custom or off-the-shelf
-- `Assembly`: any parent object made from components and/or lower assemblies
-- `Deliverable`: the expected artifact from a node or stage
-- `Workflow round`: a tracked iteration label for top-level or local refinement
+- **DESIGN gate**: All nodes must have approved 2D drawings before IMPLEMENTATION
+- **IMPLEMENTATION order**: Leaves first (components), then assemblies, bottom-up
+- **VALIDATION**: CFD + FEA on assembled top object only
+- **Validation cascade**: LLM decides which nodes to redesign based on results
 
-Canonical framework docs live under [docs/README.md](docs/README.md).
+### Provider System
 
-## Standing Workflow
+Swappable backends for analysis and manufacturing:
 
-The framework uses a top-down first, drill-down second, bottom-up refresh loop.
-Every tracked node follows the same staged sequence:
+| Category | Level | Examples |
+|----------|-------|---------|
+| CFD | System | SU2 (CUDA), SU2 (CPU), mock |
+| FEA | System | FreeCAD+CalculiX, mock |
+| Airfoil | System | NeuralFoil, mock |
+| Manufacturing | Project | FDM, manual, CNC, laser |
+| Slicer | Project | OrcaSlicer, PrusaSlicer, mock |
 
-`REQUIREMENTS -> RESEARCH -> AERO_PROPOSAL -> STRUCTURAL_REVIEW -> AERO_RESPONSE -> CONSENSUS -> DRAWING_2D -> MODEL_3D -> MESH -> VALIDATION -> RELEASE`
+System providers depend on local hardware (auto-detected).
+Project providers depend on what's being built.
 
-See:
+### Multi-Project Support
 
-- [Workflow model](docs/framework/workflow.md)
-- [Initialization and project profile](docs/framework/initialization-and-profile.md)
-- [Monitoring, hooks, and n8n](docs/framework/monitoring-hooks-and-n8n.md)
-- [Living BOM and procurement](docs/framework/bom-and-procurement.md)
+```
+aeroforge/
+├── src/                    # Framework (shared)
+├── config/                 # System providers
+├── projects/
+│   ├── air4-f5j/           # F5J thermal sailplane
+│   │   ├── aeroforge.yaml  # Project config + providers
+│   │   ├── cad/            # Components + assemblies
+│   │   └── docs/           # Project-specific docs
+│   └── (your-project)/     # Created via /aeroforge-init
+```
 
-## RAG Knowledge Base (Optional)
+## Usage
 
-A ChromaDB-backed vector database is available as a fast competitive
-intelligence cache. Agents populate it during the RESEARCH step if they
-decide it would be useful, then query it in ~10ms during iterative design
-decisions instead of doing repeated web searches.
+AeroForge runs as a Claude Code skill. No CLI commands needed.
 
-See [RAG knowledge base](docs/framework/rag-knowledge-base.md).
+```
+/aeroforge-init    → Initialize a new project (interactive)
+/aeroforge         → Drive the active project's workflow
+```
 
-## Documentation Map
+The LLM reads project state, spawns design agents, updates workflow steps,
+and shows you deliverables for approval. You give design direction in
+natural language.
 
-- [Docs index](docs/README.md)
-- [Framework docs](docs/framework/README.md)
-- [Example project docs](docs/examples/README.md)
-- [Reference and research archive](docs/reference/README.md)
-- [GitHub wiki](https://github.com/ipanov/aeroforge/wiki)
+## Agents
 
-## Current Example Project
+| Agent | Role | When |
+|-------|------|------|
+| Aerodynamicist | Airfoil, planform, performance | Design phase |
+| Structural Engineer | Mass, strength, manufacturability | Design phase |
+| Wind-Tunnel Engineer | SU2 CFD analysis | Validation phase |
+| Structures Analyst | FreeCAD FEA analysis | Validation phase |
 
-`AIR4` is the current example program in this repo. It is an electric thermal
-sailplane used to exercise the orchestration model, documentation model,
-deliverable discipline, living BOM flow, and validation loop.
+All agents are generic — they read project config at runtime to adapt
+to the aircraft type, materials, and manufacturing technique.
 
-Project-specific material is grouped under:
+## Quality Enforcement
 
-- [AIR4 example overview](docs/examples/AIR4.md)
-- `cad/assemblies/Iva_Aeroforge/`
-- `cad/assemblies/wing/Wing_Assembly/`
-- `cad/assemblies/fuselage/Fuselage_Assembly/`
-- `cad/assemblies/empennage/HStab_Assembly/`
+13 deterministic hooks run automatically on every tool call:
 
-## Monitoring and n8n
+- **workflow_step_guard**: Blocks work outside the active step
+- **aero_consensus_check**: Blocks drawings without design consensus
+- **cad_structure_validate**: Enforces folder hierarchy and naming
+- **complexity_check**: Warns against unjustified simplification
+- **assembly_validate**: Blocks collisions and protrusions
 
-The workflow monitor stack currently includes:
+## Documentation
 
-- `.claude/workflow_state.json` as the state source of truth
-- `exports/workflow_dashboard.html` as the graphical status board
-- the local monitor server exposed by the orchestrator CLI
-- guard hooks that enforce step discipline
-- `n8n` integration for runtime visibility and event handling (always started)
+- [Framework docs](docs/framework/README.md) — workflow, initialization, components
+- [Workflow model](docs/framework/workflow.md) — phases, iteration, validation
 
-Use the framework docs for the canonical behavior description. Use the AIR4
-example docs for one concrete project interpretation of that behavior.
+## Testing
+
+```bash
+cd D:/Repos/aeroforge && PYTHONPATH=. python -m pytest tests/ -q
+```
+
+119 tests covering: providers, project management, workflow iteration,
+telemetry, BOM sync, RAG context.
