@@ -92,6 +92,21 @@ def torsional_stress(T, J, r):
 
 Note: Layer adhesion is the weak direction (⊥ layer). Always check both.
 
+## MANDATORY: Read Provider Configuration
+
+Before running any analysis, check which FEA provider is configured:
+
+```python
+import sys; sys.path.insert(0, "D:/Repos/aeroforge")
+from src.orchestrator.project_manager import ProjectManager
+pm = ProjectManager()
+system_cfg = pm.load_system_providers()
+print("FEA provider:", system_cfg.get("fea", {}).get("selected"))
+print("FEA config:", system_cfg.get("fea", {}).get("config", {}))
+```
+
+Use the configured provider and its settings (e.g., FreeCAD path).
+
 ## MANDATORY: Knowledge Base Lookup
 
 Before running any FEA analysis, query the RAG knowledge base for reference data:
