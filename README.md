@@ -14,33 +14,46 @@ Paper airplane to interceptor drone — same framework, different providers.
 
 ```mermaid
 flowchart TD
-    A[User: natural language] --> B[LLM Agent]
+    A["👤 User: natural language"] --> B["🤖 LLM Agent"]
     B --> C["/aeroforge skill"]
-    C --> D[Read workflow state]
-    D --> E{Project phase?}
-    E -->|REQUIREMENTS| F[Capture brief]
-    E -->|RESEARCH| G[RAG + web search]
-    E -->|DESIGN| H[Top-down drill]
-    E -->|IMPLEMENTATION| I[Bottom-up build]
-    E -->|VALIDATION| J[CFD + FEA]
-    E -->|RELEASE| K[Package]
-    H --> L[Spawn agents per node]
-    L --> M[Aerodynamicist]
-    L --> N[Structural Engineer]
-    M --> O{Consensus?}
+    C --> D["Read workflow state"]
+
+    D --> E{"Project phase?"}
+
+    E -->|REQUIREMENTS| F["📋 Capture brief"]
+    E -->|RESEARCH| G["🔍 RAG + web search"]
+    E -->|DESIGN| H["✏️ Top-down design"]
+    E -->|IMPLEMENTATION| I["🔧 Bottom-up build"]
+    E -->|VALIDATION| J["🧪 CFD + FEA"]
+    E -->|RELEASE| K["📦 Package"]
+
+    H --> L["Spawn agents per node"]
+    L --> M["🌊 Aerodynamicist"]
+    L --> N["🏗️ Structural Engineer"]
+    M --> O{"Consensus?"}
     N --> O
-    O -->|No, ≤3 rounds| L
-    O -->|Yes| P[2D Drawing]
-    P --> Q[User approves?]
+    O -->|"No (≤3 rounds)"| L
+    O -->|Yes| P["📐 2D Drawing"]
+    P --> Q{"User approves?"}
     Q -->|No| L
-    Q -->|Yes| R[All drawings done?]
+    Q -->|Yes| R{"All drawings done?"}
     R -->|No| H
     R -->|Yes| I
-    I --> S[3D Model → OUTPUT]
-    J --> T{Pass?}
-    T -->|No| U[LLM selects nodes to redesign]
+    I --> S["3D Model → OUTPUT"]
+    J --> T{"Pass?"}
+    T -->|No| U["LLM selects nodes to redesign"]
     U --> H
     T -->|Yes| K
+
+    style A fill:#2196F3,color:#fff
+    style B fill:#4a90d9,color:#fff
+    style C fill:#4a90d9,color:#fff
+    style H fill:#50b86c,color:#fff
+    style I fill:#e8a838,color:#000
+    style J fill:#9b59b6,color:#fff
+    style K fill:#27ae60,color:#fff
+    style M fill:#3498db,color:#fff
+    style N fill:#e67e22,color:#fff
 ```
 
 ## Architecture
@@ -52,14 +65,22 @@ recursive tree, not a flat list.
 
 ```mermaid
 flowchart LR
-    subgraph "Per-Node Design Cycle (7 steps)"
-        AP[AERO_PROPOSAL] --> SR[STRUCTURAL_REVIEW]
-        SR --> AR[AERO_RESPONSE]
-        AR --> CO[CONSENSUS]
-        CO --> D2[DRAWING_2D]
-        D2 --> M3[MODEL_3D]
-        M3 --> OU[OUTPUT]
+    subgraph "Per-Node Design Cycle"
+        AP["🌊 AERO_PROPOSAL"] --> SR["🏗️ STRUCTURAL_REVIEW"]
+        SR --> AR["🌊 AERO_RESPONSE"]
+        AR --> CO["🤝 CONSENSUS"]
+        CO --> D2["📐 DRAWING_2D"]
+        D2 --> M3["📦 MODEL_3D"]
+        M3 --> OU["⚙️ OUTPUT"]
     end
+
+    style AP fill:#3498db,color:#fff
+    style SR fill:#e67e22,color:#fff
+    style AR fill:#3498db,color:#fff
+    style CO fill:#27ae60,color:#fff
+    style D2 fill:#9b59b6,color:#fff
+    style M3 fill:#e8a838,color:#000
+    style OU fill:#2c3e50,color:#fff
 ```
 
 | Node Type | Design Cycle | Examples |

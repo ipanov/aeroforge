@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "AI-guided heavier-than-air vehicle design system with tracked workflow orchestration"
 readme = "README.md"
 requires-python = ">=3.10"
-license = {text = "All Rights Reserved"}
+license = {text = "FSL-1.1-ALv2"}
 authors = [
     {name = "ipanov"}
 ]
