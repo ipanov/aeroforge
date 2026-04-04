@@ -92,6 +92,17 @@ def torsional_stress(T, J, r):
 
 Note: Layer adhesion is the weak direction (⊥ layer). Always check both.
 
+## MANDATORY: Knowledge Base Lookup
+
+Before running any FEA analysis, query the RAG knowledge base for reference data:
+
+```python
+from src.rag import query_rag
+results = query_rag("structural analysis reference for your component", project_code="AIR4")
+```
+
+Compare your results against reference safety factors and published material data. Cite sources.
+
 ## Your Process
 
 When given a structural test request:

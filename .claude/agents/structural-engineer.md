@@ -49,6 +49,25 @@ When reviewing an Aero Proposal:
 
 Read the reference data in `docs/rag/3d_printed_plans/` for construction techniques from real 3D-printed gliders.
 
+## MANDATORY: Knowledge Base Lookup
+
+Before reviewing any proposal, you MUST query the RAG knowledge base:
+
+```python
+from src.rag import query_rag
+results = query_rag("your structural question here", project_code="AIR4")
+for r in results:
+    print(f"[{r.get('distance', 1):.2f}] {r.get('metadata', {}).get('source', '?')}")
+    print(r.get('document', '')[:200])
+```
+
+**Rules:**
+1. Query RAG for mass estimates, wall thicknesses, and infill patterns used in reference designs
+2. Compare proposed geometry against reference data from successful printed aircraft
+3. If RAG returns no relevant results, use WebSearch for 3D printing techniques and material data
+4. Cite RAG sources in your review's "References Used" section
+5. Use references for **comparison** — innovate beyond, never copy.
+
 ## Material Properties Reference
 
 | Material | Density (g/cm3) | Tensile (MPa) | Stiffness (GPa) | Notes |

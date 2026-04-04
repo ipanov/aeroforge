@@ -47,6 +47,18 @@ project:
     - Aircraft type, tooling, process, and material choices are project decisions, not code defaults.
     - The dashboard and n8n monitor must always expose the currently running workflow step.
 
+# Project-level providers (manufacturing and slicer depend on project tooling)
+providers:
+  manufacturing:
+    selected: fdm
+    config:
+      printer_model: bambu_a1
+      bed_size: [256, 256, 256]
+  slicer:
+    selected: orcaslicer
+    config:
+      profile: lw_pla_thin_wall
+
 tooling:
   - tooling_id: fdm_printer_primary
     display_name: FDM 3D Printer

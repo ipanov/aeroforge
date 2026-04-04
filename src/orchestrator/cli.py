@@ -12,6 +12,7 @@ sys.path.insert(0, str(_PROJECT_ROOT))
 
 from src.orchestrator.aircraft_types import AircraftType, list_types
 from src.orchestrator.init_wizard import run_project_init_wizard
+from src.orchestrator.project_manager import ProjectManager
 from src.orchestrator.project_settings import (
     PROJECT_SETTINGS_FILE,
     ProjectScope,
@@ -238,6 +239,81 @@ def cmd_serve(args: argparse.Namespace) -> None:
     server.serve_forever()
 
 
+# -- Project management commands -------------------------------------------
+
+
+def cmd_project_list(args: argparse.Namespace) -> None:
+    pm = ProjectManager()
+    projects = pm.list_projects()
+    if not projects:
+        print(f"{_C.DIM}No projects found. Create one with: orchestrator project create{_C.RESET}")
+        return
+    print(f"\n{_C.BOLD}AeroForge Projects{_C.RESET}")
+    print("-" * 60)
+    for p in projects:
+        active_marker = f" {_C.GREEN}(active){_C.RESET}" if p["active"] else ""
+        print(f"  {_C.CYAN}{p['name']:<20s}{_C.RESET} {p['project_name']}{active_marker}")
+        print(f"  {'':20s} Type: {p['aircraft_type']}  Scope: {p['scope']}")
+    print()
+
+
+def cmd_project_switch(args: argparse.Namespace) -> None:
+    pm = ProjectManager()
+    try:
+        path = pm.switch(args.name)
+        print(f"{_C.GREEN}Switched to project: {args.name}{_C.RESET}")
+        print(f"  Path: {path}")
+    except FileNotFoundError:
+        print(f"{_C.RED}Project not found: {args.name}{_C.RESET}")
+        sys.exit(1)
+
+
+def cmd_project_create(args: argparse.Namespace) -> None:
+    pm = ProjectManager()
+    # Create minimal config — init wizard fills in details
+    settings_dict = {
+        "project": {
+            "project_name": args.display_name or args.slug,
+            "aircraft_type": "UNSPECIFIED",
+            "project_scope": "aircraft",
+        },
+        "providers": {},
+    }
+    path = pm.create(args.slug, settings_dict)
+    # Auto-switch to new project
+    pm.switch(args.slug)
+    print(f"{_C.GREEN}Created and activated project: {args.slug}{_C.RESET}")
+    print(f"  Path: {path}")
+    print(f"  Run 'orchestrator init' to configure project settings.")
+
+
+def cmd_project_active(args: argparse.Namespace) -> None:
+    pm = ProjectManager()
+    active = pm.get_active()
+    if active:
+        print(f"Active project: {_C.CYAN}{active}{_C.RESET}")
+        print(f"  Path: {pm.get_project_dir(active)}")
+    else:
+        print(f"{_C.DIM}No active project{_C.RESET}")
+
+
+def cmd_project_providers(args: argparse.Namespace) -> None:
+    pm = ProjectManager()
+    merged = pm.get_merged_providers()
+    print(f"\n{_C.BOLD}Provider Configuration{_C.RESET}")
+    print(f"{_C.DIM}System-level (shared across projects):{_C.RESET}")
+    for cat in ("cfd", "fea", "airfoil"):
+        cfg = merged.get(cat, {})
+        selected = cfg.get("selected", "auto")
+        print(f"  {cat:<15s}: {_C.CYAN}{selected}{_C.RESET}")
+    print(f"{_C.DIM}Project-level (per-project):{_C.RESET}")
+    for cat in ("manufacturing", "slicer"):
+        cfg = merged.get(cat, {})
+        selected = cfg.get("selected", "not configured")
+        print(f"  {cat:<15s}: {_C.CYAN}{selected}{_C.RESET}")
+    print()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         prog="orchestrator",
@@ -315,6 +391,28 @@ def main() -> None:
     p_serve.add_argument("--host", default="127.0.0.1")
     p_serve.add_argument("--port", type=int, default=8787)
     p_serve.set_defaults(func=cmd_serve)
+
+    # -- Project management subcommands ------------------------------------
+    p_project = sub.add_parser("project", help="Manage multiple projects")
+    project_sub = p_project.add_subparsers(dest="project_command")
+
+    p_proj_list = project_sub.add_parser("list", help="List all projects")
+    p_proj_list.set_defaults(func=cmd_project_list)
+
+    p_proj_switch = project_sub.add_parser("switch", help="Switch active project")
+    p_proj_switch.add_argument("name", help="Project slug")
+    p_proj_switch.set_defaults(func=cmd_project_switch)
+
+    p_proj_create = project_sub.add_parser("create", help="Create a new project")
+    p_proj_create.add_argument("slug", help="Project directory name (e.g., air4-f5j)")
+    p_proj_create.add_argument("--display-name", help="Human-readable project name")
+    p_proj_create.set_defaults(func=cmd_project_create)
+
+    p_proj_active = project_sub.add_parser("active", help="Show active project")
+    p_proj_active.set_defaults(func=cmd_project_active)
+
+    p_proj_providers = project_sub.add_parser("providers", help="Show provider configuration")
+    p_proj_providers.set_defaults(func=cmd_project_providers)
 
     args = parser.parse_args()
     if not args.command:

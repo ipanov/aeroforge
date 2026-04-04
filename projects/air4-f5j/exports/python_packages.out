@@ -1,0 +1,10 @@
+Name: PyYAML
+Version: 6.0.2
+Summary: YAML parser and emitter for Python
+Home-page: https://pyyaml.org/
+Author: Kirill Simonov
+Author-email: xi@resolvent.net
+License: MIT
+Location: C:\Program Files\Microsoft SDKs\Azure\CLI2\Lib\site-packages
+Requires: 
+Required-by: knack, pycomposefile

@@ -1,13 +1,21 @@
-"""Interactive project initialization wizard."""
+"""Interactive project initialization wizard.
+
+The wizard captures user/LLM decisions about aircraft type, tooling,
+manufacturing, materials, and production strategy. It also detects local
+hardware to auto-suggest system-level providers (CFD, FEA, airfoil).
+"""
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 from typing import Any, Optional
 
 import yaml
 
 from .project_settings import ProjectScope, ProjectSettings, build_default_settings
+
+logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 WIZARD_CATALOG = PROJECT_ROOT / "config" / "project_init_options.yaml"
@@ -64,6 +72,16 @@ def run_project_init_wizard(
     next_round: str = "R5",
 ) -> ProjectSettings:
     """Guide the user through initialization without auto-deciding project strategy."""
+
+    # -- Hardware detection (system-level providers) -------------------------
+    try:
+        from src.providers.hardware import detect_hardware
+        hw = detect_hardware()
+        print(f"\n--- Detected Hardware ---\n{hw.summary()}\n")
+        logger.info("Hardware detection: %s", hw.summary())
+    except Exception as exc:
+        logger.debug("Hardware detection failed: %s", exc)
+        hw = None
 
     catalog = load_wizard_catalog()
     _print_options("Tooling options", catalog.get("tooling_options", []))

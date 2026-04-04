@@ -10,9 +10,13 @@ import time
 from pathlib import Path
 from typing import Any, Optional
 
+import logging
+
 from .aircraft_types import AircraftType, AnalysisLevel, get_type_definition
 from .workflow_profile import WorkflowProfile, load_workflow_profile
 from .state_manager import StepStatus, StateManager, WorkflowStep
+
+logger = logging.getLogger(__name__)
 
 
 class WorkflowEngine:
@@ -36,14 +40,18 @@ class WorkflowEngine:
 
     def create_project(
         self,
-        aircraft_type: AircraftType,
+        aircraft_type: AircraftType | str,
         project_name: str,
         overrides: Optional[dict[str, Any]] = None,
         metadata: Optional[dict[str, Any]] = None,
     ) -> dict[str, Any]:
-        """Create a new project from an aircraft type template."""
+        """Create a new project from an aircraft type template.
 
-        self._type_def = get_type_definition(aircraft_type)
+        The aircraft_type can be an AircraftType enum value OR a free-form
+        string. If it matches a reference template, that template is used.
+        """
+        ac_key = aircraft_type.value if isinstance(aircraft_type, AircraftType) else aircraft_type
+        self._type_def = get_type_definition(ac_key)
         overrides = overrides or {}
         metadata = metadata or {}
 
@@ -59,7 +67,7 @@ class WorkflowEngine:
         self._sm.initialize(sa_names, level_map, parent_map)
         self._sm.set_project_metadata(
             project=project_name,
-            aircraft_type=aircraft_type.value,
+            aircraft_type=ac_key,
             project_code=metadata.get("project_code", "AIR4"),
             project_scope=metadata.get("project_scope", "aircraft"),
             round_label=metadata.get("round_label", "R1"),
@@ -527,6 +535,227 @@ class WorkflowEngine:
     @staticmethod
     def _now_iso() -> str:
         return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+
+    # ── LLM-facing summaries ─────────────────────────────────────────
+
+    def get_workflow_summary(self) -> str:
+        """Return a formatted text summary the LLM reads to understand current state.
+
+        This is the primary interface between the deterministic workflow
+        engine and the LLM. The LLM reads this, decides what to do next,
+        and executes accordingly.
+        """
+        state = self._sm.load()
+        project = state.get("project", "Unknown")
+        ac_type = state.get("aircraft_type", "Unknown")
+        iteration = state.get("current_iteration", 1)
+        active = state.get("active_run")
+
+        lines = [
+            f"# Workflow Status: {project}",
+            f"Aircraft type: {ac_type} | Iteration: {iteration}",
+            "",
+        ]
+
+        if active:
+            lines.append(
+                f"**ACTIVE**: {active['sub_assembly']}:{active['step']} "
+                f"(agent: {active.get('agent', 'system')})"
+            )
+        else:
+            lines.append("**No step currently running.**")
+        lines.append("")
+
+        sas = state.get("sub_assemblies", {})
+        for name, sa in sas.items():
+            steps = sa.get("steps", {})
+            step_line = []
+            for s_name, s_info in steps.items():
+                status = s_info.get("status", "pending")
+                icon = {"done": "+", "running": ">", "failed": "X",
+                        "pending": "o", "skipped": "-"}.get(status, "?")
+                abbrev = s_name[:3]
+                step_line.append(f"{icon}{abbrev}")
+
+                # Show rejection history if any
+                history = s_info.get("history", [])
+                rejections = [h for h in history if h.get("action") == "rejected"]
+                if rejections:
+                    step_line[-1] += f"({len(rejections)}R)"
+
+            lines.append(f"  {name}: {' '.join(step_line)}")
+
+        # Provider status
+        lines.append("")
+        lines.append("## Providers")
+        try:
+            prov_status = self.get_provider_status()
+            for cat, info in prov_status.items():
+                pid = info.get("provider_id") or "none"
+                lines.append(f"  {cat}: {pid}")
+        except Exception:
+            lines.append("  (provider status unavailable)")
+
+        return "\n".join(lines)
+
+    def get_next_recommended_action(self) -> dict[str, Any]:
+        """Return a detailed recommendation for what the LLM should do next.
+
+        More detailed than get_next_action() — includes context about
+        why this action is recommended and what agent to use.
+        """
+        basic = self.get_next_action()
+        if not basic:
+            return {"action": "idle", "message": "All work complete or no pending steps."}
+
+        result = {**basic}
+        sa_name = basic.get("sub_assembly", "")
+        step = basic.get("step", "")
+
+        # Add agent recommendation
+        agent_map = {
+            "AERO_PROPOSAL": "aerodynamicist",
+            "STRUCTURAL_REVIEW": "structural-engineer",
+            "AERO_RESPONSE": "aerodynamicist",
+            "CONSENSUS": "system",
+            "VALIDATION": "wind-tunnel-engineer + structures-analyst",
+        }
+        result["recommended_agent"] = agent_map.get(step, "system")
+
+        # Add step history (rejections, feedback)
+        if sa_name and sa_name != "__aircraft__":
+            try:
+                history = self._sm.get_step_history(sa_name, step)
+                if history:
+                    result["step_history"] = history
+                    rejections = [h for h in history if h.get("action") == "rejected"]
+                    if rejections:
+                        last = rejections[-1]
+                        result["rework_context"] = (
+                            f"This step was rejected {len(rejections)} time(s). "
+                            f"Last reason: {last.get('reason', 'no reason given')}. "
+                            f"Rework notes: {last.get('rework_notes', 'none')}"
+                        )
+            except Exception:
+                pass
+
+        return result
+
+    def reject_step(
+        self,
+        sub_assembly: str,
+        step: str | WorkflowStep,
+        reason: str = "",
+        rework_notes: str = "",
+    ) -> None:
+        """Reject a step's deliverable and reset for rework."""
+        step_name = step.value if isinstance(step, WorkflowStep) else step
+        self._sm.reject_step(sub_assembly, step_name, reason=reason, rework_notes=rework_notes)
+        self._refresh_monitoring_assets()
+
+        if self._n8n_client:
+            self._n8n_client.update_status(
+                sub_assembly, step_name, "rejected",
+                notes=f"REJECTED: {reason}",
+            )
+
+    def record_user_feedback(
+        self,
+        sub_assembly: str,
+        step: str | WorkflowStep,
+        feedback: str,
+    ) -> None:
+        """Record user design feedback without changing step status."""
+        step_name = step.value if isinstance(step, WorkflowStep) else step
+        self._sm.record_user_feedback(sub_assembly, step_name, feedback)
+
+    # ── Provider resolution ─────────────────────────────────────────
+
+    def resolve_provider(self, category: str) -> Any:
+        """Resolve a provider for the given category using project config.
+
+        System-level categories (cfd, fea, airfoil) use system_providers.yaml.
+        Project-level categories (manufacturing, slicer) use the project's
+        aeroforge.yaml.
+
+        Args:
+            category: Provider category (e.g., "cfd", "fea", "manufacturing").
+
+        Returns:
+            The resolved provider instance, or None if not available.
+        """
+        try:
+            import src.providers  # noqa: F401 — triggers auto-registration
+            from .project_manager import ProjectManager
+            from src.providers.base import ProviderRegistry
+            from src.providers.hardware import HardwareProfile
+
+            pm = ProjectManager()
+            merged = pm.get_merged_providers()
+
+            # Map categories to protocol types
+            protocol_map: dict[str, type] = {}
+            try:
+                from src.providers.cfd.protocol import CFDProvider
+                protocol_map["cfd"] = CFDProvider
+            except ImportError:
+                pass
+            try:
+                from src.providers.fea.protocol import FEAProvider
+                protocol_map["fea"] = FEAProvider
+            except ImportError:
+                pass
+            try:
+                from src.providers.manufacturing.protocol import ManufacturingProvider
+                protocol_map["manufacturing"] = ManufacturingProvider
+            except ImportError:
+                pass
+            try:
+                from src.providers.slicer.protocol import SlicerProvider
+                protocol_map["slicer"] = SlicerProvider
+            except ImportError:
+                pass
+            try:
+                from src.providers.airfoil.protocol import AirfoilProvider
+                protocol_map["airfoil"] = AirfoilProvider
+            except ImportError:
+                pass
+
+            proto = protocol_map.get(category)
+            if proto is None:
+                logger.warning("Unknown provider category: %s", category)
+                return None
+
+            # Load hardware profile from system config
+            sys_cfg = pm.load_system_providers()
+            hw_cfg = sys_cfg.get("hardware", {})
+            hw = HardwareProfile(
+                cuda_available=hw_cfg.get("cuda_available", False),
+                gpu_name=hw_cfg.get("gpu_name"),
+            )
+
+            return ProviderRegistry.resolve_from_config(
+                proto, merged, category, hardware=hw,
+            )
+        except Exception as exc:
+            logger.debug("Provider resolution failed for %s: %s", category, exc)
+            return None
+
+    def get_provider_status(self) -> dict[str, Any]:
+        """Return the status of all provider categories."""
+        categories = ["cfd", "fea", "airfoil", "manufacturing", "slicer"]
+        status: dict[str, Any] = {}
+        for cat in categories:
+            provider = self.resolve_provider(cat)
+            if provider:
+                status[cat] = {
+                    "provider_id": getattr(provider, "provider_id", "unknown"),
+                    "display_name": getattr(provider, "display_name", "unknown"),
+                    "available": provider.is_available() if hasattr(provider, "is_available") else True,
+                }
+            else:
+                status[cat] = {"provider_id": None, "available": False}
+        return status
 
     def _init_n8n(self) -> None:
         try:

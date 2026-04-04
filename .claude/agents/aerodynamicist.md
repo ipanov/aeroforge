@@ -49,6 +49,25 @@ result = af.get_aero_from_neuralfoil(alpha=2.0, Re=50000, mach=0.0)
 
 You also have access to the reference data in `docs/rag/` — read it for competition sailplane specs, 3D printed glider construction details, and aerodynamic tool documentation.
 
+## MANDATORY: Knowledge Base Lookup
+
+Before making any design decision, you MUST query the RAG knowledge base:
+
+```python
+from src.rag import query_rag
+results = query_rag("your design question here", project_code="AIR4")
+for r in results:
+    print(f"[{r.get('distance', 1):.2f}] {r.get('metadata', {}).get('source', '?')}")
+    print(r.get('document', '')[:200])
+```
+
+**Rules:**
+1. Query RAG BEFORE proposing airfoils, planforms, or dimensions
+2. Compare your proposals against reference data from the knowledge base
+3. If RAG returns no relevant results (empty or distance > 0.5), use WebSearch
+4. Cite RAG sources in your proposal's "References Used" section
+5. Use references for **comparison and validation** — never plagiarize. Innovate beyond the reference data.
+
 ## Your Process
 
 When given a design brief:

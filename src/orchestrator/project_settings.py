@@ -15,7 +15,20 @@ from typing import Any, Optional
 import yaml
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-PROJECT_SETTINGS_FILE = PROJECT_ROOT / "aeroforge.yaml"
+PROJECT_SETTINGS_FILE = PROJECT_ROOT / "aeroforge.yaml"  # Legacy default
+
+
+def _resolve_settings_path() -> Path:
+    """Resolve the settings file path through the project manager.
+
+    Falls back to the legacy root-level aeroforge.yaml if no active project.
+    """
+    try:
+        from .project_manager import ProjectManager
+        pm = ProjectManager()
+        return pm.get_settings_path()
+    except Exception:
+        return PROJECT_SETTINGS_FILE
 
 
 class ProjectScope(str, Enum):
@@ -118,7 +131,7 @@ def save_project_settings(
 ) -> Path:
     """Persist project settings to the tracked YAML file."""
 
-    target = path or PROJECT_SETTINGS_FILE
+    target = path or _resolve_settings_path()
     existing: dict[str, Any] = {}
     if target.exists():
         with open(target, "r", encoding="utf-8") as handle:
@@ -132,7 +145,7 @@ def save_project_settings(
 def load_project_settings(path: Optional[Path] = None) -> Optional[dict[str, Any]]:
     """Load project settings if present."""
 
-    target = path or PROJECT_SETTINGS_FILE
+    target = path or _resolve_settings_path()
     if not target.exists():
         return None
     with open(target, "r", encoding="utf-8") as handle:

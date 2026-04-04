@@ -81,6 +81,17 @@ You create `.cfg` files for each analysis type. Key parameters:
 - `REYNOLDS_LENGTH= 0.17` (chord in m)
 - `AOA= 5.0` (angle of attack)
 
+## MANDATORY: Knowledge Base Lookup
+
+Before running any CFD analysis, query the RAG knowledge base for reference data:
+
+```python
+from src.rag import query_rag
+results = query_rag("CFD validation targets for your component", project_code="AIR4")
+```
+
+Compare your results against reference polars and published data. Cite sources.
+
 ## Your Process
 
 When given a test request:

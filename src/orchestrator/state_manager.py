@@ -17,9 +17,32 @@ from typing import Any, Optional
 # ---------------------------------------------------------------------------
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-STATE_FILE = PROJECT_ROOT / ".claude" / "workflow_state.json"
-DASHBOARD_FILE = PROJECT_ROOT / "exports" / "workflow_dashboard.html"
+STATE_FILE = PROJECT_ROOT / ".claude" / "workflow_state.json"  # Legacy default
+DASHBOARD_FILE = PROJECT_ROOT / "exports" / "workflow_dashboard.html"  # Legacy default
 STATE_VERSION = 2
+
+
+def _resolve_state_path() -> Path:
+    """Resolve the state file path through the project manager.
+
+    Falls back to the legacy .claude/workflow_state.json if no active project.
+    """
+    try:
+        from .project_manager import ProjectManager
+        pm = ProjectManager()
+        return pm.get_state_path()
+    except Exception:
+        return STATE_FILE
+
+
+def _resolve_dashboard_path() -> Path:
+    """Resolve the dashboard path through the project manager."""
+    try:
+        from .project_manager import ProjectManager
+        pm = ProjectManager()
+        return pm.get_dashboard_path()
+    except Exception:
+        return DASHBOARD_FILE
 
 
 # ---------------------------------------------------------------------------
@@ -170,7 +193,7 @@ class StateManager:
     """Persistent workflow state manager with strict sequential execution."""
 
     def __init__(self, state_file: Optional[Path] = None) -> None:
-        self._path = state_file or STATE_FILE
+        self._path = state_file or _resolve_state_path()
         self._state: dict[str, Any] = {}
         self._ensure_dirs()
 
@@ -465,6 +488,81 @@ class StateManager:
         self._append_history(f"Reset {step} for {name}")
         self.save()
 
+    def reject_step(
+        self,
+        name: str,
+        step: str,
+        reason: str = "",
+        rework_notes: str = "",
+    ) -> None:
+        """Reject a completed step and reset it for rework.
+
+        This is called when the user (or an agent reviewing deliverables)
+        rejects the output. The step goes back to PENDING with rejection
+        context preserved in history and step notes.
+        """
+        self.load()
+        record = self.get_step(name, step)
+
+        # Store rejection in step history
+        rejection = {
+            "action": "rejected",
+            "timestamp": _now_iso(),
+            "reason": reason,
+            "rework_notes": rework_notes,
+            "previous_status": record["status"],
+            "previous_output": record.get("output_files", []),
+        }
+        record.setdefault("history", []).append(rejection)
+
+        # Reset the step
+        record["status"] = StepStatus.PENDING.value
+        record["started_at"] = None
+        record["completed_at"] = None
+        record["notes"] = f"REJECTED: {reason}" if reason else "Rejected by user"
+        record["agent"] = None
+
+        # Clear active run if this was the active step
+        active = self._state.get("active_run")
+        if active and active.get("sub_assembly") == name and active.get("step") == step:
+            self._state["active_run"] = None
+
+        # Set current step back to this one
+        self._state["sub_assemblies"][name]["current_step"] = step
+
+        self._append_history(
+            f"REJECTED {step} for {name}: {reason}",
+            notes=rework_notes,
+        )
+        self.save()
+
+    def record_user_feedback(
+        self,
+        name: str,
+        step: str,
+        feedback: str,
+    ) -> None:
+        """Record user design feedback on a step.
+
+        This does NOT change step status — it stores the feedback for
+        the LLM to consider when re-running or continuing the step.
+        """
+        self.load()
+        record = self.get_step(name, step)
+        entry = {
+            "action": "user_feedback",
+            "timestamp": _now_iso(),
+            "feedback": feedback,
+        }
+        record.setdefault("history", []).append(entry)
+        self._append_history(f"User feedback on {step} for {name}: {feedback[:100]}")
+        self.save()
+
+    def get_step_history(self, name: str, step: str) -> list[dict[str, Any]]:
+        """Return the full history of a step (rejections, feedback, rework)."""
+        record = self.get_step(name, step)
+        return record.get("history", [])
+
     def start_new_iteration(self, name: str, round_label: Optional[str] = None) -> int:
         """Start a new design iteration for a sub-assembly."""
 
@@ -574,6 +672,7 @@ class StateManager:
         event: str,
         agent: Optional[str] = None,
         output_files: Optional[list[str]] = None,
+        notes: Optional[str] = None,
     ) -> None:
         entry: dict[str, Any] = {
             "timestamp": _now_iso(),
@@ -583,6 +682,8 @@ class StateManager:
             entry["agent"] = agent
         if output_files:
             entry["output_files"] = output_files
+        if notes:
+            entry["notes"] = notes
         self._state.setdefault("history", []).append(entry)
         if len(self._state["history"]) > 500:
             self._state["history"] = self._state["history"][-500:]

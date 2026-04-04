@@ -1,0 +1,35 @@
+{
+  "project": "Para Wing",
+  "project_code": "AIR4",
+  "updated_at": "2026-04-04T08:56:24Z",
+  "iteration": 1,
+  "current_round_label": "R1",
+  "active_run": null,
+  "sub_assemblies": {
+    "canopy": {
+      "name": "canopy",
+      "iteration": 1,
+      "round_label": "R1",
+      "agent_round": 0,
+      "current_step": "REQUIREMENTS",
+      "deliverables": [
+        "stitching_plans"
+      ],
+      "done": 0,
+      "failed": 0,
+      "total": 11,
+      "percent": 0.0,
+      "dependencies": []
+    }
+  },
+  "convergence": {
+    "ld_ratio_met": false,
+    "interference_drag_met": false,
+    "static_margin_met": false,
+    "control_authority_met": false,
+    "structural_sf_met": false,
+    "flutter_margin_met": false,
+    "auw_met": false,
+    "no_collisions_met": false
+  }
+}

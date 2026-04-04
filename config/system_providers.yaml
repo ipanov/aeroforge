@@ -1,0 +1,28 @@
+# System-level providers — shared across ALL projects.
+# These depend on local hardware (GPU, installed software), not on project decisions.
+# Configured once during system setup, applied to every project.
+
+cfd:
+  selected: su2_cuda
+  fallback: su2_cpu
+  config:
+    num_processors: 4
+    use_gpu: true
+
+fea:
+  selected: freecad_calculix
+  config:
+    freecad_path: "C:/Users/ilija/AppData/Local/Programs/FreeCAD 1.0/bin/FreeCADCmd.exe"
+
+airfoil:
+  selected: neuralfoil
+
+# Hardware profile (populated by detect_hardware() during setup)
+hardware:
+  gpu_type: nvidia_cuda
+  gpu_name: "NVIDIA GeForce RTX 3070"
+  cuda_available: true
+  detected_software:
+    su2: null
+    gmsh: "4.15.2"
+    freecad: "1.0"

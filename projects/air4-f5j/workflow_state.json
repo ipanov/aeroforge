@@ -1,0 +1,909 @@
+{
+  "version": 1,
+  "created_at": "2026-04-03T07:16:00Z",
+  "updated_at": "2026-04-03T07:34:36Z",
+  "project": "Iva Aeroforge F5J",
+  "current_iteration": 1,
+  "sub_assemblies": {
+    "wing": {
+      "name": "wing",
+      "level": 1,
+      "parent": null,
+      "current_iteration": 3,
+      "max_agent_rounds": 3,
+      "agent_round": 1,
+      "steps": {
+        "REQUIREMENTS": {
+          "name": "REQUIREMENTS",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "RESEARCH": {
+          "name": "RESEARCH",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "AERO_PROPOSAL": {
+          "name": "AERO_PROPOSAL",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "STRUCTURAL_REVIEW": {
+          "name": "STRUCTURAL_REVIEW",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "AERO_RESPONSE": {
+          "name": "AERO_RESPONSE",
+          "status": "running",
+          "agent": "aero-agent-r5",
+          "output_files": [],
+          "notes": "",
+          "started_at": "2026-04-03T07:34:36Z",
+          "completed_at": null
+        },
+        "CONSENSUS": {
+          "name": "CONSENSUS",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "DRAWING_2D": {
+          "name": "DRAWING_2D",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "MODEL_3D": {
+          "name": "MODEL_3D",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "MESH": {
+          "name": "MESH",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "VALIDATION": {
+          "name": "VALIDATION",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "RELEASE": {
+          "name": "RELEASE",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        }
+      },
+      "current_step": "AERO_RESPONSE",
+      "artifacts": [],
+      "dependencies": []
+    },
+    "fuselage": {
+      "name": "fuselage",
+      "level": 1,
+      "parent": null,
+      "current_iteration": 1,
+      "max_agent_rounds": 3,
+      "agent_round": 0,
+      "steps": {
+        "REQUIREMENTS": {
+          "name": "REQUIREMENTS",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "RESEARCH": {
+          "name": "RESEARCH",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "AERO_PROPOSAL": {
+          "name": "AERO_PROPOSAL",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "STRUCTURAL_REVIEW": {
+          "name": "STRUCTURAL_REVIEW",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "AERO_RESPONSE": {
+          "name": "AERO_RESPONSE",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "CONSENSUS": {
+          "name": "CONSENSUS",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "DRAWING_2D": {
+          "name": "DRAWING_2D",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "MODEL_3D": {
+          "name": "MODEL_3D",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "MESH": {
+          "name": "MESH",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "VALIDATION": {
+          "name": "VALIDATION",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "RELEASE": {
+          "name": "RELEASE",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        }
+      },
+      "current_step": "REQUIREMENTS",
+      "artifacts": [],
+      "dependencies": []
+    },
+    "empennage": {
+      "name": "empennage",
+      "level": 1,
+      "parent": null,
+      "current_iteration": 1,
+      "max_agent_rounds": 3,
+      "agent_round": 0,
+      "steps": {
+        "REQUIREMENTS": {
+          "name": "REQUIREMENTS",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "RESEARCH": {
+          "name": "RESEARCH",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "AERO_PROPOSAL": {
+          "name": "AERO_PROPOSAL",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "STRUCTURAL_REVIEW": {
+          "name": "STRUCTURAL_REVIEW",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "AERO_RESPONSE": {
+          "name": "AERO_RESPONSE",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "CONSENSUS": {
+          "name": "CONSENSUS",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "DRAWING_2D": {
+          "name": "DRAWING_2D",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "MODEL_3D": {
+          "name": "MODEL_3D",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "MESH": {
+          "name": "MESH",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "VALIDATION": {
+          "name": "VALIDATION",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "RELEASE": {
+          "name": "RELEASE",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        }
+      },
+      "current_step": "REQUIREMENTS",
+      "artifacts": [],
+      "dependencies": [
+        "wing"
+      ]
+    },
+    "control_surfaces": {
+      "name": "control_surfaces",
+      "level": 2,
+      "parent": "wing",
+      "current_iteration": 1,
+      "max_agent_rounds": 3,
+      "agent_round": 0,
+      "steps": {
+        "REQUIREMENTS": {
+          "name": "REQUIREMENTS",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "RESEARCH": {
+          "name": "RESEARCH",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "AERO_PROPOSAL": {
+          "name": "AERO_PROPOSAL",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "STRUCTURAL_REVIEW": {
+          "name": "STRUCTURAL_REVIEW",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "AERO_RESPONSE": {
+          "name": "AERO_RESPONSE",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "CONSENSUS": {
+          "name": "CONSENSUS",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "DRAWING_2D": {
+          "name": "DRAWING_2D",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "MODEL_3D": {
+          "name": "MODEL_3D",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "MESH": {
+          "name": "MESH",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "VALIDATION": {
+          "name": "VALIDATION",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "RELEASE": {
+          "name": "RELEASE",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        }
+      },
+      "current_step": "REQUIREMENTS",
+      "artifacts": [],
+      "dependencies": [
+        "wing"
+      ]
+    },
+    "propulsion": {
+      "name": "propulsion",
+      "level": 1,
+      "parent": null,
+      "current_iteration": 1,
+      "max_agent_rounds": 3,
+      "agent_round": 0,
+      "steps": {
+        "REQUIREMENTS": {
+          "name": "REQUIREMENTS",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "RESEARCH": {
+          "name": "RESEARCH",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "AERO_PROPOSAL": {
+          "name": "AERO_PROPOSAL",
+          "status": "skipped",
+          "agent": null,
+          "output_files": [],
+          "notes": "Not applicable for this component type",
+          "started_at": null,
+          "completed_at": "2026-04-03T07:34:36Z"
+        },
+        "STRUCTURAL_REVIEW": {
+          "name": "STRUCTURAL_REVIEW",
+          "status": "skipped",
+          "agent": null,
+          "output_files": [],
+          "notes": "Not applicable for this component type",
+          "started_at": null,
+          "completed_at": "2026-04-03T07:34:36Z"
+        },
+        "AERO_RESPONSE": {
+          "name": "AERO_RESPONSE",
+          "status": "skipped",
+          "agent": null,
+          "output_files": [],
+          "notes": "Not applicable for this component type",
+          "started_at": null,
+          "completed_at": "2026-04-03T07:34:36Z"
+        },
+        "CONSENSUS": {
+          "name": "CONSENSUS",
+          "status": "skipped",
+          "agent": null,
+          "output_files": [],
+          "notes": "Not applicable for this component type",
+          "started_at": null,
+          "completed_at": "2026-04-03T07:34:36Z"
+        },
+        "DRAWING_2D": {
+          "name": "DRAWING_2D",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "MODEL_3D": {
+          "name": "MODEL_3D",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "MESH": {
+          "name": "MESH",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "VALIDATION": {
+          "name": "VALIDATION",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "RELEASE": {
+          "name": "RELEASE",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        }
+      },
+      "current_step": "DRAWING_2D",
+      "artifacts": [],
+      "dependencies": []
+    },
+    "landing_gear": {
+      "name": "landing_gear",
+      "level": 1,
+      "parent": null,
+      "current_iteration": 1,
+      "max_agent_rounds": 3,
+      "agent_round": 0,
+      "steps": {
+        "REQUIREMENTS": {
+          "name": "REQUIREMENTS",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "RESEARCH": {
+          "name": "RESEARCH",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "AERO_PROPOSAL": {
+          "name": "AERO_PROPOSAL",
+          "status": "skipped",
+          "agent": null,
+          "output_files": [],
+          "notes": "Not applicable for this component type",
+          "started_at": null,
+          "completed_at": "2026-04-03T07:34:36Z"
+        },
+        "STRUCTURAL_REVIEW": {
+          "name": "STRUCTURAL_REVIEW",
+          "status": "skipped",
+          "agent": null,
+          "output_files": [],
+          "notes": "Not applicable for this component type",
+          "started_at": null,
+          "completed_at": "2026-04-03T07:34:36Z"
+        },
+        "AERO_RESPONSE": {
+          "name": "AERO_RESPONSE",
+          "status": "skipped",
+          "agent": null,
+          "output_files": [],
+          "notes": "Not applicable for this component type",
+          "started_at": null,
+          "completed_at": "2026-04-03T07:34:36Z"
+        },
+        "CONSENSUS": {
+          "name": "CONSENSUS",
+          "status": "skipped",
+          "agent": null,
+          "output_files": [],
+          "notes": "Not applicable for this component type",
+          "started_at": null,
+          "completed_at": "2026-04-03T07:34:36Z"
+        },
+        "DRAWING_2D": {
+          "name": "DRAWING_2D",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "MODEL_3D": {
+          "name": "MODEL_3D",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "MESH": {
+          "name": "MESH",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "VALIDATION": {
+          "name": "VALIDATION",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        },
+        "RELEASE": {
+          "name": "RELEASE",
+          "status": "pending",
+          "agent": null,
+          "output_files": [],
+          "notes": "",
+          "started_at": null,
+          "completed_at": null
+        }
+      },
+      "current_step": "DRAWING_2D",
+      "artifacts": [],
+      "dependencies": []
+    }
+  },
+  "analysis": {
+    "cfd": {
+      "name": "VALIDATION",
+      "status": "pending",
+      "agent": null,
+      "output_files": [],
+      "notes": "",
+      "started_at": null,
+      "completed_at": null
+    },
+    "fea": {
+      "name": "VALIDATION",
+      "status": "pending",
+      "agent": null,
+      "output_files": [],
+      "notes": "",
+      "started_at": null,
+      "completed_at": null
+    },
+    "convergence": {
+      "ld_ratio_met": false,
+      "interference_drag_met": false,
+      "static_margin_met": false,
+      "control_authority_met": false,
+      "structural_sf_met": false,
+      "flutter_margin_met": false,
+      "auw_met": false,
+      "no_collisions_met": false
+    }
+  },
+  "history": [
+    {
+      "timestamp": "2026-04-03T07:17:47Z",
+      "event": "Skipped AERO_PROPOSAL for propulsion: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:17:47Z",
+      "event": "Skipped STRUCTURAL_REVIEW for propulsion: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:17:47Z",
+      "event": "Skipped AERO_RESPONSE for propulsion: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:17:47Z",
+      "event": "Skipped CONSENSUS for propulsion: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:17:47Z",
+      "event": "Skipped AERO_PROPOSAL for landing_gear: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:17:47Z",
+      "event": "Skipped STRUCTURAL_REVIEW for landing_gear: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:17:47Z",
+      "event": "Skipped AERO_RESPONSE for landing_gear: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:17:47Z",
+      "event": "Skipped CONSENSUS for landing_gear: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:18:17Z",
+      "event": "Skipped AERO_PROPOSAL for propulsion: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:18:17Z",
+      "event": "Skipped STRUCTURAL_REVIEW for propulsion: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:18:17Z",
+      "event": "Skipped AERO_RESPONSE for propulsion: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:18:17Z",
+      "event": "Skipped CONSENSUS for propulsion: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:18:17Z",
+      "event": "Skipped AERO_PROPOSAL for landing_gear: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:18:17Z",
+      "event": "Skipped STRUCTURAL_REVIEW for landing_gear: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:18:17Z",
+      "event": "Skipped AERO_RESPONSE for landing_gear: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:18:17Z",
+      "event": "Skipped CONSENSUS for landing_gear: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:18:30Z",
+      "event": "Started RESEARCH for wing",
+      "agent": "aerodynamicist"
+    },
+    {
+      "timestamp": "2026-04-03T07:18:39Z",
+      "event": "Started AERO_PROPOSAL for wing",
+      "agent": "aerodynamicist"
+    },
+    {
+      "timestamp": "2026-04-03T07:19:04Z",
+      "event": "Completed AERO_PROPOSAL for wing"
+    },
+    {
+      "timestamp": "2026-04-03T07:33:33Z",
+      "event": "Skipped AERO_PROPOSAL for propulsion: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:33:33Z",
+      "event": "Skipped STRUCTURAL_REVIEW for propulsion: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:33:33Z",
+      "event": "Skipped AERO_RESPONSE for propulsion: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:33:33Z",
+      "event": "Skipped CONSENSUS for propulsion: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:33:33Z",
+      "event": "Skipped AERO_PROPOSAL for landing_gear: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:33:33Z",
+      "event": "Skipped STRUCTURAL_REVIEW for landing_gear: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:33:33Z",
+      "event": "Skipped AERO_RESPONSE for landing_gear: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:33:33Z",
+      "event": "Skipped CONSENSUS for landing_gear: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:34:03Z",
+      "event": "Skipped AERO_PROPOSAL for propulsion: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:34:03Z",
+      "event": "Skipped STRUCTURAL_REVIEW for propulsion: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:34:03Z",
+      "event": "Skipped AERO_RESPONSE for propulsion: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:34:03Z",
+      "event": "Skipped CONSENSUS for propulsion: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:34:03Z",
+      "event": "Skipped AERO_PROPOSAL for landing_gear: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:34:03Z",
+      "event": "Skipped STRUCTURAL_REVIEW for landing_gear: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:34:03Z",
+      "event": "Skipped AERO_RESPONSE for landing_gear: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:34:03Z",
+      "event": "Skipped CONSENSUS for landing_gear: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:34:03Z",
+      "event": "Started iteration 2 for wing"
+    },
+    {
+      "timestamp": "2026-04-03T07:34:03Z",
+      "event": "Started AERO_RESPONSE for wing",
+      "agent": "aero-agent"
+    },
+    {
+      "timestamp": "2026-04-03T07:34:36Z",
+      "event": "Skipped AERO_PROPOSAL for propulsion: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:34:36Z",
+      "event": "Skipped STRUCTURAL_REVIEW for propulsion: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:34:36Z",
+      "event": "Skipped AERO_RESPONSE for propulsion: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:34:36Z",
+      "event": "Skipped CONSENSUS for propulsion: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:34:36Z",
+      "event": "Skipped AERO_PROPOSAL for landing_gear: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:34:36Z",
+      "event": "Skipped STRUCTURAL_REVIEW for landing_gear: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:34:36Z",
+      "event": "Skipped AERO_RESPONSE for landing_gear: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:34:36Z",
+      "event": "Skipped CONSENSUS for landing_gear: Not applicable for this component type"
+    },
+    {
+      "timestamp": "2026-04-03T07:34:36Z",
+      "event": "Started iteration 3 for wing"
+    },
+    {
+      "timestamp": "2026-04-03T07:34:36Z",
+      "event": "Started AERO_RESPONSE for wing",
+      "agent": "aero-agent-r5"
+    }
+  ]
+}
