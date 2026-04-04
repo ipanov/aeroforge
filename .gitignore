@@ -88,3 +88,4 @@ node_modules/
 # Local config
 .env
 .env.local
+projects/air4-f5j/exports/**/*.stl

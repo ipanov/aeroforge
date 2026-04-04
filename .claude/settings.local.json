@@ -1,5 +1,15 @@
 {
   "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:particula.tech)",
+      "WebFetch(domain:alex000kim.com)",
+      "WebFetch(domain:read.engineerscodex.com)",
+      "Bash(PYTHONPATH=. python -m pytest tests/test_providers.py tests/test_project_manager.py tests/test_rag_context.py tests/test_bom.py tests/test_bom_sync.py tests/test_orchestrator_workflow.py tests/test_workflow_iteration.py tests/test_telemetry.py -q --tb=short)",
+      "Bash(PYTHONPATH=. python -m pytest tests/test_workflow_iteration.py tests/test_telemetry.py -q --tb=short)",
+      "Bash(xargs -I{} du -h \"{}\")",
+      "Bash(PYTHONPATH=. python -m pytest tests/test_providers.py tests/test_project_manager.py tests/test_rag_context.py tests/test_bom.py tests/test_bom_sync.py tests/test_orchestrator_workflow.py tests/test_workflow_iteration.py tests/test_telemetry.py -q --tb=line)"
+    ],
     "defaultMode": "bypassPermissions"
   },
   "skipDangerousModePermissionPrompt": true
