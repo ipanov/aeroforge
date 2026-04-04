@@ -318,45 +318,38 @@ class WorkflowEngine:
             "project_code": state.get("project_code", "AIR4"),
             "project_scope": state.get("project_scope", "aircraft"),
             "aircraft_type": state.get("aircraft_type", "Unknown"),
-            "iteration": state.get("current_iteration", 1),
-            "round_label": state.get("current_round_label"),
+            "project_phase": state.get("project_phase", "DESIGN"),
             "updated_at": state.get("updated_at"),
-            "active_run": self._sm.get_active_run(),
-            "sub_assemblies": self._sm.get_full_progress(),
-            "convergence": state.get("analysis", {}).get("convergence", {}),
-            "analysis_policy": state.get("analysis", {}).get("policy", {}),
+            "active_runs": self._sm.get_active_runs(),
+            "nodes": state.get("nodes", {}),
+            "root_node": state.get("root_node"),
+            "validation": state.get("validation", {}),
             "n8n_available": self.n8n_available,
-            "all_complete": self._sm.all_complete(),
+            "design_phase_complete": self._sm.check_design_phase_complete(),
         }
-
-        # RAG database status
-        try:
-            from src.rag.database import RAGDatabase
-            from src.rag.config import RAGConfig
-
-            db = RAGDatabase(RAGConfig())
-            status["rag_database"] = db.get_collection_stats() if db.collection_exists() else None
-        except Exception:
-            status["rag_database"] = None
-
         return status
 
-    def get_sub_assembly_status(self, name: str) -> dict[str, Any]:
-        sa = self._sm.get_sub_assembly(name)
-        progress = self._sm.get_progress(name)
+    def get_node_status(self, name: str) -> dict[str, Any]:
+        node = self._sm.get_node(name)
         return {
-            **progress,
-            "steps": sa["steps"],
-            "dependencies": sa.get("dependencies", []),
-            "artifacts": sa.get("artifacts", []),
+            "name": name,
+            "type": node.get("type"),
+            "parent": node.get("parent"),
+            "children": node.get("children", []),
+            "design_cycle": node.get("design_cycle"),
+            "current_design_step": node.get("current_design_step"),
+            "iteration": node.get("iteration", 1),
+            "drawing_approved": node.get("drawing_approved", False),
+            "artifacts": node.get("artifacts", []),
         }
 
     def get_next_action(self) -> Optional[dict[str, Any]]:
-        if self._sm.get_active_run():
-            active = self._sm.get_active_run()
+        active_runs = self._sm.get_active_runs()
+        if active_runs:
+            ar = active_runs[0]
             return {
-                "sub_assembly": active["sub_assembly"],
-                "step": active["step"],
+                "sub_assembly": ar.get("node", ar.get("sub_assembly", "")),
+                "step": ar.get("step", ""),
                 "action": "running",
             }
 
@@ -364,10 +357,16 @@ class WorkflowEngine:
             return self._check_final_validation()
 
         for name in self._sm.get_sub_assemblies():
+            node = self._sm.get_node(name)
+            dc = node.get("design_cycle")
+            if dc is None:
+                continue  # Off-shelf, skip
             if self._sm.is_complete(name):
                 continue
-            current = self._sm.get_current_step(name)
-            status = self._sm.get_status(name, current)
+            current = node.get("current_design_step", "")
+            if not current or current not in dc:
+                continue
+            status = dc[current].get("status", StepStatus.PENDING.value)
             if status in {StepStatus.PENDING.value, StepStatus.FAILED.value}:
                 return {
                     "sub_assembly": name,
@@ -386,29 +385,21 @@ class WorkflowEngine:
     # ── Final validation ───────────────────────────────────────────
 
     def start_final_validation(self) -> dict[str, Any]:
-        if not self._sm.all_complete():
-            incomplete = [
-                name for name in self._sm.get_sub_assemblies()
-                if not self._sm.is_complete(name)
-            ]
-            raise RuntimeError(
-                f"Cannot start final validation: {incomplete} not complete"
-            )
-
         state = self._sm.state
-        state.setdefault("analysis", {})
-        state["analysis"]["cfd"] = {
+        state.setdefault("validation", {})
+        state["validation"]["cfd"] = {
             "name": "CFD_FULL_ASSEMBLY_VALIDATION",
             "status": StepStatus.RUNNING.value,
             "started_at": self._now_iso(),
             "notes": "Running synthetic wind tunnel analysis on the assembled top object.",
         }
-        state["analysis"]["fea"] = {
+        state["validation"]["fea"] = {
             "name": "FEA_FULL_ASSEMBLY_VALIDATION",
             "status": StepStatus.RUNNING.value,
             "started_at": self._now_iso(),
             "notes": "Running structural analysis on the assembled top object.",
         }
+        self._sm.set_project_phase("VALIDATION")
         self._sm.save()
         self._refresh_monitoring_assets()
 
@@ -416,9 +407,7 @@ class WorkflowEngine:
             "status": "started",
             "cfd": "running",
             "fea": "running",
-            "message": (
-                "Full-aircraft CFD and FEA validation started on the assembled top object."
-            ),
+            "message": "Full-aircraft CFD and FEA validation started on the assembled top object.",
         }
 
     def complete_cfd(
@@ -428,7 +417,7 @@ class WorkflowEngine:
         notes: str = "",
     ) -> None:
         state = self._sm.state
-        cfd = state.get("analysis", {}).get("cfd", {})
+        cfd = state.get("validation", {}).get("cfd", {})
         cfd["status"] = StepStatus.DONE.value if passed else StepStatus.FAILED.value
         cfd["completed_at"] = self._now_iso()
         cfd["passed"] = passed
@@ -446,7 +435,7 @@ class WorkflowEngine:
         notes: str = "",
     ) -> None:
         state = self._sm.state
-        fea = state.get("analysis", {}).get("fea", {})
+        fea = state.get("validation", {}).get("fea", {})
         fea["status"] = StepStatus.DONE.value if passed else StepStatus.FAILED.value
         fea["completed_at"] = self._now_iso()
         fea["passed"] = passed
@@ -459,7 +448,7 @@ class WorkflowEngine:
 
     def check_convergence(self) -> dict[str, Any]:
         state = self._sm.state
-        convergence = state.get("analysis", {}).get("convergence", {})
+        convergence = state.get("validation", {}).get("convergence", {})
         all_met = all(convergence.values()) if convergence else False
         return {
             "criteria": convergence,
@@ -495,8 +484,8 @@ class WorkflowEngine:
 
     def _check_final_validation(self) -> Optional[dict[str, Any]]:
         state = self._sm.state
-        cfd = state.get("analysis", {}).get("cfd", {})
-        fea = state.get("analysis", {}).get("fea", {})
+        cfd = state.get("validation", {}).get("cfd", {})
+        fea = state.get("validation", {}).get("fea", {})
 
         cfd_status = cfd.get("status", StepStatus.PENDING.value)
         fea_status = fea.get("status", StepStatus.PENDING.value)
@@ -539,62 +528,66 @@ class WorkflowEngine:
     # ── LLM-facing summaries ─────────────────────────────────────────
 
     def get_workflow_summary(self) -> str:
-        """Return a formatted text summary the LLM reads to understand current state.
-
-        This is the primary interface between the deterministic workflow
-        engine and the LLM. The LLM reads this, decides what to do next,
-        and executes accordingly.
-        """
+        """Return a formatted text summary the LLM reads to understand current state."""
         state = self._sm.load()
         project = state.get("project", "Unknown")
         ac_type = state.get("aircraft_type", "Unknown")
-        iteration = state.get("current_iteration", 1)
-        active = state.get("active_run")
+        phase = state.get("project_phase", "DESIGN")
 
         lines = [
             f"# Workflow Status: {project}",
-            f"Aircraft type: {ac_type} | Iteration: {iteration}",
+            f"Aircraft type: {ac_type} | Phase: {phase}",
             "",
         ]
 
-        if active:
-            lines.append(
-                f"**ACTIVE**: {active['sub_assembly']}:{active['step']} "
-                f"(agent: {active.get('agent', 'system')})"
-            )
+        active_runs = state.get("active_runs", [])
+        if active_runs:
+            for ar in active_runs:
+                lines.append(
+                    f"**ACTIVE**: {ar.get('node', '?')}:{ar.get('step', '?')} "
+                    f"(agent: {ar.get('agent', 'system')})"
+                )
         else:
             lines.append("**No step currently running.**")
         lines.append("")
 
-        sas = state.get("sub_assemblies", {})
-        for name, sa in sas.items():
-            steps = sa.get("steps", {})
+        # Render node tree
+        nodes = state.get("nodes", {})
+        root = state.get("root_node")
+
+        def _render_node(name: str, indent: int = 0) -> None:
+            node = nodes.get(name, {})
+            prefix = "  " * indent
+            ntype = node.get("type", "?")
+            dc = node.get("design_cycle")
+            if dc is None:
+                lines.append(f"{prefix}{name} [{ntype}] (off-shelf)")
+                return
             step_line = []
-            for s_name, s_info in steps.items():
-                status = s_info.get("status", "pending")
+            for s_name, s_info in dc.items():
+                status = s_info.get("status", "pending") if isinstance(s_info, dict) else "?"
                 icon = {"done": "+", "running": ">", "failed": "X",
                         "pending": "o", "skipped": "-"}.get(status, "?")
                 abbrev = s_name[:3]
-                step_line.append(f"{icon}{abbrev}")
+                cell = f"{icon}{abbrev}"
+                if isinstance(s_info, dict):
+                    history = s_info.get("history", [])
+                    rejections = [h for h in history if h.get("action") == "rejected"]
+                    if rejections:
+                        cell += f"({len(rejections)}R)"
+                step_line.append(cell)
+            approved = "APPROVED" if node.get("drawing_approved") else ""
+            lines.append(f"{prefix}{name} [{ntype}] {' '.join(step_line)} {approved}")
 
-                # Show rejection history if any
-                history = s_info.get("history", [])
-                rejections = [h for h in history if h.get("action") == "rejected"]
-                if rejections:
-                    step_line[-1] += f"({len(rejections)}R)"
+            for child in node.get("children", []):
+                _render_node(child, indent + 1)
 
-            lines.append(f"  {name}: {' '.join(step_line)}")
-
-        # Provider status
-        lines.append("")
-        lines.append("## Providers")
-        try:
-            prov_status = self.get_provider_status()
-            for cat, info in prov_status.items():
-                pid = info.get("provider_id") or "none"
-                lines.append(f"  {cat}: {pid}")
-        except Exception:
-            lines.append("  (provider status unavailable)")
+        if root and root in nodes:
+            _render_node(root)
+        else:
+            for name in nodes:
+                if nodes[name].get("parent") is None:
+                    _render_node(name)
 
         return "\n".join(lines)
 
