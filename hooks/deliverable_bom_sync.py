@@ -28,7 +28,13 @@ DELIVERABLE_TYPES = {
 
 
 def _load_project_context() -> tuple[dict, dict]:
-    settings_path = PROJECT_ROOT / "aeroforge.yaml"
+    """Load project settings from the active project's aeroforge.yaml."""
+    try:
+        from src.orchestrator.project_manager import ProjectManager
+        pm = ProjectManager()
+        settings_path = pm.get_settings_path()
+    except Exception:
+        settings_path = PROJECT_ROOT / "aeroforge.yaml"
     if not settings_path.exists():
         return {}, {}
     with open(settings_path, "r", encoding="utf-8") as handle:

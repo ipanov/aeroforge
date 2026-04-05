@@ -121,12 +121,24 @@ with open(config_path, "w") as f:
 ```python
 from src.orchestrator.workflow_engine import WorkflowEngine
 engine = WorkflowEngine()
+
+# Push skeleton visual workflow to n8n IMMEDIATELY (before profile is loaded).
+# This gives the user visual feedback in n8n right away — showing project
+# phases with a placeholder for the component hierarchy.
+engine.sync_n8n_skeleton(config["project"]["project_name"], current_phase="REQUIREMENTS")
+
+# Now create the full state from the workflow profile.
+# This also pushes the full visual workflow (with component hierarchy) to n8n.
 state = engine.create_project_from_profile_file(
     config_path, config["project"]["project_name"],
     metadata={"project_code": config["project"]["design_family"]},
 )
 print(engine.get_workflow_summary())
 ```
+
+**n8n is MANDATORY.** If n8n is not available, `WorkflowEngine()` will auto-launch
+it and wait up to 30 seconds. If still unreachable, it raises `N8nUnavailableError`
+and the init process MUST stop with a clear error message.
 
 ### 7. Set Up System Providers
 

@@ -703,10 +703,56 @@ class WorkflowEngine:
     def _refresh_monitoring_assets(self) -> None:
         self.generate_dashboard()
         self.export_status()
+        self._sync_n8n_visual()
+
+    def _sync_n8n_visual(self) -> None:
+        """Rebuild the n8n visual dashboard workflow from current state.
+
+        Called on every state change. If n8n is unavailable, logs a warning
+        but does not raise — the HTML dashboard is still the primary asset.
+        """
+        if self._n8n_client is None:
+            return
+        try:
+            from .n8n_workflow_builder import N8nWorkflowBuilder
+
+            state = self._sm.state
+            project_name = state.get("project", "AeroForge")
+            builder = N8nWorkflowBuilder(project_name)
+
+            # If no nodes/sub_assemblies exist yet, build skeleton
+            nodes = state.get("nodes", state.get("sub_assemblies", {}))
+            if not nodes:
+                current_phase = state.get("project_phase", "REQUIREMENTS")
+                workflow_json = builder.build_skeleton(current_phase)
+            else:
+                workflow_json = builder.build_full(state)
+
+            self._n8n_client.sync_visual_workflow(workflow_json)
+        except Exception as exc:
+            logger.warning("Failed to sync n8n visual dashboard: %s", exc)
 
     @staticmethod
     def _now_iso() -> str:
         return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+
+    def sync_n8n_skeleton(self, project_name: str, current_phase: str = "REQUIREMENTS") -> None:
+        """Push a skeleton visual workflow to n8n (for /aeroforge-init).
+
+        Call this early in the init process, before the component hierarchy
+        is known, to give the user immediate visual feedback in n8n.
+        """
+        if self._n8n_client is None:
+            from .n8n_client import N8nUnavailableError
+            raise N8nUnavailableError(
+                "n8n is required but not available. Cannot create workflow."
+            )
+        from .n8n_workflow_builder import N8nWorkflowBuilder
+
+        builder = N8nWorkflowBuilder(project_name)
+        workflow_json = builder.build_skeleton(current_phase)
+        self._n8n_client.sync_visual_workflow(workflow_json)
+        logger.info("n8n skeleton workflow synced for '%s'", project_name)
 
     # ── LLM-facing summaries ─────────────────────────────────────────
 

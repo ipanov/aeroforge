@@ -13,8 +13,28 @@ from .component import CustomComponent, OffShelfComponent
 from .procurement import build_supplier_candidates
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_BOM_STATE_PATH = PROJECT_ROOT / "aeroforge.bom.yaml"
-DEFAULT_BOM_MARKDOWN_PATH = PROJECT_ROOT / "docs" / "BOM.md"
+
+
+def _resolve_project_bom_path() -> Path:
+    """Resolve BOM path through the active project, falling back to repo root."""
+    try:
+        from src.orchestrator.project_manager import ProjectManager
+        pm = ProjectManager()
+        project_dir = pm.get_project_dir()
+        return project_dir / "aeroforge.bom.yaml"
+    except Exception:
+        return PROJECT_ROOT / "aeroforge.bom.yaml"
+
+
+def _resolve_project_bom_markdown_path() -> Path:
+    """Resolve BOM markdown path through the active project."""
+    try:
+        from src.orchestrator.project_manager import ProjectManager
+        pm = ProjectManager()
+        project_dir = pm.get_project_dir()
+        return project_dir / "docs" / "BOM.md"
+    except Exception:
+        return PROJECT_ROOT / "docs" / "BOM.md"
 
 FILAMENT_COST_PER_KG_USD: dict[str, float] = {
     "lw_pla": 42.0,
@@ -61,7 +81,7 @@ def load_bill_of_materials(
 ) -> BillOfMaterials:
     """Load the current BOM state, or create an empty one if missing."""
 
-    target = path or DEFAULT_BOM_STATE_PATH
+    target = path or _resolve_project_bom_path()
     if not target.exists():
         return BillOfMaterials(project_name=project_name)
 
@@ -81,8 +101,8 @@ def save_bill_of_materials(
 ) -> Path:
     """Persist both the machine-readable and markdown BOM views."""
 
-    target = path or DEFAULT_BOM_STATE_PATH
-    markdown_target = markdown_path or DEFAULT_BOM_MARKDOWN_PATH
+    target = path or _resolve_project_bom_path()
+    markdown_target = markdown_path or _resolve_project_bom_markdown_path()
     target.parent.mkdir(parents=True, exist_ok=True)
     markdown_target.parent.mkdir(parents=True, exist_ok=True)
 

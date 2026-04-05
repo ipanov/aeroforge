@@ -166,16 +166,18 @@ class N8nClient:
             return None
 
     def _delete_aeroforge_workflows(self) -> None:
-        """Remove all workflows whose name starts with 'AeroForge'."""
+        """Remove all AeroForge event workflows (NOT dashboard workflows)."""
         try:
             resp = self._get_client().get(f"{self._base_url}/api/v1/workflows")
             if resp.status_code != 200:
                 return
             for wf in resp.json().get("data", []):
-                if wf.get("name", "").startswith("AeroForge"):
+                name = wf.get("name", "")
+                # Only delete event workflows, preserve dashboard workflows
+                if name.startswith("AeroForge") and not name.startswith("AeroForge Dashboard"):
                     wf_id = wf["id"]
                     self._get_client().delete(f"{self._base_url}/api/v1/workflows/{wf_id}")
-                    logger.info("Deleted old n8n workflow: %s (id=%s)", wf["name"], wf_id)
+                    logger.info("Deleted old n8n workflow: %s (id=%s)", name, wf_id)
         except Exception as exc:
             logger.debug("Failed to clean up old workflows: %s", exc)
 
@@ -274,6 +276,75 @@ class N8nClient:
         except Exception as exc:
             logger.debug("Failed to update n8n status: %s", exc)
             return False
+
+    # ------------------------------------------------------------------
+    # Visual dashboard workflow — rebuilt on every state change
+    # ------------------------------------------------------------------
+
+    def sync_visual_workflow(self, workflow_json: dict[str, Any]) -> Optional[str]:
+        """Create or update the visual dashboard workflow in n8n.
+
+        Deletes any previous dashboard workflow, then creates a new one
+        from the provided JSON. Returns the workflow ID or None on failure.
+
+        The dashboard workflow is separate from the event webhook workflow.
+        It uses sticky notes arranged on the n8n canvas to visualize
+        the current AeroForge workflow state.
+        """
+        if not self.available or not self._api_key:
+            logger.warning("n8n not available or no API key — skipping visual sync")
+            return None
+
+        # Delete existing dashboard workflows (but NOT event workflows)
+        self._delete_workflows_by_prefix("AeroForge Dashboard")
+
+        # Build clean payload
+        payload = {
+            "name": workflow_json.get("name", "AeroForge Dashboard"),
+            "nodes": workflow_json.get("nodes", []),
+            "connections": workflow_json.get("connections", {}),
+            "settings": workflow_json.get("settings", {}),
+        }
+
+        # Ensure nodes have required fields
+        for i, node in enumerate(payload["nodes"]):
+            node.setdefault("typeVersion", 1)
+            node.setdefault("id", f"node-{i}")
+
+        try:
+            resp = self._get_client().post(
+                f"{self._base_url}/api/v1/workflows", json=payload,
+            )
+            if resp.status_code != 200:
+                logger.warning(
+                    "Failed to create dashboard workflow: %s %s",
+                    resp.status_code, resp.text[:200],
+                )
+                return None
+
+            wf_id = resp.json().get("id")
+            logger.info("n8n dashboard workflow synced (id=%s)", wf_id)
+            return wf_id
+
+        except Exception as exc:
+            logger.warning("Failed to sync n8n dashboard workflow: %s", exc)
+            return None
+
+    def _delete_workflows_by_prefix(self, prefix: str) -> None:
+        """Remove all workflows whose name starts with the given prefix."""
+        try:
+            resp = self._get_client().get(f"{self._base_url}/api/v1/workflows")
+            if resp.status_code != 200:
+                return
+            for wf in resp.json().get("data", []):
+                if wf.get("name", "").startswith(prefix):
+                    wf_id = wf["id"]
+                    self._get_client().delete(
+                        f"{self._base_url}/api/v1/workflows/{wf_id}",
+                    )
+                    logger.info("Deleted n8n workflow: %s (id=%s)", wf["name"], wf_id)
+        except Exception as exc:
+            logger.debug("Failed to clean up workflows with prefix '%s': %s", prefix, exc)
 
     def status_summary(self) -> dict[str, Any]:
         """Return a summary for dashboard display."""

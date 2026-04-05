@@ -129,6 +129,24 @@ print(engine.get_provider_status())
 
 Project-level (per-project): `projects/{slug}/aeroforge.yaml`
 
+## n8n Visual Dashboard
+
+The n8n visual workflow is automatically synced on every state change.
+It shows:
+- **Project phases** as a row of colored sticky notes (green=done, yellow=active, gray=pending)
+- **Active step banner** — prominently shows what node/step/agent is running right now
+- **Component hierarchy** — grid of sticky notes (rows=components, columns=design steps)
+- **Per-cell status** — color-coded with rejection counts, agent info
+- **Validation section** — CFD and FEA cards with pass/fail
+- **Convergence criteria** — checklist of met/unmet targets
+
+When the component hierarchy is modified (nodes added/removed during RESEARCH),
+the visual workflow is automatically rebuilt. The user sees this in the n8n editor
+at **http://localhost:5678**.
+
+**n8n is MANDATORY.** If `engine.load_project()` fails due to n8n unavailability,
+STOP and report the error. Never silently proceed without n8n.
+
 ## Rules
 
 1. **Read state before acting** — always check workflow_state.json
@@ -138,3 +156,4 @@ Project-level (per-project): `projects/{slug}/aeroforge.yaml`
 5. **Hooks enforce quality** — if blocked, fix the issue
 6. **Query RAG before design decisions**
 7. **Errors: recover, don't crash** — retry with different approach
+8. **n8n is mandatory** — hard stop if unavailable, never skip visual sync
