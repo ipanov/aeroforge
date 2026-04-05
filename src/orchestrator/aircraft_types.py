@@ -1,13 +1,12 @@
 """Aircraft type reference templates for workflow generation.
 
-IMPORTANT: These templates are REFERENCE EXAMPLES, not a limiting registry.
-The aircraft type is a free-form string determined by the LLM during the
-initialization wizard. The only constraint is: heavier-than-air, exposed
-to airflow.
+These templates are REFERENCE EXAMPLES for the LLM to use as starting
+points. The aircraft type is a free-form string — not constrained to
+any registry. The only rule: heavier-than-air, exposed to airflow.
 
-The LLM can use these templates as starting points and modify them, or
-create entirely new configurations from scratch. The workflow engine
-accepts any aircraft type string.
+The LLM determines the aircraft type and its components during the
+initialization wizard. It can use these templates as inspiration,
+modify them, or create entirely new configurations from scratch.
 
 Templates provide sensible defaults for:
 - Sub-assemblies and their analysis levels
@@ -21,27 +20,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Optional
-
-
-# ---------------------------------------------------------------------------
-# Enumerations
-# ---------------------------------------------------------------------------
-
-
-class AircraftType(str, Enum):
-    """Reference aircraft templates. NOT a limiting registry.
-
-    The LLM can use any free-form string as aircraft type. These enum
-    values are shortcuts to pre-built templates for common categories.
-    """
-
-    SAILPLANE = "SAILPLANE"
-    DRONE = "DRONE"
-    AEROBATIC = "AEROBATIC"
-    PYLON_RACER = "PYLON_RACER"
-    INTERCEPTOR = "INTERCEPTOR"
-    UAV = "UAV"
-    PAPER_PLANE = "PAPER_PLANE"
 
 
 class AnalysisLevel(str, Enum):
@@ -126,7 +104,7 @@ class AircraftTypeDefinition:
     any field or create entirely custom configurations.
     """
 
-    type_id: str  # Free-form string, not limited to AircraftType enum
+    type_id: str  # Free-form string (e.g. "SAILPLANE", "paper airplane")
     display_name: str
     description: str
     sub_assemblies: list[SubAssemblyTemplate]
@@ -141,7 +119,7 @@ class AircraftTypeDefinition:
 # ---------------------------------------------------------------------------
 
 _SAILPLANE = AircraftTypeDefinition(
-    type_id=AircraftType.SAILPLANE.value,
+    type_id="SAILPLANE",
     display_name="Thermal Sailplane (F5J / F3J / RES)",
     description=(
         "High-aspect-ratio sailplane optimized for thermal soaring. "
@@ -194,7 +172,7 @@ _SAILPLANE = AircraftTypeDefinition(
 )
 
 _DRONE = AircraftTypeDefinition(
-    type_id=AircraftType.DRONE.value,
+    type_id="DRONE",
     display_name="Multirotor Drone / UAV",
     description="Multirotor aircraft. Lift from propellers, not conventional wing.",
     sub_assemblies=[
@@ -213,7 +191,7 @@ _DRONE = AircraftTypeDefinition(
 )
 
 _AEROBATIC = AircraftTypeDefinition(
-    type_id=AircraftType.AEROBATIC.value,
+    type_id="AEROBATIC",
     display_name="Aerobatic Aircraft (F3A / Pattern)",
     description="Precision aerobatic aircraft. Symmetrical airfoils, high control authority.",
     sub_assemblies=[
@@ -234,7 +212,7 @@ _AEROBATIC = AircraftTypeDefinition(
 )
 
 _PYLON_RACER = AircraftTypeDefinition(
-    type_id=AircraftType.PYLON_RACER.value,
+    type_id="PYLON_RACER",
     display_name="Pylon Racer (F5D / Q500)",
     description="High-speed pylon racing. Thin airfoils, minimum drag.",
     sub_assemblies=[
@@ -253,7 +231,7 @@ _PYLON_RACER = AircraftTypeDefinition(
 )
 
 _INTERCEPTOR = AircraftTypeDefinition(
-    type_id=AircraftType.INTERCEPTOR.value,
+    type_id="INTERCEPTOR",
     display_name="Interceptor (High-Speed Combat)",
     description="High-speed interceptor. Delta or swept wing, T/W >= 1.0.",
     sub_assemblies=[
@@ -272,7 +250,7 @@ _INTERCEPTOR = AircraftTypeDefinition(
 )
 
 _UAV = AircraftTypeDefinition(
-    type_id=AircraftType.UAV.value,
+    type_id="UAV",
     display_name="Fixed-Wing UAV / Survey Platform",
     description="Fixed-wing UAV for survey, mapping, or cargo. High endurance.",
     sub_assemblies=[
@@ -292,7 +270,7 @@ _UAV = AircraftTypeDefinition(
 )
 
 _PAPER_PLANE = AircraftTypeDefinition(
-    type_id=AircraftType.PAPER_PLANE.value,
+    type_id="PAPER_PLANE",
     display_name="Paper Airplane (Folded Sheet)",
     description="Paper airplane from a single folded sheet. Manual manufacturing.",
     sub_assemblies=[
@@ -314,32 +292,26 @@ _PAPER_PLANE = AircraftTypeDefinition(
 # ---------------------------------------------------------------------------
 
 REFERENCE_TEMPLATES: dict[str, AircraftTypeDefinition] = {
-    AircraftType.SAILPLANE.value: _SAILPLANE,
-    AircraftType.DRONE.value: _DRONE,
-    AircraftType.AEROBATIC.value: _AEROBATIC,
-    AircraftType.PYLON_RACER.value: _PYLON_RACER,
-    AircraftType.INTERCEPTOR.value: _INTERCEPTOR,
-    AircraftType.UAV.value: _UAV,
-    AircraftType.PAPER_PLANE.value: _PAPER_PLANE,
+    "SAILPLANE": _SAILPLANE,
+    "DRONE": _DRONE,
+    "AEROBATIC": _AEROBATIC,
+    "PYLON_RACER": _PYLON_RACER,
+    "INTERCEPTOR": _INTERCEPTOR,
+    "UAV": _UAV,
+    "PAPER_PLANE": _PAPER_PLANE,
 }
 
-# Legacy alias — prefer REFERENCE_TEMPLATES
-AIRCRAFT_TYPE_REGISTRY = REFERENCE_TEMPLATES
 
+def get_type_definition(aircraft_type: str) -> AircraftTypeDefinition:
+    """Look up a reference template by type ID string.
 
-def get_type_definition(aircraft_type: AircraftType | str) -> AircraftTypeDefinition:
-    """Look up a reference template by type ID.
-
-    This is for REFERENCE only. The LLM can create entirely custom
-    configurations. If the type is not in the template library, a
-    KeyError is raised — the caller should handle this by asking the
-    LLM to define the configuration from scratch.
+    Returns a reference template if one exists. The LLM can also create
+    entirely custom configurations — this is just for inspiration.
 
     Raises:
         KeyError: If the type is not in the reference library.
     """
-    key = aircraft_type.value if isinstance(aircraft_type, AircraftType) else aircraft_type
-    return REFERENCE_TEMPLATES[key]
+    return REFERENCE_TEMPLATES[aircraft_type]
 
 
 def list_types() -> list[dict[str, str]]:

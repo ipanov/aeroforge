@@ -10,7 +10,7 @@ from typing import Optional
 _PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_PROJECT_ROOT))
 
-from src.orchestrator.aircraft_types import AircraftType, list_types
+from src.orchestrator.aircraft_types import list_types
 from src.orchestrator.init_wizard import run_project_init_wizard
 from src.orchestrator.project_manager import ProjectManager
 from src.orchestrator.project_settings import (
@@ -104,9 +104,8 @@ def cmd_status(args: argparse.Namespace) -> None:
 
 def cmd_start_legacy(args: argparse.Namespace) -> None:
     engine = WorkflowEngine()
-    ac_type = AircraftType(args.type)
     state = engine.create_project(
-        ac_type,
+        args.type,
         args.name,
         metadata={
             "project_code": args.project_code,
@@ -115,7 +114,7 @@ def cmd_start_legacy(args: argparse.Namespace) -> None:
         },
     )
     print(f"{_C.GREEN}Created project from legacy template: {args.name}{_C.RESET}")
-    print(f"  Type: {ac_type.value}")
+    print(f"  Type: {args.type}")
     print(f"  State file: {engine._sm._path}")
     print(f"  Sub-assemblies: {', '.join(state.get('sub_assemblies', {}).keys())}")
 

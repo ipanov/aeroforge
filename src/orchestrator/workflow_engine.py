@@ -12,7 +12,7 @@ from typing import Any, Optional
 
 import logging
 
-from .aircraft_types import AircraftType, AnalysisLevel, get_type_definition
+from .aircraft_types import AnalysisLevel, get_type_definition
 from .workflow_profile import WorkflowProfile, load_workflow_profile
 from .state_manager import (
     StepStatus, StateManager, WorkflowStep,
@@ -44,18 +44,17 @@ class WorkflowEngine:
 
     def create_project(
         self,
-        aircraft_type: AircraftType | str,
+        aircraft_type: str,
         project_name: str,
         overrides: Optional[dict[str, Any]] = None,
         metadata: Optional[dict[str, Any]] = None,
     ) -> dict[str, Any]:
         """Create a new project from an aircraft type template.
 
-        The aircraft_type can be an AircraftType enum value OR a free-form
-        string. If it matches a reference template, that template is used.
+        The aircraft_type is a free-form string. If it matches a reference
+        template, that template is used for sub-assembly defaults.
         """
-        ac_key = aircraft_type.value if isinstance(aircraft_type, AircraftType) else aircraft_type
-        self._type_def = get_type_definition(ac_key)
+        self._type_def = get_type_definition(aircraft_type)
         overrides = overrides or {}
         metadata = metadata or {}
 
@@ -71,7 +70,7 @@ class WorkflowEngine:
         self._sm.initialize(sa_names, level_map, parent_map)
         self._sm.set_project_metadata(
             project=project_name,
-            aircraft_type=ac_key,
+            aircraft_type=aircraft_type,
             project_code=metadata.get("project_code", "PRJ1"),
             project_scope=metadata.get("project_scope", "aircraft"),
             round_label=metadata.get("round_label", "R1"),
@@ -187,7 +186,7 @@ class WorkflowEngine:
         ac_type_str = state.get("aircraft_type")
         if ac_type_str:
             try:
-                self._type_def = get_type_definition(AircraftType(ac_type_str))
+                self._type_def = get_type_definition(ac_type_str)
             except (ValueError, KeyError):
                 self._type_def = None
         self._cleanup_stale_runs()
