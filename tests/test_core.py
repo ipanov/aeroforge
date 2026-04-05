@@ -2,6 +2,15 @@
 
 import pytest
 
+_has_build123d = pytest.importorskip is not None  # always True; real check below
+try:
+    import build123d  # noqa: F401
+    _has_build123d = True
+except ImportError:
+    _has_build123d = False
+
+needs_build123d = pytest.mark.skipif(not _has_build123d, reason="build123d not installed")
+
 from src.core.component import (
     Component,
     ComponentSpec,
@@ -135,6 +144,7 @@ class TestAssembly:
 
         assert asm.child_count == 2
 
+    @needs_build123d
     def test_assembly_mass(self):
         asm = Assembly(AssemblySpec(name="wing"))
 
@@ -151,6 +161,7 @@ class TestAssembly:
         expected = rib.mass + servo.mass
         assert abs(asm.mass - expected) < 0.1
 
+    @needs_build123d
     def test_assembly_cg(self):
         asm = Assembly(AssemblySpec(name="test"))
 
@@ -184,6 +195,7 @@ class TestAssembly:
         with pytest.raises(ValueError, match="already in assembly"):
             asm.add_child(rib)
 
+    @needs_build123d
     def test_bill_of_materials(self):
         asm = Assembly(AssemblySpec(name="wing"))
         rib = DummyComponent(DummySpec(name="rib"))
