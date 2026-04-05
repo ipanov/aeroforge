@@ -19,12 +19,15 @@ Joints:
 Run via Claude: cd D:/Repos/aeroforge && PYTHONPATH=. python src/cad/hardware/receiver.py
 """
 
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from build123d import *
 from ocp_vscode import show
 
-from src.core.specs import SAILPLANE
+from specs import SAILPLANE
 
 SPEC = SAILPLANE.receiver
 
