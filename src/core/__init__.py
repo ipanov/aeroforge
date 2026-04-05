@@ -7,4 +7,3 @@ from .validation import ValidationHook, validate_component
 from .bom import BillOfMaterials, BOMEntry, ProcurementAction, SupplierCandidate
 from .bom_sync import DeliverableEvent, attach_bom_sync_hooks, sync_deliverable_event
 from .procurement import ProviderProfile, build_supplier_candidates
-from .specs import SAILPLANE, SailplaneSpec
