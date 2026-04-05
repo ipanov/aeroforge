@@ -114,14 +114,22 @@ flowchart LR
 **When spawned:**
 - VALIDATION phase -- after all 3D models and assemblies exist
 
-**Output:** Aero Test Report with:
-- CL, CD, CM vs alpha polars
-- Pressure distributions and surface contours
-- Interference drag identification at junctions
-- Stability derivatives
-- Specific improvement recommendations with quantified impact
+**Output:** Aero Test Report (via `src/analysis/cfd_results.py`) with:
+- CL, CD, CM vs alpha polars (Markdown + JSON + CSV)
+- Stability derivatives (CL_alpha, CM_alpha, neutral point, trim alpha)
+- Drag breakdown (pressure / friction / induced)
+- Surface Cp/Cf data per alpha point
+- 3D heatmap renders via `src/analysis/cfd_visualization.py` (ParaView or matplotlib)
+- Convergence diagnostics (residual history, iteration count, divergence detection)
+- Structured feedback via `src/analysis/cfd_feedback.py` for the orchestrator
 
-**Difference from Aerodynamicist:** The aerodynamicist PROPOSES shapes. The wind-tunnel engineer TESTS what has been designed.
+**Pipeline modules used:**
+- `cfd_results.py` -- result extraction and report generation (hard-stop if missing outputs)
+- `cfd_monitor.py` -- real-time SU2 progress polling, ETA, divergence detection
+- `cfd_visualization.py` -- ParaView 3D Cp/Cf heatmaps (4 views x 2 fields)
+- `cfd_feedback.py` -- structured pass/fail output (no hierarchy knowledge)
+
+**Difference from Aerodynamicist:** The aerodynamicist PROPOSES shapes. The wind-tunnel engineer TESTS what has been designed. The CFD feedback is purely aerodynamic; the orchestrator decides which nodes to cascade.
 
 ---
 

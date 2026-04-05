@@ -76,7 +76,7 @@ flowchart TB
         WE["WorkflowEngine"]
         SM["StateManager"]
         PM["ProjectManager"]
-        TP["Telemetry + n8n"]
+        TP["Telemetry + n8n visual dashboard"]
     end
 
     subgraph L4["Layer 4: Specialist Agents"]
@@ -88,7 +88,7 @@ flowchart TB
     end
 
     subgraph L6["Layer 6: External Tools"]
-        EX["Build123d | SU2 | FreeCAD\nGmsh | OrcaSlicer | OCP Viewer"]
+        EX["Build123d | SU2 | FreeCAD\nGmsh | ParaView | OrcaSlicer | OCP Viewer"]
     end
 
     L1 --> L2 --> L3 --> L4 --> L5 --> L6
@@ -129,7 +129,7 @@ aeroforge/
 │   ├── orchestrator/             # Workflow engine, state, project manager
 │   ├── providers/                # Swappable analysis/manufacturing backends
 │   ├── cad/                      # Build123d parametric models
-│   ├── analysis/                 # FreeCAD headless wrappers
+│   ├── analysis/                 # CFD pipeline, airfoil polars, FEA wrappers
 │   └── rag/                      # ChromaDB knowledge base
 ├── config/                       # System-level provider config
 ├── hooks/                        # 13 deterministic enforcement hooks
@@ -143,5 +143,5 @@ aeroforge/
 │   │   └── docs/                 # Project-specific documentation
 │   └── (your-project)/           # Created via /aeroforge-init
 ├── docs/                         # Framework documentation
-└── tests/                        # 119+ tests
+└── tests/                        # 285+ tests
 ```

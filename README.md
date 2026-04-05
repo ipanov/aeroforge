@@ -169,11 +169,46 @@ to the aircraft type, materials, and manufacturing technique.
 - [Framework docs](docs/framework/README.md) — workflow, initialization, components
 - [Workflow model](docs/framework/workflow.md) — phases, iteration, validation
 
+## CFD/FEA Validation Pipeline
+
+The VALIDATION phase runs full-aircraft CFD and FEA on the assembled top object.
+The pipeline is fully instrumented:
+
+```mermaid
+flowchart LR
+    A["STEP geometry"] --> B["Gmsh mesh"]
+    B --> C["SU2 solver"]
+    C --> D["cfd_monitor.py\n(real-time polling)"]
+    D --> E["Progress → n8n + dashboard"]
+    C --> F["cfd_results.py\n(Cp/Cf extraction)"]
+    F --> G["Aero Test Report\n(MD + JSON + CSV)"]
+    F --> H["cfd_visualization.py\n(ParaView heatmaps)"]
+    H --> I["3D Cp/Cf renders\n(4 views × 2 fields)"]
+    G --> J["cfd_feedback.py\n(structured output)"]
+    J --> K["Orchestrator\n(cascade decision)"]
+
+    style D fill:#fbbc04,color:#000
+    style G fill:#0f9d58,color:#fff
+    style I fill:#9b59b6,color:#fff
+    style K fill:#d93025,color:#fff
+```
+
+| Module | Purpose |
+|--------|---------|
+| `cfd_results.py` | Parse SU2 output, compute stability derivatives, drag breakdown, generate Aero Test Report |
+| `cfd_monitor.py` | Poll SU2 residuals during execution, report progress + ETA, detect divergence |
+| `cfd_visualization.py` | ParaView 3D heatmaps (Cp/Cf), matplotlib fallback |
+| `cfd_feedback.py` | Structured pass/fail output for the orchestrator — no node/hierarchy knowledge |
+
+Hard-stop validation: missing outputs block step completion. Every run produces
+polars, stability derivatives, drag breakdown, heatmaps, and convergence diagnostics.
+
 ## Testing
 
 ```bash
 cd D:/Repos/aeroforge && PYTHONPATH=. python -m pytest tests/ -q
 ```
 
-119 tests covering: providers, project management, workflow iteration,
-telemetry, BOM sync, RAG context.
+285+ tests covering: providers, project management, workflow iteration,
+telemetry, BOM sync, RAG context, CFD result extraction, progress monitoring,
+heatmap rendering, iteration feedback, separation of concerns.

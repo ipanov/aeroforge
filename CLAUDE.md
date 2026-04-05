@@ -213,6 +213,30 @@ When ANY design parameter changes:
 - **NetworkX** — Component dependency graph
 - **Pydantic** — Specification validation
 - **Provider system** — Swappable analysis and manufacturing backends
+- **SU2 + Gmsh** — CFD meshing and solving (Euler/RANS)
+- **ParaView** — 3D Cp/Cf heatmap rendering (matplotlib fallback)
+- **n8n** — Visual dashboard workflow + event webhooks (mandatory)
+
+### CFD Validation Pipeline (`src/analysis/`)
+
+| Module | Responsibility |
+|--------|---------------|
+| `cfd_results.py` | Parse SU2 output, stability derivatives, drag breakdown, Aero Test Report |
+| `cfd_monitor.py` | Real-time SU2 progress polling, ETA, divergence detection |
+| `cfd_visualization.py` | ParaView 3D heatmaps (Cp/Cf), matplotlib fallback |
+| `cfd_feedback.py` | Structured pass/fail for orchestrator — no hierarchy knowledge |
+
+### n8n Visual Dashboard (`src/orchestrator/`)
+
+| Module | Responsibility |
+|--------|---------------|
+| `n8n_workflow_builder.py` | Generate sticky-note canvas from workflow state |
+| `n8n_client.py` | REST API client, visual sync, event webhooks |
+
+### BOM and Procurement (`src/core/`)
+
+BOM data is **per-project** (`projects/{slug}/aeroforge.bom.yaml`).
+Framework code is generic and shared.
 
 ## Coding Conventions
 

@@ -59,6 +59,33 @@ Use the configured provider. If SU2 with CUDA, use GPU flags. If CPU-only, adjus
 
 ## Your Tools
 
+### CFD Pipeline Modules
+
+These are the framework modules you MUST use for result extraction and reporting:
+
+```python
+import sys; sys.path.insert(0, "D:/Repos/aeroforge")
+
+# Result extraction — parse SU2 output into structured data
+from src.analysis.cfd_results import extract_full_report, write_report, validate_report_completeness
+
+# Progress monitoring — use for monitored SU2 execution
+from src.analysis.cfd_monitor import run_su2_monitored, format_progress_line
+
+# Visualization — generate Cp/Cf heatmaps on 3D geometry
+from src.analysis.cfd_visualization import render_heatmaps
+
+# Feedback — structured output for the orchestrator (you populate, orchestrator consumes)
+from src.analysis.cfd_feedback import build_feedback_from_report
+```
+
+After every SU2 run:
+1. Call `extract_full_report()` to parse all results
+2. Call `validate_report_completeness()` — HARD STOP if any required output missing
+3. Call `write_report()` to generate Markdown + JSON + CSV artifacts
+4. Call `render_heatmaps()` for each alpha to generate Cp/Cf 3D renders
+5. Call `build_feedback_from_report()` to produce structured feedback for the orchestrator
+
 ### SU2 Pipeline
 ```bash
 # 1. Convert STEP to SU2 mesh via Gmsh
