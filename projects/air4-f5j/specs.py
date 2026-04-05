@@ -7,7 +7,7 @@ When a parameter changes here, the DAG propagation system ensures all
 dependent components, calculations, and exports are updated.
 
 Usage:
-    from src.core.specs import SAILPLANE_SPEC, WING_SPEC, SPAR_SPEC
+    from specs import SAILPLANE
 
     # Access any parameter
     wingspan = WING_SPEC.wingspan

@@ -9,7 +9,10 @@ import sys
 import os
 from pathlib import Path
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+# Add project root (projects/air4-f5j/) for local imports (hardware.*, specs, etc.)
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+# Add repo root for framework imports (src.*)
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 from build123d import *
 
@@ -21,7 +24,7 @@ def _export(part, step_path):
 
 def build_receiver():
     """Build Flysky FS-iA6B receiver and export STEP."""
-    from src.cad.hardware.receiver import FlyskyIA6BReceiver
+    from hardware.receiver import FlyskyIA6BReceiver
 
     rx = FlyskyIA6BReceiver()
     out_dir = Path("cad/components/hardware/Flysky_FS_iA6B_Receiver")
@@ -40,7 +43,7 @@ def build_receiver():
 
 def build_battery():
     """Build LiPo 3S 1300mAh battery and export STEP."""
-    from src.cad.hardware.battery import BatteryPack
+    from hardware.battery import BatteryPack
 
     battery = BatteryPack()
     out_dir = Path("cad/components/hardware/LiPo_3S_1300mAh")

@@ -10,6 +10,11 @@ Run: cd D:/Repos/aeroforge && PYTHONPATH=. python scripts/build_servos.py
 from pathlib import Path
 import sys
 
+# Add project root (projects/air4-f5j/) for local imports (hardware.*, specs, etc.)
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+# Add repo root for framework imports (src.*)
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+
 # ── Build123d imports ──────────────────────────────────────────────
 from build123d import *
 from build123d.exporters import Drawing
@@ -23,7 +28,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 # ── Project imports ───────────────────────────────────────────────
-from src.cad.hardware.servo import JX_PDI_1109MG, JX_PDI_933MG
+from hardware.servos import JX_PDI_1109MG, JX_PDI_933MG
 
 # ── Paths ─────────────────────────────────────────────────────────
 ROOT = Path("D:/Repos/aeroforge")
