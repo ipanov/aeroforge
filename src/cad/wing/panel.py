@@ -45,7 +45,8 @@ from build123d import (
 )
 
 from src.cad.airfoils import airfoil_at_station, scale_airfoil
-from src.core.specs import SAILPLANE, WingSpec, SparSpec
+## WingSpec / SparSpec are project-level types (duck-typed here).
+## Callers must pass concrete spec objects — no default aircraft type.
 
 
 def _y_at_x(scaled: np.ndarray, x: float) -> tuple[float, float]:
@@ -57,7 +58,7 @@ def _y_at_x(scaled: np.ndarray, x: float) -> tuple[float, float]:
             float(np.interp(x, l[:, 0], l[:, 1])))
 
 
-def _get_profile(z_local: float, wing: WingSpec, half_span: float) -> tuple[np.ndarray, float]:
+def _get_profile(z_local: float, wing, half_span: float) -> tuple[np.ndarray, float]:
     """Get scaled airfoil coordinates and chord at a local Z position."""
     frac = z_local / half_span
     chord = wing.chord_at(frac)
@@ -82,8 +83,8 @@ def _make_airfoil_face(scaled: np.ndarray, z: float = 0) -> Face:
 
 def build_rib(
     z_local: float,
-    wing: WingSpec,
-    spar: SparSpec,
+    wing,
+    spar,
     half_span: float,
     rib_thick: float = 1.2,
 ) -> Part:
@@ -184,7 +185,7 @@ def build_rib(
 
 def build_dbox_web(
     z1: float, z2: float,
-    wing: WingSpec, half_span: float,
+    wing, half_span: float,
     thickness: float = 0.7,
 ) -> Part:
     """Build D-box spar web between two rib stations.
@@ -218,8 +219,8 @@ def build_dbox_web(
 
 def build_panel(
     panel_index: int = 0,
-    wing: WingSpec | None = None,
-    spar: SparSpec | None = None,
+    wing=None,
+    spar=None,
     show_viewer: bool = False,
 ) -> dict:
     """Build a complete wing panel.
@@ -232,8 +233,8 @@ def build_panel(
         'compound': All parts combined
         'stats': Mass and dimension statistics
     """
-    wing = wing or SAILPLANE.wing
-    spar = spar or SAILPLANE.spar
+    if wing is None or spar is None:
+        raise ValueError("wing and spar specs are required — no default aircraft type")
     t0 = time.time()
 
     panel_span = wing.panel_span
