@@ -17,6 +17,13 @@
       "env": {
         "STGEN_MCP_PORT": "52789"
       }
+    },
+    "n8n": {
+      "type": "http",
+      "url": "http://localhost:5678/mcp-server/http",
+      "headers": {
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJiNWNmZDQxZi1jMTg1LTRkMmUtYmI4Ni1jMWQ1NzZlN2EyYTMiLCJpc3MiOiJuOG4iLCJhdWQiOiJtY3Atc2VydmVyLWFwaSIsImp0aSI6IjdlMzZlN2RjLTY4ZjctNDNkNi05NWNjLTdkYzRkMmQ1OTgzMiIsImlhdCI6MTc3NTM4NTY0MX0.oTNkITTsHgrPB4kXXDGUECLFb2qnpfkyF7f4LG-RRRc"
+      }
     }
   },
   "_comment": "FreeCAD MCP server connects to FreeCAD GUI via XML-RPC on port 9875",

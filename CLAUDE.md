@@ -91,12 +91,33 @@ aeroforge/
 
 ```
 ComponentName/
-├── DESIGN_CONSENSUS.md          # Agent agreement (aerodynamic components)
+├── AERO_PROPOSAL_R1.md          # Versioned design documents
+├── STRUCTURAL_REVIEW_R1.md      # R = round (monotonic, never resets)
+├── AERO_RESPONSE_R1.md
+├── DESIGN_CONSENSUS_R1.md       # Agent agreement
 ├── ComponentName_drawing.dxf    # 2D drawing (FIRST)
 ├── ComponentName_drawing.png    # PNG render
 ├── ComponentName.step           # 3D model (AFTER drawing approval)
 ├── renders/                     # 4 views (isometric, front, top, right)
 └── COMPONENT_INFO.md
+```
+
+### Deliverable Naming Convention
+
+Design documents are versioned: `{STEP}_R{round}.md`
+
+- **R** = round number (monotonically increasing, never resets)
+- Increments on: user rejection, agent negotiation restart, or validation cascade
+- Every component/assembly tracks its own round counter independently
+
+Use `sm.deliverable_name(node_name, step)` to generate the correct filename.
+
+```
+AERO_PROPOSAL_R1.md       — first proposal
+STRUCTURAL_REVIEW_R1.md   — first review
+AERO_PROPOSAL_R2.md       — second round (user rejected / cascade)
+DESIGN_CONSENSUS_R2.md    — consensus after second round
+AERO_PROPOSAL_R3.md       — third round (another cascade)
 ```
 
 ### Drawing-First Rule (MANDATORY)

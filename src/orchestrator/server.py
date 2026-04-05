@@ -1,8 +1,7 @@
 """HTTP monitor for the workflow dashboard and state JSON.
 
-n8n is always launched alongside the monitor server. If n8n fails to
-start or becomes unreachable, the monitor continues — n8n is a visibility
-layer, not a control-flow dependency.
+n8n is a MANDATORY component launched alongside the monitor server.
+The workflow engine will not operate without a reachable n8n instance.
 """
 
 from __future__ import annotations
@@ -48,11 +47,8 @@ class WorkflowMonitorServer:
     def serve_forever(self) -> None:
         """Start the HTTP server and launch n8n."""
 
-        try:
-            _ensure_n8n_installed()
-            self._n8n_process = launch_n8n_process()
-        except Exception as exc:
-            logger.warning("Failed to launch n8n: %s — continuing without it", exc)
+        _ensure_n8n_installed()
+        self._n8n_process = launch_n8n_process()
 
         engine = self._engine
         n8n_proc = self._n8n_process
@@ -122,14 +118,30 @@ class WorkflowMonitorServer:
 
 
 def launch_n8n_process() -> subprocess.Popen[str]:
-    """Launch n8n using the local or global Node toolchain."""
+    """Launch n8n using the local or global Node toolchain.
+
+    n8n is mandatory — this function raises if it cannot be started.
+    """
+    import shutil
 
     env = os.environ.copy()
     command = env.get("AEROFORGE_N8N_COMMAND")
     if command:
         args = command.split()
     else:
-        args = ["npx", "n8n", "start", "--host", "127.0.0.1", "--port", "5678"]
+        # Try direct n8n binary first (global install), then npx
+        n8n_path = shutil.which("n8n")
+        if n8n_path:
+            args = [n8n_path, "start", "--host", "127.0.0.1", "--port", "5678"]
+        else:
+            npx_path = shutil.which("npx")
+            if npx_path:
+                args = [npx_path, "n8n", "start", "--host", "127.0.0.1", "--port", "5678"]
+            else:
+                raise FileNotFoundError(
+                    "Neither 'n8n' nor 'npx' found on PATH. "
+                    "Install n8n with: npm install -g n8n"
+                )
 
     return subprocess.Popen(
         args,

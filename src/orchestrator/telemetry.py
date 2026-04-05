@@ -115,7 +115,7 @@ class TelemetryEmitter:
 
     Events are:
     1. Logged via Python logging
-    2. Pushed to n8n (if available)
+    2. Pushed to n8n (mandatory — n8n must be running)
     3. Returned as dicts for state history storage
     """
 
@@ -129,17 +129,14 @@ class TelemetryEmitter:
         level = self._event_log_level(event.event_type)
         logger.log(level, log_line)
 
-        # 2. Push to n8n
-        if self._n8n and hasattr(self._n8n, "available") and self._n8n.available:
-            try:
-                self._n8n.update_status(
-                    sub_assembly=event.sub_assembly or "__system__",
-                    step=event.step or event.event_type,
-                    status=event.event_type,
-                    notes=event.message,
-                )
-            except Exception:
-                logger.debug("Failed to push event to n8n", exc_info=True)
+        # 2. Push to n8n (mandatory)
+        if self._n8n:
+            self._n8n.update_status(
+                sub_assembly=event.sub_assembly or "__system__",
+                step=event.step or event.event_type,
+                status=event.event_type,
+                notes=event.message,
+            )
 
         # 3. Return for state history
         return {

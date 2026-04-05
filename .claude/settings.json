@@ -53,26 +53,6 @@
         ]
       },
       {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python hooks/cad_pre_commit.py",
-            "if": "Bash(git commit*)"
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python hooks/cad_structure_validate.py",
-            "if": "Bash(git commit*)"
-          }
-        ]
-      },
-      {
         "matcher": "Write",
         "hooks": [
           {

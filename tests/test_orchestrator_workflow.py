@@ -70,6 +70,7 @@ def test_state_manager_design_step_sequencing(tmp_path: Path) -> None:
     sm = StateManager(state_file)
     sm.initialize([])
     sm.add_node("wing", NodeType.COMPONENT)
+    sm.set_project_phase("DESIGN", force=True)
 
     # First design step should be AERO_PROPOSAL
     node = sm.get_node("wing")
@@ -94,6 +95,7 @@ def test_state_manager_parallel_active_runs(tmp_path: Path) -> None:
     sm.initialize([])
     sm.add_node("wing", NodeType.COMPONENT)
     sm.add_node("fuselage", NodeType.COMPONENT)
+    sm.set_project_phase("DESIGN", force=True)
 
     sm.start_step("wing", DesignStep.AERO_PROPOSAL.value)
     sm.start_step("fuselage", DesignStep.AERO_PROPOSAL.value)
@@ -111,6 +113,7 @@ def test_state_manager_approve_drawing(tmp_path: Path) -> None:
     sm = StateManager(state_file)
     sm.initialize([])
     sm.add_node("wing", NodeType.COMPONENT)
+    sm.set_project_phase("DESIGN", force=True)
 
     # Complete through to DRAWING_2D
     for step in [DesignStep.AERO_PROPOSAL, DesignStep.STRUCTURAL_REVIEW,
@@ -133,6 +136,7 @@ def test_state_manager_design_phase_complete(tmp_path: Path) -> None:
     sm.initialize([])
     sm.add_node("wing", NodeType.COMPONENT)
     sm.add_node("servo", NodeType.OFF_SHELF, parent="wing")
+    sm.set_project_phase("DESIGN", force=True)
 
     assert not sm.check_design_phase_complete()
 
@@ -170,6 +174,7 @@ def test_state_manager_invalidate_node(tmp_path: Path) -> None:
     sm = StateManager(state_file)
     sm.initialize([])
     sm.add_node("wing", NodeType.COMPONENT)
+    sm.set_project_phase("DESIGN", force=True)
 
     # Complete some steps
     sm.start_step("wing", DesignStep.AERO_PROPOSAL.value)

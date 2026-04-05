@@ -1,688 +1,600 @@
 {
-  "version": 1,
+  "version": 3,
   "created_at": "2026-04-03T07:16:00Z",
-  "updated_at": "2026-04-03T07:34:36Z",
+  "updated_at": "2026-04-04T21:31:23Z",
   "project": "Iva Aeroforge F5J",
-  "current_iteration": 1,
-  "sub_assemblies": {
+  "project_code": "UNSET",
+  "project_scope": "aircraft",
+  "aircraft_type": "UNSPECIFIED",
+  "project_phase": "REQUIREMENTS",
+  "root_node": null,
+  "nodes": {
     "wing": {
       "name": "wing",
-      "level": 1,
+      "type": "assembly",
       "parent": null,
-      "current_iteration": 3,
-      "max_agent_rounds": 3,
-      "agent_round": 1,
-      "steps": {
-        "REQUIREMENTS": {
-          "name": "REQUIREMENTS",
-          "status": "pending",
-          "agent": null,
-          "output_files": [],
-          "notes": "",
-          "started_at": null,
-          "completed_at": null
-        },
-        "RESEARCH": {
-          "name": "RESEARCH",
-          "status": "pending",
-          "agent": null,
-          "output_files": [],
-          "notes": "",
-          "started_at": null,
-          "completed_at": null
-        },
+      "children": [],
+      "design_cycle": {
         "AERO_PROPOSAL": {
           "name": "AERO_PROPOSAL",
           "status": "pending",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "",
           "started_at": null,
-          "completed_at": null
+          "completed_at": null,
+          "history": []
         },
         "STRUCTURAL_REVIEW": {
           "name": "STRUCTURAL_REVIEW",
           "status": "pending",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "",
           "started_at": null,
-          "completed_at": null
+          "completed_at": null,
+          "history": []
         },
         "AERO_RESPONSE": {
           "name": "AERO_RESPONSE",
-          "status": "running",
-          "agent": "aero-agent-r5",
+          "status": "pending",
+          "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "",
-          "started_at": "2026-04-03T07:34:36Z",
-          "completed_at": null
+          "started_at": null,
+          "completed_at": null,
+          "history": []
         },
         "CONSENSUS": {
           "name": "CONSENSUS",
           "status": "pending",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "",
           "started_at": null,
-          "completed_at": null
+          "completed_at": null,
+          "history": []
         },
         "DRAWING_2D": {
           "name": "DRAWING_2D",
           "status": "pending",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "",
           "started_at": null,
-          "completed_at": null
+          "completed_at": null,
+          "history": []
         },
         "MODEL_3D": {
           "name": "MODEL_3D",
           "status": "pending",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "",
           "started_at": null,
-          "completed_at": null
+          "completed_at": null,
+          "history": []
         },
-        "MESH": {
-          "name": "MESH",
+        "OUTPUT": {
+          "name": "OUTPUT",
           "status": "pending",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "",
           "started_at": null,
-          "completed_at": null
-        },
-        "VALIDATION": {
-          "name": "VALIDATION",
-          "status": "pending",
-          "agent": null,
-          "output_files": [],
-          "notes": "",
-          "started_at": null,
-          "completed_at": null
-        },
-        "RELEASE": {
-          "name": "RELEASE",
-          "status": "pending",
-          "agent": null,
-          "output_files": [],
-          "notes": "",
-          "started_at": null,
-          "completed_at": null
+          "completed_at": null,
+          "history": []
         }
       },
-      "current_step": "AERO_RESPONSE",
+      "current_design_step": "AERO_RESPONSE",
+      "iteration": 3,
+      "max_agent_rounds": 3,
+      "agent_round": 1,
       "artifacts": [],
+      "deliverables": [],
+      "step_deliverables": {},
+      "current_round_label": "R3",
       "dependencies": []
     },
     "fuselage": {
       "name": "fuselage",
-      "level": 1,
+      "type": "assembly",
       "parent": null,
-      "current_iteration": 1,
-      "max_agent_rounds": 3,
-      "agent_round": 0,
-      "steps": {
-        "REQUIREMENTS": {
-          "name": "REQUIREMENTS",
-          "status": "pending",
-          "agent": null,
-          "output_files": [],
-          "notes": "",
-          "started_at": null,
-          "completed_at": null
-        },
-        "RESEARCH": {
-          "name": "RESEARCH",
-          "status": "pending",
-          "agent": null,
-          "output_files": [],
-          "notes": "",
-          "started_at": null,
-          "completed_at": null
-        },
+      "children": [],
+      "design_cycle": {
         "AERO_PROPOSAL": {
           "name": "AERO_PROPOSAL",
           "status": "pending",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "",
           "started_at": null,
-          "completed_at": null
+          "completed_at": null,
+          "history": []
         },
         "STRUCTURAL_REVIEW": {
           "name": "STRUCTURAL_REVIEW",
           "status": "pending",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "",
           "started_at": null,
-          "completed_at": null
+          "completed_at": null,
+          "history": []
         },
         "AERO_RESPONSE": {
           "name": "AERO_RESPONSE",
           "status": "pending",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "",
           "started_at": null,
-          "completed_at": null
+          "completed_at": null,
+          "history": []
         },
         "CONSENSUS": {
           "name": "CONSENSUS",
           "status": "pending",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "",
           "started_at": null,
-          "completed_at": null
+          "completed_at": null,
+          "history": []
         },
         "DRAWING_2D": {
           "name": "DRAWING_2D",
           "status": "pending",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "",
           "started_at": null,
-          "completed_at": null
+          "completed_at": null,
+          "history": []
         },
         "MODEL_3D": {
           "name": "MODEL_3D",
           "status": "pending",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "",
           "started_at": null,
-          "completed_at": null
+          "completed_at": null,
+          "history": []
         },
-        "MESH": {
-          "name": "MESH",
+        "OUTPUT": {
+          "name": "OUTPUT",
           "status": "pending",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "",
           "started_at": null,
-          "completed_at": null
-        },
-        "VALIDATION": {
-          "name": "VALIDATION",
-          "status": "pending",
-          "agent": null,
-          "output_files": [],
-          "notes": "",
-          "started_at": null,
-          "completed_at": null
-        },
-        "RELEASE": {
-          "name": "RELEASE",
-          "status": "pending",
-          "agent": null,
-          "output_files": [],
-          "notes": "",
-          "started_at": null,
-          "completed_at": null
+          "completed_at": null,
+          "history": []
         }
       },
-      "current_step": "REQUIREMENTS",
+      "current_design_step": "AERO_PROPOSAL",
+      "iteration": 1,
+      "max_agent_rounds": 3,
+      "agent_round": 0,
       "artifacts": [],
+      "deliverables": [],
+      "step_deliverables": {},
+      "current_round_label": "R1",
       "dependencies": []
     },
     "empennage": {
       "name": "empennage",
-      "level": 1,
+      "type": "assembly",
       "parent": null,
-      "current_iteration": 1,
-      "max_agent_rounds": 3,
-      "agent_round": 0,
-      "steps": {
-        "REQUIREMENTS": {
-          "name": "REQUIREMENTS",
-          "status": "pending",
-          "agent": null,
-          "output_files": [],
-          "notes": "",
-          "started_at": null,
-          "completed_at": null
-        },
-        "RESEARCH": {
-          "name": "RESEARCH",
-          "status": "pending",
-          "agent": null,
-          "output_files": [],
-          "notes": "",
-          "started_at": null,
-          "completed_at": null
-        },
+      "children": [],
+      "design_cycle": {
         "AERO_PROPOSAL": {
           "name": "AERO_PROPOSAL",
           "status": "pending",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "",
           "started_at": null,
-          "completed_at": null
+          "completed_at": null,
+          "history": []
         },
         "STRUCTURAL_REVIEW": {
           "name": "STRUCTURAL_REVIEW",
           "status": "pending",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "",
           "started_at": null,
-          "completed_at": null
+          "completed_at": null,
+          "history": []
         },
         "AERO_RESPONSE": {
           "name": "AERO_RESPONSE",
           "status": "pending",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "",
           "started_at": null,
-          "completed_at": null
+          "completed_at": null,
+          "history": []
         },
         "CONSENSUS": {
           "name": "CONSENSUS",
           "status": "pending",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "",
           "started_at": null,
-          "completed_at": null
+          "completed_at": null,
+          "history": []
         },
         "DRAWING_2D": {
           "name": "DRAWING_2D",
           "status": "pending",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "",
           "started_at": null,
-          "completed_at": null
+          "completed_at": null,
+          "history": []
         },
         "MODEL_3D": {
           "name": "MODEL_3D",
           "status": "pending",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "",
           "started_at": null,
-          "completed_at": null
+          "completed_at": null,
+          "history": []
         },
-        "MESH": {
-          "name": "MESH",
+        "OUTPUT": {
+          "name": "OUTPUT",
           "status": "pending",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "",
           "started_at": null,
-          "completed_at": null
-        },
-        "VALIDATION": {
-          "name": "VALIDATION",
-          "status": "pending",
-          "agent": null,
-          "output_files": [],
-          "notes": "",
-          "started_at": null,
-          "completed_at": null
-        },
-        "RELEASE": {
-          "name": "RELEASE",
-          "status": "pending",
-          "agent": null,
-          "output_files": [],
-          "notes": "",
-          "started_at": null,
-          "completed_at": null
+          "completed_at": null,
+          "history": []
         }
       },
-      "current_step": "REQUIREMENTS",
+      "current_design_step": "AERO_PROPOSAL",
+      "iteration": 1,
+      "max_agent_rounds": 3,
+      "agent_round": 0,
       "artifacts": [],
+      "deliverables": [],
+      "step_deliverables": {},
+      "current_round_label": "R1",
       "dependencies": [
         "wing"
       ]
     },
     "control_surfaces": {
       "name": "control_surfaces",
-      "level": 2,
+      "type": "assembly",
       "parent": "wing",
-      "current_iteration": 1,
-      "max_agent_rounds": 3,
-      "agent_round": 0,
-      "steps": {
-        "REQUIREMENTS": {
-          "name": "REQUIREMENTS",
-          "status": "pending",
-          "agent": null,
-          "output_files": [],
-          "notes": "",
-          "started_at": null,
-          "completed_at": null
-        },
-        "RESEARCH": {
-          "name": "RESEARCH",
-          "status": "pending",
-          "agent": null,
-          "output_files": [],
-          "notes": "",
-          "started_at": null,
-          "completed_at": null
-        },
+      "children": [],
+      "design_cycle": {
         "AERO_PROPOSAL": {
           "name": "AERO_PROPOSAL",
           "status": "pending",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "",
           "started_at": null,
-          "completed_at": null
+          "completed_at": null,
+          "history": []
         },
         "STRUCTURAL_REVIEW": {
           "name": "STRUCTURAL_REVIEW",
           "status": "pending",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "",
           "started_at": null,
-          "completed_at": null
+          "completed_at": null,
+          "history": []
         },
         "AERO_RESPONSE": {
           "name": "AERO_RESPONSE",
           "status": "pending",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "",
           "started_at": null,
-          "completed_at": null
+          "completed_at": null,
+          "history": []
         },
         "CONSENSUS": {
           "name": "CONSENSUS",
           "status": "pending",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "",
           "started_at": null,
-          "completed_at": null
+          "completed_at": null,
+          "history": []
         },
         "DRAWING_2D": {
           "name": "DRAWING_2D",
           "status": "pending",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "",
           "started_at": null,
-          "completed_at": null
+          "completed_at": null,
+          "history": []
         },
         "MODEL_3D": {
           "name": "MODEL_3D",
           "status": "pending",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "",
           "started_at": null,
-          "completed_at": null
+          "completed_at": null,
+          "history": []
         },
-        "MESH": {
-          "name": "MESH",
+        "OUTPUT": {
+          "name": "OUTPUT",
           "status": "pending",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "",
           "started_at": null,
-          "completed_at": null
-        },
-        "VALIDATION": {
-          "name": "VALIDATION",
-          "status": "pending",
-          "agent": null,
-          "output_files": [],
-          "notes": "",
-          "started_at": null,
-          "completed_at": null
-        },
-        "RELEASE": {
-          "name": "RELEASE",
-          "status": "pending",
-          "agent": null,
-          "output_files": [],
-          "notes": "",
-          "started_at": null,
-          "completed_at": null
+          "completed_at": null,
+          "history": []
         }
       },
-      "current_step": "REQUIREMENTS",
+      "current_design_step": "AERO_PROPOSAL",
+      "iteration": 1,
+      "max_agent_rounds": 3,
+      "agent_round": 0,
       "artifacts": [],
+      "deliverables": [],
+      "step_deliverables": {},
+      "current_round_label": "R1",
       "dependencies": [
         "wing"
       ]
     },
     "propulsion": {
       "name": "propulsion",
-      "level": 1,
+      "type": "assembly",
       "parent": null,
-      "current_iteration": 1,
-      "max_agent_rounds": 3,
-      "agent_round": 0,
-      "steps": {
-        "REQUIREMENTS": {
-          "name": "REQUIREMENTS",
-          "status": "pending",
-          "agent": null,
-          "output_files": [],
-          "notes": "",
-          "started_at": null,
-          "completed_at": null
-        },
-        "RESEARCH": {
-          "name": "RESEARCH",
-          "status": "pending",
-          "agent": null,
-          "output_files": [],
-          "notes": "",
-          "started_at": null,
-          "completed_at": null
-        },
+      "children": [],
+      "design_cycle": {
         "AERO_PROPOSAL": {
           "name": "AERO_PROPOSAL",
           "status": "skipped",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "Not applicable for this component type",
           "started_at": null,
-          "completed_at": "2026-04-03T07:34:36Z"
+          "completed_at": "2026-04-03T07:34:36Z",
+          "history": []
         },
         "STRUCTURAL_REVIEW": {
           "name": "STRUCTURAL_REVIEW",
           "status": "skipped",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "Not applicable for this component type",
           "started_at": null,
-          "completed_at": "2026-04-03T07:34:36Z"
+          "completed_at": "2026-04-03T07:34:36Z",
+          "history": []
         },
         "AERO_RESPONSE": {
           "name": "AERO_RESPONSE",
           "status": "skipped",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "Not applicable for this component type",
           "started_at": null,
-          "completed_at": "2026-04-03T07:34:36Z"
+          "completed_at": "2026-04-03T07:34:36Z",
+          "history": []
         },
         "CONSENSUS": {
           "name": "CONSENSUS",
           "status": "skipped",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "Not applicable for this component type",
           "started_at": null,
-          "completed_at": "2026-04-03T07:34:36Z"
+          "completed_at": "2026-04-03T07:34:36Z",
+          "history": []
         },
         "DRAWING_2D": {
           "name": "DRAWING_2D",
           "status": "pending",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "",
           "started_at": null,
-          "completed_at": null
+          "completed_at": null,
+          "history": []
         },
         "MODEL_3D": {
           "name": "MODEL_3D",
           "status": "pending",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "",
           "started_at": null,
-          "completed_at": null
+          "completed_at": null,
+          "history": []
         },
-        "MESH": {
-          "name": "MESH",
+        "OUTPUT": {
+          "name": "OUTPUT",
           "status": "pending",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "",
           "started_at": null,
-          "completed_at": null
-        },
-        "VALIDATION": {
-          "name": "VALIDATION",
-          "status": "pending",
-          "agent": null,
-          "output_files": [],
-          "notes": "",
-          "started_at": null,
-          "completed_at": null
-        },
-        "RELEASE": {
-          "name": "RELEASE",
-          "status": "pending",
-          "agent": null,
-          "output_files": [],
-          "notes": "",
-          "started_at": null,
-          "completed_at": null
+          "completed_at": null,
+          "history": []
         }
       },
-      "current_step": "DRAWING_2D",
+      "current_design_step": "DRAWING_2D",
+      "iteration": 1,
+      "max_agent_rounds": 3,
+      "agent_round": 0,
       "artifacts": [],
+      "deliverables": [],
+      "step_deliverables": {},
+      "current_round_label": "R1",
       "dependencies": []
     },
     "landing_gear": {
       "name": "landing_gear",
-      "level": 1,
+      "type": "assembly",
       "parent": null,
-      "current_iteration": 1,
-      "max_agent_rounds": 3,
-      "agent_round": 0,
-      "steps": {
-        "REQUIREMENTS": {
-          "name": "REQUIREMENTS",
-          "status": "pending",
-          "agent": null,
-          "output_files": [],
-          "notes": "",
-          "started_at": null,
-          "completed_at": null
-        },
-        "RESEARCH": {
-          "name": "RESEARCH",
-          "status": "pending",
-          "agent": null,
-          "output_files": [],
-          "notes": "",
-          "started_at": null,
-          "completed_at": null
-        },
+      "children": [],
+      "design_cycle": {
         "AERO_PROPOSAL": {
           "name": "AERO_PROPOSAL",
           "status": "skipped",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "Not applicable for this component type",
           "started_at": null,
-          "completed_at": "2026-04-03T07:34:36Z"
+          "completed_at": "2026-04-03T07:34:36Z",
+          "history": []
         },
         "STRUCTURAL_REVIEW": {
           "name": "STRUCTURAL_REVIEW",
           "status": "skipped",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "Not applicable for this component type",
           "started_at": null,
-          "completed_at": "2026-04-03T07:34:36Z"
+          "completed_at": "2026-04-03T07:34:36Z",
+          "history": []
         },
         "AERO_RESPONSE": {
           "name": "AERO_RESPONSE",
           "status": "skipped",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "Not applicable for this component type",
           "started_at": null,
-          "completed_at": "2026-04-03T07:34:36Z"
+          "completed_at": "2026-04-03T07:34:36Z",
+          "history": []
         },
         "CONSENSUS": {
           "name": "CONSENSUS",
           "status": "skipped",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "Not applicable for this component type",
           "started_at": null,
-          "completed_at": "2026-04-03T07:34:36Z"
+          "completed_at": "2026-04-03T07:34:36Z",
+          "history": []
         },
         "DRAWING_2D": {
           "name": "DRAWING_2D",
           "status": "pending",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "",
           "started_at": null,
-          "completed_at": null
+          "completed_at": null,
+          "history": []
         },
         "MODEL_3D": {
           "name": "MODEL_3D",
           "status": "pending",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "",
           "started_at": null,
-          "completed_at": null
+          "completed_at": null,
+          "history": []
         },
-        "MESH": {
-          "name": "MESH",
+        "OUTPUT": {
+          "name": "OUTPUT",
           "status": "pending",
           "agent": null,
           "output_files": [],
+          "expected_deliverables": [],
           "notes": "",
           "started_at": null,
-          "completed_at": null
-        },
-        "VALIDATION": {
-          "name": "VALIDATION",
-          "status": "pending",
-          "agent": null,
-          "output_files": [],
-          "notes": "",
-          "started_at": null,
-          "completed_at": null
-        },
-        "RELEASE": {
-          "name": "RELEASE",
-          "status": "pending",
-          "agent": null,
-          "output_files": [],
-          "notes": "",
-          "started_at": null,
-          "completed_at": null
+          "completed_at": null,
+          "history": []
         }
       },
-      "current_step": "DRAWING_2D",
+      "current_design_step": "DRAWING_2D",
+      "iteration": 1,
+      "max_agent_rounds": 3,
+      "agent_round": 0,
       "artifacts": [],
+      "deliverables": [],
+      "step_deliverables": {},
+      "current_round_label": "R1",
       "dependencies": []
     }
   },
-  "analysis": {
+  "requirements": {
+    "status": "pending",
+    "started_at": null,
+    "completed_at": null,
+    "output_files": [],
+    "notes": "",
+    "history": []
+  },
+  "research": {
+    "status": "pending",
+    "started_at": null,
+    "completed_at": null,
+    "output_files": [],
+    "notes": "",
+    "history": []
+  },
+  "validation": {
     "cfd": {
       "name": "VALIDATION",
       "status": "pending",
@@ -710,8 +622,14 @@
       "flutter_margin_met": false,
       "auw_met": false,
       "no_collisions_met": false
+    },
+    "policy": {
+      "full_aircraft_only": true,
+      "backend": "CUDA-capable GPU when available",
+      "notes": "Synthetic wind tunnel and structural calculations run on the assembled top object, not on isolated parts."
     }
   },
+  "active_runs": [],
   "history": [
     {
       "timestamp": "2026-04-03T07:17:47Z",
@@ -904,6 +822,10 @@
       "timestamp": "2026-04-03T07:34:36Z",
       "event": "Started AERO_RESPONSE for wing",
       "agent": "aero-agent-r5"
+    },
+    {
+      "timestamp": "2026-04-04T21:31:23Z",
+      "event": "Reset AERO_RESPONSE for wing"
     }
   ]
 }

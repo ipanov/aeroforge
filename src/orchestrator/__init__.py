@@ -20,11 +20,12 @@ from src.orchestrator.workflow_engine import WorkflowEngine
 from src.orchestrator.state_manager import StateManager
 from src.orchestrator.dashboard import DashboardGenerator
 
-from src.orchestrator.n8n_client import N8nClient
+from src.orchestrator.n8n_client import N8nClient, N8nUnavailableError
 
 __all__ = [
     "WorkflowEngine",
     "StateManager",
     "DashboardGenerator",
     "N8nClient",
+    "N8nUnavailableError",
 ]

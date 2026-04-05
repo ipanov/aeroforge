@@ -1,23 +1,15 @@
-# System-level providers — shared across ALL projects.
-# These depend on local hardware (GPU, installed software), not on project decisions.
-# Configured once during system setup, applied to every project.
-
 cfd:
-  selected: su2_cuda
-  fallback: su2_cpu
-  config:
-    num_processors: 4
-    use_gpu: true
-
+  selected: su2_cpu
+  note: SU2 RANS+MPI for formal CFD. FluidX3D (GPU) for aerodynamicist sanity checks.
+cfd_gpu:
+  selected: fluidx3d
+  note: GPU LBM via OpenCL. Sanity checks only, not formal validation.
 fea:
   selected: freecad_calculix
-  config:
-    freecad_path: auto  # Auto-detected during system setup; override with absolute path
-
 airfoil:
   selected: neuralfoil
-
-# Hardware profile (populated by detect_hardware() during setup)
-# Hardware profile is populated by detect_hardware() during system setup.
-# Do not hardcode user-specific values here.
-hardware: {}
+visualization:
+  selected: paraview
+  note: Mandatory 3D Cp heatmap after every SU2 run.
+n8n:
+  api_key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJiNWNmZDQxZi1jMTg1LTRkMmUtYmI4Ni1jMWQ1NzZlN2EyYTMiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwianRpIjoiZDY0OTI1YzktZTg3ZS00OTQzLWI3ODEtY2Q5MmVmOGNlN2E0IiwiaWF0IjoxNzc1Mzg1MzkxLCJleHAiOjE3Nzc5NTM2MDB9.VLIg7Atl4ys-PdokK6IwFpzsg4rzmOsrW9PcZx_EcyQ

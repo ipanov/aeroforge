@@ -27,6 +27,7 @@ def engine(tmp_path: Path) -> WorkflowEngine:
         aircraft_type="SAILPLANE",
         project_name="Test Sailplane",
     )
+    e._sm.set_project_phase("DESIGN", force=True)
     return e
 
 
@@ -38,6 +39,7 @@ def sm(tmp_path: Path) -> StateManager:
     s.initialize([])
     s.add_node("wing", NodeType.COMPONENT)
     s.add_node("fuselage", NodeType.COMPONENT)
+    s.set_project_phase("DESIGN", force=True)
     return s
 
 
@@ -205,3 +207,119 @@ class TestIteration:
         wing = nodes["wing"]
         assert wing["iteration"] >= 2
         assert wing["design_cycle"][DesignStep.AERO_PROPOSAL.value]["status"] == StepStatus.PENDING.value
+
+
+class TestDeliverableName:
+
+    def test_basic_format(self, sm: StateManager) -> None:
+        sm.start_step("wing", DesignStep.AERO_PROPOSAL.value)
+        name = sm.deliverable_name("wing", DesignStep.AERO_PROPOSAL.value)
+        assert name == "AERO_PROPOSAL_R1.md"
+
+    def test_custom_extension(self, sm: StateManager) -> None:
+        sm.start_step("wing", DesignStep.AERO_PROPOSAL.value)
+        name = sm.deliverable_name("wing", DesignStep.AERO_PROPOSAL.value, ext=".dxf")
+        assert name == "AERO_PROPOSAL_R1.dxf"
+
+    def test_round_increments_after_new_iteration(self, sm: StateManager) -> None:
+        # R1
+        sm.start_step("wing", DesignStep.AERO_PROPOSAL.value)
+        assert sm.deliverable_name("wing", DesignStep.AERO_PROPOSAL.value) == "AERO_PROPOSAL_R1.md"
+        sm.complete_step("wing", DesignStep.AERO_PROPOSAL.value)
+
+        # Structural review at R1
+        sm.start_step("wing", DesignStep.STRUCTURAL_REVIEW.value)
+        assert sm.deliverable_name("wing", DesignStep.STRUCTURAL_REVIEW.value) == "STRUCTURAL_REVIEW_R1.md"
+        sm.complete_step("wing", DesignStep.STRUCTURAL_REVIEW.value)
+
+        # New round via start_new_iteration (cascade or user rejection)
+        # agent_round is NOT reset — keeps counting monotonically
+        sm.start_new_iteration("wing")
+        sm.start_step("wing", DesignStep.AERO_PROPOSAL.value)
+        # Was R1, now R2 (agent_round incremented on AERO_PROPOSAL start)
+        assert sm.deliverable_name("wing", DesignStep.AERO_PROPOSAL.value) == "AERO_PROPOSAL_R2.md"
+
+    def test_round_increments_after_validation_cascade(self, sm: StateManager) -> None:
+        sm.start_step("wing", DesignStep.AERO_PROPOSAL.value)  # R1
+        sm.complete_step("wing", DesignStep.AERO_PROPOSAL.value)
+
+        # Simulate validation cascade — start new iteration
+        sm.start_new_iteration("wing")
+        sm.start_step("wing", DesignStep.AERO_PROPOSAL.value)  # R2 (monotonic)
+        name = sm.deliverable_name("wing", DesignStep.AERO_PROPOSAL.value)
+        assert name == "AERO_PROPOSAL_R2.md"  # round keeps counting up
+
+    def test_structural_review_uses_same_round(self, sm: StateManager) -> None:
+        sm.start_step("wing", DesignStep.AERO_PROPOSAL.value)
+        sm.complete_step("wing", DesignStep.AERO_PROPOSAL.value)
+        sm.start_step("wing", DesignStep.STRUCTURAL_REVIEW.value)
+        # Same round as the aero proposal that preceded it
+        name = sm.deliverable_name("wing", DesignStep.STRUCTURAL_REVIEW.value)
+        assert name == "STRUCTURAL_REVIEW_R1.md"
+
+    def test_different_nodes_track_independently(self, sm: StateManager) -> None:
+        # Wing R1
+        sm.start_step("wing", DesignStep.AERO_PROPOSAL.value)
+        sm.complete_step("wing", DesignStep.AERO_PROPOSAL.value)
+        # Wing cascade to R2
+        sm.start_new_iteration("wing")
+        sm.start_step("wing", DesignStep.AERO_PROPOSAL.value)
+
+        # Fuselage still at R1
+        sm.start_step("fuselage", DesignStep.AERO_PROPOSAL.value)
+
+        assert sm.deliverable_name("wing", DesignStep.AERO_PROPOSAL.value) == "AERO_PROPOSAL_R2.md"
+        assert sm.deliverable_name("fuselage", DesignStep.AERO_PROPOSAL.value) == "AERO_PROPOSAL_R1.md"
+
+
+class TestValidationCascade:
+
+    def test_cascade_increments_iteration(self, engine: WorkflowEngine) -> None:
+        engine.start_step("wing", DesignStep.AERO_PROPOSAL.value)
+        engine.complete_step("wing", DesignStep.AERO_PROPOSAL.value)
+
+        result = engine.handle_validation_cascade(
+            ["wing"], reason="CFD trim mismatch"
+        )
+        assert result["wing"] == 2  # iteration 1 -> 2
+
+    def test_cascade_resets_steps(self, engine: WorkflowEngine) -> None:
+        engine.start_step("wing", DesignStep.AERO_PROPOSAL.value)
+        engine.complete_step("wing", DesignStep.AERO_PROPOSAL.value)
+
+        engine.handle_validation_cascade(["wing"], reason="test")
+
+        state = engine.load_project()
+        wing = state["nodes"]["wing"]
+        aero = wing["design_cycle"][DesignStep.AERO_PROPOSAL.value]
+        assert aero["status"] == StepStatus.PENDING.value
+
+    def test_cascade_rolls_back_phase(self, engine: WorkflowEngine) -> None:
+        engine._sm.set_project_phase("VALIDATION", force=True)
+
+        engine.handle_validation_cascade(["wing"], reason="test")
+
+        state = engine.load_project()
+        assert state["project_phase"] == "DESIGN"
+
+    def test_cascade_preserves_other_nodes(self, engine: WorkflowEngine) -> None:
+        engine.start_step("wing", DesignStep.AERO_PROPOSAL.value)
+        engine.complete_step("wing", DesignStep.AERO_PROPOSAL.value)
+
+        engine.start_step("fuselage", DesignStep.AERO_PROPOSAL.value)
+        engine.complete_step("fuselage", DesignStep.AERO_PROPOSAL.value)
+
+        engine.handle_validation_cascade(["wing"], reason="wing only")
+
+        state = engine.load_project()
+        # Wing reset
+        assert state["nodes"]["wing"]["design_cycle"][DesignStep.AERO_PROPOSAL.value]["status"] == StepStatus.PENDING.value
+        # Fuselage untouched
+        assert state["nodes"]["fuselage"]["design_cycle"][DesignStep.AERO_PROPOSAL.value]["status"] == StepStatus.DONE.value
+
+    def test_cascade_multiple_nodes(self, engine: WorkflowEngine) -> None:
+        result = engine.handle_validation_cascade(
+            ["wing", "fuselage"], reason="full redesign"
+        )
+        assert result["wing"] == 2
+        assert result["fuselage"] == 2

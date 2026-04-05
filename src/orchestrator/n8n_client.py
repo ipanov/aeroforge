@@ -1,8 +1,8 @@
 """REST API client for the n8n workflow visibility layer.
 
-n8n is always started with the workflow engine. If unreachable, the engine
-logs a warning but continues — n8n is a monitoring tool, not a control-flow
-dependency.
+n8n is a MANDATORY component. The workflow engine will NOT operate without
+a reachable n8n instance. If n8n is not running, the engine auto-launches it.
+If it remains unreachable after launch, the engine raises N8nUnavailableError.
 """
 
 from __future__ import annotations
@@ -14,11 +14,37 @@ from pathlib import Path
 from typing import Any, Optional
 
 import httpx
+import yaml
 
 logger = logging.getLogger(__name__)
 
 DEFAULT_BASE_URL = "http://localhost:5678"
 DEFAULT_TIMEOUT_S = 10
+_SYSTEM_CONFIG = Path(__file__).resolve().parent.parent.parent / "config" / "system_providers.yaml"
+
+
+def _load_api_key() -> Optional[str]:
+    """Read the n8n API key from system_providers.yaml."""
+    if not _SYSTEM_CONFIG.exists():
+        return None
+    with open(_SYSTEM_CONFIG) as f:
+        cfg = yaml.safe_load(f) or {}
+    return cfg.get("n8n", {}).get("api_key")
+
+
+def _save_api_key(api_key: str) -> None:
+    """Persist the n8n API key into system_providers.yaml."""
+    cfg: dict[str, Any] = {}
+    if _SYSTEM_CONFIG.exists():
+        with open(_SYSTEM_CONFIG) as f:
+            cfg = yaml.safe_load(f) or {}
+    cfg.setdefault("n8n", {})["api_key"] = api_key
+    with open(_SYSTEM_CONFIG, "w") as f:
+        yaml.safe_dump(cfg, f, sort_keys=False)
+
+
+class N8nUnavailableError(RuntimeError):
+    """Raised when n8n is not reachable and cannot be auto-launched."""
 
 
 class N8nClient:
@@ -31,10 +57,11 @@ class N8nClient:
         timeout: int = DEFAULT_TIMEOUT_S,
     ) -> None:
         self._base_url = (base_url or DEFAULT_BASE_URL).rstrip("/")
-        self._api_key = api_key
+        self._api_key = api_key or _load_api_key()
         self._timeout = timeout
         self._client: Optional[httpx.Client] = None
         self._available: Optional[bool] = None
+        self._workflow_id: Optional[str] = None
 
     def _get_client(self) -> httpx.Client:
         if self._client is None:
@@ -59,21 +86,59 @@ class N8nClient:
             return self.health_check()
         return bool(self._available)
 
-    def create_workflow(
+    def set_api_key(self, api_key: str) -> None:
+        """Set and persist the n8n API key."""
+        self._api_key = api_key
+        _save_api_key(api_key)
+        # Reset the client so next call uses new key
+        if self._client:
+            self._client.close()
+            self._client = None
+
+    # ------------------------------------------------------------------
+    # Workflow lifecycle — single "AeroForge" workflow, regenerated per project
+    # ------------------------------------------------------------------
+
+    def ensure_workflow(
         self,
         project_name: str,
         aircraft_type: str,
         template_path: Optional[Path] = None,
     ) -> Optional[str]:
-        if not self.available:
+        """Create or update the AeroForge workflow in n8n.
+
+        Uses a single workflow named 'AeroForge - {project_name}'.
+        Deletes any previous AeroForge workflow first, then recreates.
+        Returns the workflow ID or None on failure.
+        """
+        if not self.available or not self._api_key:
+            logger.warning("n8n not available or no API key — skipping workflow sync")
             return None
 
+        # Delete existing AeroForge workflows
+        self._delete_aeroforge_workflows()
+
+        # Load template
         template = self._load_template(template_path)
         if template is None:
+            logger.warning("No workflow template found")
             return None
 
-        template["name"] = f"AeroForge - {project_name}"
-        for node in template.get("nodes", []):
+        # Build clean payload (only fields the API accepts)
+        payload = {
+            "name": f"AeroForge - {project_name}",
+            "nodes": template.get("nodes", []),
+            "connections": template.get("connections", {}),
+            "settings": template.get("settings", {}),
+        }
+
+        # Ensure nodes have required fields
+        for i, node in enumerate(payload["nodes"]):
+            node.setdefault("typeVersion", 1)
+            node.setdefault("id", f"node-{i}")
+
+        # Inject aircraft_type into Set nodes
+        for node in payload["nodes"]:
             if node.get("type") == "n8n-nodes-base.set":
                 parameters = node.setdefault("parameters", {})
                 values = parameters.setdefault("values", {})
@@ -81,12 +146,54 @@ class N8nClient:
                 strings.append({"name": "aircraft_type", "value": aircraft_type})
 
         try:
-            response = self._get_client().post(f"{self._base_url}/api/v1/workflows", json=template)
-            response.raise_for_status()
-            return str(response.json().get("id"))
+            resp = self._get_client().post(
+                f"{self._base_url}/api/v1/workflows", json=payload,
+            )
+            if resp.status_code != 200:
+                logger.warning("Failed to create workflow: %s %s", resp.status_code, resp.text[:200])
+                return None
+
+            wf_id = resp.json().get("id")
+            self._workflow_id = wf_id
+
+            # Activate
+            self._get_client().post(f"{self._base_url}/api/v1/workflows/{wf_id}/activate")
+            logger.info("n8n workflow created and activated: %s (id=%s)", project_name, wf_id)
+            return wf_id
+
         except Exception as exc:
             logger.warning("Failed to create n8n workflow: %s", exc)
             return None
+
+    def _delete_aeroforge_workflows(self) -> None:
+        """Remove all workflows whose name starts with 'AeroForge'."""
+        try:
+            resp = self._get_client().get(f"{self._base_url}/api/v1/workflows")
+            if resp.status_code != 200:
+                return
+            for wf in resp.json().get("data", []):
+                if wf.get("name", "").startswith("AeroForge"):
+                    wf_id = wf["id"]
+                    self._get_client().delete(f"{self._base_url}/api/v1/workflows/{wf_id}")
+                    logger.info("Deleted old n8n workflow: %s (id=%s)", wf["name"], wf_id)
+        except Exception as exc:
+            logger.debug("Failed to clean up old workflows: %s", exc)
+
+    # ------------------------------------------------------------------
+    # Backward-compatible create_workflow (calls ensure_workflow)
+    # ------------------------------------------------------------------
+
+    def create_workflow(
+        self,
+        project_name: str,
+        aircraft_type: str,
+        template_path: Optional[Path] = None,
+    ) -> Optional[str]:
+        return self.ensure_workflow(project_name, aircraft_type, template_path)
+
+    # ------------------------------------------------------------------
+    # Event pushers
+    # ------------------------------------------------------------------
 
     def sync_project(
         self,
@@ -97,7 +204,6 @@ class N8nClient:
         workflow_profile: Optional[dict[str, Any]] = None,
     ) -> bool:
         """Push the current project profile into n8n."""
-
         if not self.available:
             return False
         body = {
@@ -108,7 +214,9 @@ class N8nClient:
             "workflow_profile": workflow_profile or {},
         }
         try:
-            response = self._get_client().post(f"{self._base_url}/webhook/aeroforge/project-sync", json=body)
+            response = self._get_client().post(
+                f"{self._base_url}/webhook/aeroforge/project-sync", json=body,
+            )
             return response.status_code == 200
         except Exception as exc:
             logger.debug("Failed to sync project to n8n: %s", exc)
@@ -131,7 +239,9 @@ class N8nClient:
             **(payload or {}),
         }
         try:
-            response = self._get_client().post(f"{self._base_url}/webhook/aeroforge/step-event", json=body)
+            response = self._get_client().post(
+                f"{self._base_url}/webhook/aeroforge/step-event", json=body,
+            )
             if response.status_code == 200:
                 data = response.json()
                 return data.get("executionId") if isinstance(data, dict) else None
@@ -157,7 +267,9 @@ class N8nClient:
             "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         }
         try:
-            response = self._get_client().post(f"{self._base_url}/webhook/aeroforge/step-event", json=body)
+            response = self._get_client().post(
+                f"{self._base_url}/webhook/aeroforge/step-event", json=body,
+            )
             return response.status_code == 200
         except Exception as exc:
             logger.debug("Failed to update n8n status: %s", exc)
@@ -168,6 +280,8 @@ class N8nClient:
         return {
             "available": self.available,
             "base_url": self._base_url,
+            "workflow_id": self._workflow_id,
+            "has_api_key": bool(self._api_key),
         }
 
     def _load_template(self, path: Optional[Path] = None) -> Optional[dict[str, Any]]:

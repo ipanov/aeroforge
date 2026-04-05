@@ -135,6 +135,35 @@ AGENT_ROUND_STEPS = {
     DesignStep.CONSENSUS.value,
 }
 
+# ---------------------------------------------------------------------------
+# Phase progression enforcement
+# ---------------------------------------------------------------------------
+
+PHASE_ORDER: list[str] = [p.value for p in ProjectPhase]
+
+VALID_PHASE_TRANSITIONS: dict[str, set[str]] = {
+    ProjectPhase.REQUIREMENTS.value: {ProjectPhase.RESEARCH.value},
+    ProjectPhase.RESEARCH.value:     {ProjectPhase.DESIGN.value},
+    ProjectPhase.DESIGN.value:       {ProjectPhase.IMPLEMENTATION.value},
+    ProjectPhase.IMPLEMENTATION.value: {ProjectPhase.VALIDATION.value},
+    ProjectPhase.VALIDATION.value:   {ProjectPhase.RELEASE.value},
+    ProjectPhase.RELEASE.value:      set(),  # terminal
+}
+
+PHASE_ALLOWED_STEPS: dict[str, set[str]] = {
+    ProjectPhase.DESIGN.value: {
+        DesignStep.AERO_PROPOSAL.value,
+        DesignStep.STRUCTURAL_REVIEW.value,
+        DesignStep.AERO_RESPONSE.value,
+        DesignStep.CONSENSUS.value,
+        DesignStep.DRAWING_2D.value,
+    },
+    ProjectPhase.IMPLEMENTATION.value: {
+        DesignStep.MODEL_3D.value,
+        DesignStep.OUTPUT.value,
+    },
+}
+
 
 # ---------------------------------------------------------------------------
 # State factories
@@ -457,14 +486,96 @@ class StateManager:
 
     # ── Project phase management ──────────────────────────────────
 
-    def set_project_phase(self, phase: ProjectPhase | str) -> None:
-        """Set the current top-level project phase."""
+    def set_project_phase(
+        self, phase: ProjectPhase | str, *, force: bool = False,
+    ) -> None:
+        """Set the current top-level project phase.
+
+        Enforces strict phase ordering unless ``force=True``.
+        Also verifies that the current phase's prerequisites are met.
+        """
         if isinstance(phase, str):
             phase = ProjectPhase(phase)
         self.load()
-        old = self._state.get("project_phase")
+        old = self._state.get("project_phase", ProjectPhase.REQUIREMENTS.value)
+
+        if phase.value != old and not force:
+            # Validate transition is allowed
+            allowed = VALID_PHASE_TRANSITIONS.get(old, set())
+            if phase.value not in allowed:
+                raise RuntimeError(
+                    f"Cannot transition from {old} to {phase.value}. "
+                    f"Valid next phases: {sorted(allowed) if allowed else 'none (terminal phase)'}"
+                )
+            # Validate current phase is complete
+            if not self.is_phase_complete(old):
+                raise RuntimeError(
+                    f"Cannot leave phase '{old}' — prerequisites not met. "
+                    f"Complete the current phase before advancing."
+                )
+
         self._state["project_phase"] = phase.value
         self._append_history(f"Project phase: {old} → {phase.value}")
+        self.save()
+
+    def advance_phase(self) -> str:
+        """Advance to the next phase in sequence. Returns the new phase value."""
+        current = self.get_project_phase()
+        try:
+            idx = PHASE_ORDER.index(current)
+        except ValueError:
+            raise RuntimeError(f"Unknown current phase: {current}")
+        if idx >= len(PHASE_ORDER) - 1:
+            raise RuntimeError(f"Already at terminal phase: {current}")
+        next_phase = PHASE_ORDER[idx + 1]
+        self.set_project_phase(next_phase)
+        return next_phase
+
+    def is_phase_complete(self, phase: ProjectPhase | str) -> bool:
+        """Check whether the given phase's completion prerequisites are met."""
+        phase_val = phase.value if isinstance(phase, ProjectPhase) else phase
+
+        if phase_val == ProjectPhase.REQUIREMENTS.value:
+            req = self.state.get("requirements", {})
+            return req.get("status") == StepStatus.DONE.value
+
+        if phase_val == ProjectPhase.RESEARCH.value:
+            res = self.state.get("research", {})
+            return res.get("status") == StepStatus.DONE.value
+
+        if phase_val == ProjectPhase.DESIGN.value:
+            return self.check_design_phase_complete()
+
+        if phase_val == ProjectPhase.IMPLEMENTATION.value:
+            for name, node in self.state.get("nodes", {}).items():
+                if node.get("type") == NodeType.OFF_SHELF.value:
+                    continue
+                cycle = node.get("design_cycle")
+                if cycle is None:
+                    continue
+                for step_name in (DesignStep.MODEL_3D.value, DesignStep.OUTPUT.value):
+                    if cycle.get(step_name, {}).get("status") != StepStatus.DONE.value:
+                        return False
+            return True
+
+        if phase_val == ProjectPhase.VALIDATION.value:
+            val = self.state.get("validation", {})
+            return (
+                val.get("cfd", {}).get("status") == StepStatus.DONE.value
+                and val.get("fea", {}).get("status") == StepStatus.DONE.value
+            )
+
+        # RELEASE is terminal — always "complete"
+        return True
+
+    def mark_phase_done(self, phase: str) -> None:
+        """Mark a project-level phase record as done (REQUIREMENTS, RESEARCH)."""
+        self.load()
+        phase_key = phase.lower()
+        record = self._state.setdefault(phase_key, {"status": StepStatus.PENDING.value})
+        record["status"] = StepStatus.DONE.value
+        record["completed_at"] = _now_iso()
+        self._append_history(f"Phase {phase} marked as done")
         self.save()
 
     def get_project_phase(self) -> str:
@@ -687,6 +798,19 @@ class StateManager:
         combination is rejected if already running.
         """
         self.load()
+
+        # Phase gate: reject steps not valid for the current project phase
+        current_phase = self._state.get(
+            "project_phase", ProjectPhase.REQUIREMENTS.value,
+        )
+        allowed_steps = PHASE_ALLOWED_STEPS.get(current_phase, set())
+        if step not in allowed_steps:
+            raise RuntimeError(
+                f"Cannot start step '{step}' during phase '{current_phase}'. "
+                f"Allowed steps in this phase: "
+                f"{sorted(allowed_steps) if allowed_steps else 'none'}"
+            )
+
         self._ensure_step_is_current(name, step)
 
         record = self.get_step(name, step)
@@ -870,13 +994,40 @@ class StateManager:
         record = self.get_step(name, step)
         return record.get("history", [])
 
+    def deliverable_name(self, node_name: str, step: str, ext: str = ".md") -> str:
+        """Generate a versioned deliverable filename.
+
+        Format: ``{STEP}_R{round}{ext}``
+
+        The round counter increments every time the design cycle restarts —
+        whether from user rejection, agent negotiation, or validation cascade.
+        It never resets.
+
+        Examples::
+
+            AERO_PROPOSAL_R1.md       — first proposal
+            STRUCTURAL_REVIEW_R1.md   — first structural review
+            AERO_PROPOSAL_R2.md       — second round (after rejection or cascade)
+            STRUCTURAL_REVIEW_R2.md   — second structural review
+        """
+        self.load()
+        node = self._state["nodes"][node_name]
+        round_num = max(node.get("agent_round", 1), 1)
+        return f"{step}_R{round_num}{ext}"
+
     def start_new_iteration(self, name: str, round_label: Optional[str] = None) -> int:
-        """Start a new design iteration for a node."""
+        """Start a new design iteration for a node.
+
+        Increments the iteration counter and resets the design cycle,
+        but preserves the agent_round so that deliverable naming
+        (``_R{round}``) increases monotonically across iterations.
+        """
         self.load()
         node = self._state["nodes"][name]
         node["iteration"] = node.get("iteration", 1) + 1
         node["current_round_label"] = round_label or f"R{node['iteration']}"
-        node["agent_round"] = 0
+        # NOTE: agent_round is NOT reset — it keeps counting up across
+        # iterations so that deliverable file names are monotonic.
 
         if node.get("design_cycle") is not None:
             node["design_cycle"] = _new_design_cycle()

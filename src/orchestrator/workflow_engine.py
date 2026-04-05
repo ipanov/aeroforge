@@ -14,7 +14,10 @@ import logging
 
 from .aircraft_types import AircraftType, AnalysisLevel, get_type_definition
 from .workflow_profile import WorkflowProfile, load_workflow_profile
-from .state_manager import StepStatus, StateManager, WorkflowStep
+from .state_manager import (
+    StepStatus, StateManager, WorkflowStep,
+    ProjectPhase, DesignStep, PHASE_ALLOWED_STEPS, PHASE_ORDER,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -29,11 +32,12 @@ class WorkflowEngine:
         self._sm = StateManager(state_file)
         self._type_def: Optional[Any] = None
         self._n8n_client: Any = None
+        self._n8n_process: Any = None
         self._init_n8n()
 
     @property
     def n8n_available(self) -> bool:
-        """Whether the n8n visibility layer is reachable."""
+        """Whether n8n is reachable. Always True after __init__ (hard-fail otherwise)."""
         return self._n8n_client is not None
 
     # ── Project lifecycle ──────────────────────────────────────────
@@ -91,11 +95,11 @@ class WorkflowEngine:
         self._refresh_monitoring_assets()
         final_state = self._sm.state
 
-        if self._n8n_client:
-            self._n8n_client.create_workflow(project_name, aircraft_type.value)
-            self._n8n_client.sync_project(
+        ac_str = aircraft_type.value if hasattr(aircraft_type, "value") else str(aircraft_type)
+        self._n8n_client.create_workflow(project_name, ac_str)
+        self._n8n_client.sync_project(
                 project_name=project_name,
-                aircraft_type=aircraft_type.value,
+                aircraft_type=ac_str,
                 project_scope=metadata.get("project_scope", "aircraft"),
                 round_label=metadata.get("round_label", "R1"),
                 workflow_profile={"sub_assemblies": sa_names},
@@ -146,12 +150,11 @@ class WorkflowEngine:
         self._sm.save()
         self._refresh_monitoring_assets()
         final_state = self._sm.state
-        if self._n8n_client:
-            self._n8n_client.sync_project(
-                project_name=project_name,
-                aircraft_type=profile.aircraft_type,
-                project_scope=profile.project_scope,
-                round_label=profile.round_label,
+        self._n8n_client.sync_project(
+            project_name=project_name,
+            aircraft_type=profile.aircraft_type,
+            project_scope=profile.project_scope,
+            round_label=profile.round_label,
                 workflow_profile={
                     "top_object_name": profile.top_object_name,
                     "sub_assemblies": [
@@ -187,15 +190,78 @@ class WorkflowEngine:
                 self._type_def = get_type_definition(AircraftType(ac_type_str))
             except (ValueError, KeyError):
                 self._type_def = None
+        self._cleanup_stale_runs()
         return state
+
+    def _cleanup_stale_runs(self) -> None:
+        """Detect and clean up active runs that are stale after a restart.
+
+        A run is stale if the corresponding step status is not RUNNING,
+        or the run has been active for more than 1 hour.
+        """
+        import calendar
+        import time as _time
+
+        STALE_THRESHOLD_SECONDS = 3600
+
+        state = self._sm.state
+        active_runs = state.get("active_runs", [])
+        if not active_runs:
+            return
+
+        now_utc = calendar.timegm(_time.gmtime())
+        cleaned = []
+        kept = []
+
+        for run in active_runs:
+            node_name = run.get("node", run.get("sub_assembly", ""))
+            step_name = run.get("step", "")
+            started_at = run.get("started_at", "")
+
+            # Check: does the step actually have RUNNING status?
+            is_actually_running = False
+            try:
+                record = self._sm.get_step(node_name, step_name)
+                is_actually_running = record.get("status") == StepStatus.RUNNING.value
+            except (KeyError, RuntimeError):
+                pass
+
+            # Check: has it been running too long?
+            is_stale_by_time = False
+            if started_at:
+                try:
+                    started_ts = calendar.timegm(
+                        _time.strptime(started_at, "%Y-%m-%dT%H:%M:%SZ")
+                    )
+                    is_stale_by_time = (now_utc - started_ts) > STALE_THRESHOLD_SECONDS
+                except (ValueError, OverflowError):
+                    is_stale_by_time = True
+
+            if not is_actually_running or is_stale_by_time:
+                cleaned.append(run)
+                if is_actually_running:
+                    try:
+                        self._sm.reset_step(node_name, step_name)
+                    except Exception:
+                        pass
+            else:
+                kept.append(run)
+
+        if cleaned:
+            state["active_runs"] = kept
+            self._sm.save()
+            logger.warning(
+                "Cleaned up %d stale active run(s): %s",
+                len(cleaned),
+                [(r.get("node"), r.get("step")) for r in cleaned],
+            )
 
     # ── Step execution ─────────────────────────────────────────────
 
     def start_iteration(self, sub_assembly: str, round_label: Optional[str] = None) -> int:
         iteration = self._sm.start_new_iteration(sub_assembly, round_label=round_label)
         self._refresh_monitoring_assets()
-        if self._n8n_client:
-            self._n8n_client.execute_step(sub_assembly, "start_iteration", {"iteration": iteration})
+        self._n8n_client.execute_step(sub_assembly, "start_iteration", {"iteration": iteration})
         return iteration
 
     def rename_round(self, sub_assembly: str, round_label: str) -> None:
@@ -212,8 +278,7 @@ class WorkflowEngine:
         self._sm.start_step(sub_assembly, step_name, agent=agent)
         self._refresh_monitoring_assets()
 
-        if self._n8n_client:
-            self._n8n_client.execute_step(sub_assembly, step_name)
+        self._n8n_client.execute_step(sub_assembly, step_name)
 
     def complete_step(
         self,
@@ -231,8 +296,7 @@ class WorkflowEngine:
         )
         self._refresh_monitoring_assets()
 
-        if self._n8n_client:
-            self._n8n_client.update_status(sub_assembly, step_name, "done", notes=notes)
+        self._n8n_client.update_status(sub_assembly, step_name, "done", notes=notes)
 
     def fail_step(
         self,
@@ -244,8 +308,7 @@ class WorkflowEngine:
         self._sm.fail_step(sub_assembly, step_name, reason=reason)
         self._refresh_monitoring_assets()
 
-        if self._n8n_client:
-            self._n8n_client.update_status(sub_assembly, step_name, "failed", notes=reason)
+        self._n8n_client.update_status(sub_assembly, step_name, "failed", notes=reason)
 
     def reset_step(self, sub_assembly: str, step: str | WorkflowStep) -> None:
         step_name = step.value if isinstance(step, WorkflowStep) else step
@@ -344,6 +407,12 @@ class WorkflowEngine:
         }
 
     def get_next_action(self) -> Optional[dict[str, Any]]:
+        """Return the next recommended action, respecting project phase.
+
+        Phase-aware: only recommends actions valid for the current phase.
+        Uses dependency order (leaves-first) for IMPLEMENTATION phase.
+        """
+        # Check for already-running steps first
         active_runs = self._sm.get_active_runs()
         if active_runs:
             ar = active_runs[0]
@@ -353,10 +422,69 @@ class WorkflowEngine:
                 "action": "running",
             }
 
-        if self._sm.all_complete():
-            return self._check_final_validation()
+        current_phase = self._sm.get_project_phase()
 
-        for name in self._sm.get_sub_assemblies():
+        # REQUIREMENTS phase — complete requirements before anything else
+        if current_phase == ProjectPhase.REQUIREMENTS.value:
+            if not self._sm.is_phase_complete(current_phase):
+                return {
+                    "sub_assembly": "__project__",
+                    "step": "REQUIREMENTS",
+                    "action": "complete_requirements",
+                    "message": "Complete project requirements before proceeding.",
+                }
+            return {
+                "sub_assembly": "__project__",
+                "step": "REQUIREMENTS",
+                "action": "advance_phase",
+                "message": "Requirements complete. Advance to RESEARCH phase.",
+            }
+
+        # RESEARCH phase — populate RAG, gather domain data
+        if current_phase == ProjectPhase.RESEARCH.value:
+            if not self._sm.is_phase_complete(current_phase):
+                return {
+                    "sub_assembly": "__project__",
+                    "step": "RESEARCH",
+                    "action": "populate_rag",
+                    "message": "Populate RAG database with domain research before design.",
+                }
+            return {
+                "sub_assembly": "__project__",
+                "step": "RESEARCH",
+                "action": "advance_phase",
+                "message": "Research complete. Advance to DESIGN phase.",
+            }
+
+        # VALIDATION / RELEASE — delegate to existing logic
+        if current_phase == ProjectPhase.VALIDATION.value:
+            if self._sm.all_complete():
+                return self._check_final_validation()
+            return {
+                "sub_assembly": "__project__",
+                "step": "VALIDATION",
+                "action": "run_validation",
+                "message": "Run CFD + FEA validation on assembled top object.",
+            }
+
+        if current_phase == ProjectPhase.RELEASE.value:
+            return None  # Terminal — nothing to do
+
+        # DESIGN or IMPLEMENTATION — find next pending step within allowed set
+        allowed = PHASE_ALLOWED_STEPS.get(current_phase, set())
+        if not allowed:
+            return None
+
+        # Use implementation order (leaves-first) for IMPLEMENTATION phase
+        if current_phase == ProjectPhase.IMPLEMENTATION.value:
+            try:
+                node_order = self._sm.get_implementation_order()
+            except Exception:
+                node_order = self._sm.get_sub_assemblies()
+        else:
+            node_order = self._sm.get_sub_assemblies()
+
+        for name in node_order:
             node = self._sm.get_node(name)
             dc = node.get("design_cycle")
             if dc is None:
@@ -366,6 +494,9 @@ class WorkflowEngine:
             current = node.get("current_design_step", "")
             if not current or current not in dc:
                 continue
+            # Only recommend steps allowed in the current phase
+            if current not in allowed:
+                continue
             status = dc[current].get("status", StepStatus.PENDING.value)
             if status in {StepStatus.PENDING.value, StepStatus.FAILED.value}:
                 return {
@@ -373,6 +504,15 @@ class WorkflowEngine:
                     "step": current,
                     "action": "start" if status == StepStatus.PENDING.value else "retry",
                 }
+
+        # All nodes done for this phase — suggest advancing
+        if self._sm.is_phase_complete(current_phase):
+            return {
+                "sub_assembly": "__project__",
+                "step": current_phase,
+                "action": "advance_phase",
+                "message": f"Phase {current_phase} complete. Ready to advance.",
+            }
         return None
 
     def get_dependency_graph(self) -> dict[str, list[str]]:
@@ -501,16 +641,60 @@ class WorkflowEngine:
             convergence = self.check_convergence()
             if convergence["all_met"]:
                 return None
+            failed = [
+                key for key, value in convergence["criteria"].items() if not value
+            ]
+            # Suggest nodes that likely need redesign based on failed criteria
+            nodes = list(self._sm.state.get("nodes", {}).keys())
             return {
                 "sub_assembly": "__aircraft__",
                 "step": "DESIGN_REVISION",
                 "action": "convergence_not_met",
-                "failed_criteria": [
-                    key for key, value in convergence["criteria"].items() if not value
-                ],
+                "failed_criteria": failed,
+                "recommended_nodes": nodes,
+                "message": (
+                    f"Validation failed on {failed}. "
+                    f"Call engine.handle_validation_cascade(affected_nodes, reason) "
+                    f"to restart design for affected nodes."
+                ),
             }
 
         return None
+
+    def handle_validation_cascade(
+        self,
+        affected_nodes: list[str],
+        reason: str,
+        notes: str = "",
+    ) -> dict[str, int]:
+        """Cascade validation failure back to design phase.
+
+        Called when CFD/FEA validation reveals issues that require
+        redesigning specific nodes.  Each affected node gets its
+        iteration counter incremented (I1 → I2, etc.), its design
+        cycle reset to AERO_PROPOSAL, and its agent_round reset.
+        The project phase rolls back to DESIGN.
+
+        This is the **automated** path.  For user-driven rejections
+        (e.g. rejecting a drawing), use ``reject_step()`` instead —
+        that stays within the same iteration.
+
+        Returns:
+            Mapping ``{node_name: new_iteration_number}``.
+        """
+        result: dict[str, int] = {}
+        for name in affected_nodes:
+            new_iter = self._sm.start_new_iteration(name)
+            result[name] = new_iter
+
+        self._sm.set_project_phase(ProjectPhase.DESIGN, force=True)
+        self._sm._append_history(
+            f"Validation cascade: {reason}. "
+            f"Affected nodes: {list(result.keys())}. "
+            f"New iterations: {result}. {notes}".rstrip()
+        )
+        self._sm.save()
+        return result
 
     def _serialize_criteria(self, criteria: Any) -> dict[str, Any]:
         from dataclasses import asdict
@@ -646,11 +830,10 @@ class WorkflowEngine:
         self._sm.reject_step(sub_assembly, step_name, reason=reason, rework_notes=rework_notes)
         self._refresh_monitoring_assets()
 
-        if self._n8n_client:
-            self._n8n_client.update_status(
-                sub_assembly, step_name, "rejected",
-                notes=f"REJECTED: {reason}",
-            )
+        self._n8n_client.update_status(
+            sub_assembly, step_name, "rejected",
+            notes=f"REJECTED: {reason}",
+        )
 
     def record_user_feedback(
         self,
@@ -751,18 +934,45 @@ class WorkflowEngine:
         return status
 
     def _init_n8n(self) -> None:
-        try:
-            from .n8n_client import N8nClient
+        """Connect to n8n. Auto-launch if not running. Hard-fail if unreachable.
 
-            client = N8nClient()
+        n8n is a MANDATORY component — no workflow operations proceed without it.
+        """
+        from .n8n_client import N8nClient, N8nUnavailableError
+
+        client = N8nClient()
+        if client.health_check():
+            self._n8n_client = client
+            return
+
+        # n8n not running — auto-launch it
+        logger.info("n8n not reachable — auto-launching...")
+        try:
+            from .server import launch_n8n_process
+            self._n8n_process = launch_n8n_process()
+        except Exception as exc:
+            raise N8nUnavailableError(
+                f"n8n is not running and auto-launch failed: {exc}\n"
+                "Start n8n manually with: n8n start"
+            ) from exc
+
+        # Wait for n8n to become reachable (up to 30s)
+        import time as _time
+        for attempt in range(30):
+            _time.sleep(1)
             if client.health_check():
                 self._n8n_client = client
-            else:
-                import logging
-                logging.getLogger(__name__).warning(
-                    "n8n not reachable at %s — workflow continues without live visibility",
-                    client._base_url,
-                )
-                self._n8n_client = None
-        except Exception:
-            self._n8n_client = None
+                logger.info("n8n is now reachable after auto-launch.")
+                return
+
+        # Still not reachable after 30s — hard stop
+        if self._n8n_process and self._n8n_process.poll() is not None:
+            detail = f"n8n process exited with code {self._n8n_process.returncode}"
+        else:
+            detail = "n8n process running but health check fails"
+
+        raise N8nUnavailableError(
+            f"n8n did not become reachable within 30 seconds ({detail}).\n"
+            f"URL: {client._base_url}\n"
+            "Start n8n manually with: n8n start"
+        )

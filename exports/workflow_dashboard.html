@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="refresh" content="10">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test Sailplane - Workflow Monitor</title>
+    <title>Paper Dart POC - Workflow Monitor</title>
     <style>
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -171,12 +171,12 @@
 <body>
     <header>
         <div>
-            <div class="eyebrow">PRJ1 / R1</div>
-            <h1>Test Sailplane</h1>
+            <div class="eyebrow">DART1 / R1</div>
+            <h1>Paper Dart POC</h1>
             <div class="meta">
                 <span class="badge">Iteration 1</span>
-                <span class="badge type-badge">SAILPLANE</span>
-                <span class="timestamp">Updated: 2026-04-04T10:42:48Z</span>
+                <span class="badge type-badge">paper airplane</span>
+                <span class="timestamp">Updated: 2026-04-05T10:33:01Z</span>
             </div>
         </div>
     </header>
@@ -207,7 +207,7 @@
             </div>
         </div></section>
         <section class="flow"><h2>Strict Workflow Chart</h2><div class='flow-row'><div class='flow-stage'><strong>Top-Down</strong><span>Requirements -> parent geometry -> assembly refinement</span></div><div class='flow-stage'><strong>Drill-Down</strong><span>Components and details inherit from approved assemblies</span></div><div class='flow-stage'><strong>Bottom-Up</strong><span>Rebuild dependent 3D outputs, then validate the assembled top object</span></div></div><div class='flow-sequence'><div class='flow-step'>REQUIREMENTS</div><div class='flow-step'>RESEARCH</div><div class='flow-step'>VALIDATION</div><div class='flow-step'>RELEASE</div><div class='flow-step'>AERO_PROPOSAL</div><div class='flow-step'>STRUCTURAL_REVIEW</div><div class='flow-step'>AERO_RESPONSE</div><div class='flow-step'>CONSENSUS</div><div class='flow-step'>DRAWING_2D</div><div class='flow-step'>MODEL_3D</div><div class='flow-step'>OUTPUT</div></div></section>
-        <section class="settings"><h2>Project Settings</h2><div class='settings-grid'><div class='settings-card'><strong>Top object</strong><span>Iva_Aeroforge</span></div><div class='settings-card'><strong>Scope</strong><span>aircraft</span></div><div class='settings-card'><strong>Selected tooling</strong><span>fdm_printer_primary</span></div><div class='settings-card'><strong>Available tooling</strong><span>fdm_printer_primary, off_the_shelf_procurement</span></div><div class='settings-card'><strong>Manufacturing</strong><span>thin_wall_additive_shells, carbon_spar_hybrid_structure, procured_electronics_and_propulsion</span></div><div class='settings-card'><strong>Materials</strong><span>lw_pla_shells, cf_pla_hardpoints, tpu_flexible_features, carbon_tube_primary_spars</span></div><div class='settings-card'><strong>Production</strong><span>hybrid_in_house_and_procured</span></div><div class='settings-card'><strong>Outputs</strong><span>technical_drawings, print_files</span></div></div></section>
+        <section class="settings"><h2>Project Settings</h2><div class='settings-grid'><div class='settings-card'><strong>Top object</strong><span>PaperDart</span></div><div class='settings-card'><strong>Scope</strong><span>component</span></div><div class='settings-card'><strong>Selected tooling</strong><span>manual</span></div><div class='settings-card'><strong>Available tooling</strong><span></span></div><div class='settings-card'><strong>Manufacturing</strong><span>hand folding</span></div><div class='settings-card'><strong>Materials</strong><span>80gsm A4 paper</span></div><div class='settings-card'><strong>Production</strong><span>fold from printed template</span></div><div class='settings-card'><strong>Outputs</strong><span>fold_diagram.pdf, fold_template.dxf</span></div></div></section>
         <section class="workflow-grid">
             <h2>Tracked Sub-Assemblies</h2>
             <table>
@@ -228,7 +228,7 @@
         <section class="dependency"><h2>Dependency Graph</h2><p>No dependencies defined.</p></section>
         <section class="convergence"><h2>Convergence Criteria</h2><p>No criteria defined yet.</p></section>
         <section class="analysis"><h2>Final Top-Object Validation</h2><div class='analysis-grid'><div class='analysis-card' style='border-color:#5f6368;'><h3>Synthetic Wind Tunnel / CFD</h3><div class='status-line' style='color:#5f6368;'>Pending</div><div class='detail'>Started: -</div><div class='detail'>Completed: -</div><div class='detail'></div></div><div class='analysis-card' style='border-color:#5f6368;'><h3>Structural / Strength / FEM</h3><div class='status-line' style='color:#5f6368;'>Pending</div><div class='detail'>Started: -</div><div class='detail'>Completed: -</div><div class='detail'></div></div></div></section>
-        <section class="history"><h2>Recent History</h2><table class='history-table'><thead><tr><th>Time</th><th>Event</th></tr></thead><tbody><tr><td class='mono'>2026-04-04T10:42:48Z</td><td>Started iteration 2 for wing (R2)</td></tr><tr><td class='mono'>2026-04-04T10:42:48Z</td><td>Completed AERO_PROPOSAL for wing</td></tr><tr><td class='mono'>2026-04-04T10:42:48Z</td><td>Started AERO_PROPOSAL for wing</td></tr><tr><td class='mono'>2026-04-04T10:42:48Z</td><td>Skipped CONSENSUS for landing_gear: Not applicable for this component type</td></tr><tr><td class='mono'>2026-04-04T10:42:48Z</td><td>Skipped AERO_RESPONSE for landing_gear: Not applicable for this component type</td></tr><tr><td class='mono'>2026-04-04T10:42:48Z</td><td>Skipped STRUCTURAL_REVIEW for landing_gear: Not applicable for this component type</td></tr><tr><td class='mono'>2026-04-04T10:42:48Z</td><td>Skipped AERO_PROPOSAL for landing_gear: Not applicable for this component type</td></tr><tr><td class='mono'>2026-04-04T10:42:48Z</td><td>Skipped CONSENSUS for propulsion: Not applicable for this component type</td></tr><tr><td class='mono'>2026-04-04T10:42:48Z</td><td>Skipped AERO_RESPONSE for propulsion: Not applicable for this component type</td></tr><tr><td class='mono'>2026-04-04T10:42:48Z</td><td>Skipped STRUCTURAL_REVIEW for propulsion: Not applicable for this component type</td></tr><tr><td class='mono'>2026-04-04T10:42:48Z</td><td>Skipped AERO_PROPOSAL for propulsion: Not applicable for this component type</td></tr><tr><td class='mono'>2026-04-04T10:42:48Z</td><td>Added node landing_gear (type=assembly, parent=None)</td></tr><tr><td class='mono'>2026-04-04T10:42:48Z</td><td>Added node propulsion (type=assembly, parent=None)</td></tr><tr><td class='mono'>2026-04-04T10:42:48Z</td><td>Added node control_surfaces (type=component, parent=wing)</td></tr><tr><td class='mono'>2026-04-04T10:42:48Z</td><td>Added node empennage (type=assembly, parent=None)</td></tr><tr><td class='mono'>2026-04-04T10:42:48Z</td><td>Added node fuselage (type=assembly, parent=None)</td></tr><tr><td class='mono'>2026-04-04T10:42:48Z</td><td>Added node wing (type=assembly, parent=None)</td></tr></tbody></table></section>
+        <section class="history"><h2>Recent History</h2><table class='history-table'><thead><tr><th>Time</th><th>Event</th></tr></thead><tbody><tr><td class='mono'>2026-04-05T10:33:01Z</td><td>Started AERO_PROPOSAL for PaperDart</td></tr><tr><td class='mono'>2026-04-05T10:32:55Z</td><td>Project phase: RESEARCH → DESIGN</td></tr><tr><td class='mono'>2026-04-05T10:32:55Z</td><td>Phase RESEARCH marked as done</td></tr><tr><td class='mono'>2026-04-05T10:32:55Z</td><td>Project phase: REQUIREMENTS → RESEARCH</td></tr><tr><td class='mono'>2026-04-05T10:32:55Z</td><td>Phase REQUIREMENTS marked as done</td></tr><tr><td class='mono'>2026-04-05T10:12:41Z</td><td>Added node PaperDart (type=assembly, parent=None)</td></tr></tbody></table></section>
     </main>
 </body>
 </html>
