@@ -5,13 +5,13 @@ It provides fast, accurate Cl, Cd, Cm predictions across the full alpha/Re range
 relevant to RC sailplanes (Re 40k-200k).
 
 Usage:
-    from src.analysis.airfoil_polars import analyze_airfoil, analyze_wing_stations
+    from src.analysis.airfoil_polars import analyze_airfoil, analyze_blended_airfoil
 
     # Single airfoil polar
     polar = analyze_airfoil("AG24", re=112000)
 
-    # All wing stations
-    results = analyze_wing_stations()
+    # Blended airfoil at a span station
+    result = analyze_blended_airfoil(span_fraction=0.5, re=80000)
 
 All dimensions in mm, weights in grams, angles in degrees.
 """
@@ -22,7 +22,6 @@ import numpy as np
 import aerosandbox as asb
 import aerosandbox.numpy as np_asb
 
-from src.core.specs import SAILPLANE
 from src.cad.airfoils import get_airfoil, blend_airfoils, resample_airfoil
 
 
@@ -181,41 +180,6 @@ def analyze_blended_airfoil(
     }
 
 
-def analyze_wing_stations(
-    n_stations: int = 11,
-    velocity: float = 8.0,
-) -> list[dict]:
-    """Analyze airfoil performance at multiple span stations.
-
-    Uses the actual blended airfoil and Reynolds number at each station.
-
-    Args:
-        n_stations: Number of span stations to analyze (root to tip)
-        velocity: Flight velocity in m/s
-
-    Returns:
-        List of polar dicts, one per station.
-    """
-    wing = SAILPLANE.wing
-    stations = np.linspace(0, 1, n_stations)
-    results = []
-
-    for eta in stations:
-        re = wing.reynolds_at(eta, velocity)
-        result = analyze_blended_airfoil(
-            span_fraction=eta,
-            re=re,
-            root_airfoil=wing.airfoil_root,
-            mid_airfoil=wing.airfoil_mid,
-            tip_airfoil=wing.airfoil_tip,
-        )
-        result["chord_mm"] = wing.chord_at(eta)
-        result["velocity_ms"] = velocity
-        results.append(result)
-
-    return results
-
-
 def print_polar_summary(polar: dict) -> str:
     """Format a polar result as a readable summary."""
     lines = [
@@ -229,21 +193,3 @@ def print_polar_summary(polar: dict) -> str:
     return "\n".join(lines)
 
 
-def print_wing_analysis(results: list[dict]) -> str:
-    """Format wing station analysis as a table."""
-    lines = [
-        "Wing Station Analysis",
-        "=" * 80,
-        f"{'Station':>8} {'Chord':>7} {'Re':>8} {'Cl_max':>7} {'Cd_min':>8} {'L/D_max':>8} {'Stall':>6}",
-        "-" * 80,
-    ]
-
-    for r in results:
-        eta = r.get("span_fraction", 0)
-        lines.append(
-            f"{eta:>7.0%} {r.get('chord_mm', 0):>6.0f}mm "
-            f"{r['re']:>8.0f} {r['cl_max']:>7.3f} {r['cd_min']:>8.5f} "
-            f"{r['best_ld']:>8.1f} {r.get('alpha_stall', 0):>5.1f} deg"
-        )
-
-    return "\n".join(lines)

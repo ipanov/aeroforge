@@ -22,7 +22,9 @@ import tempfile
 import json
 from pathlib import Path
 
-from src.core.specs import SAILPLANE
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from specs import SAILPLANE
 
 FREECAD_CMD = r"C:\Users\ilija\AppData\Local\Programs\FreeCAD 1.0\bin\FreeCADCmd.exe"
 
