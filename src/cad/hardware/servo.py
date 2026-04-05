@@ -1,12 +1,11 @@
 """Generic Micro Servo Model - Build123d Compound with joints.
 
 Parametric micro servo base class. Project-specific servo models
-(e.g. JX PDI-1109MG, JX PDI-933MG) subclass MicroServo with
-concrete dimensions.
+subclass MicroServo with concrete dimensions.
 
 Coordinate system:
 - Origin = center of servo body (excluding tabs and shaft)
-- X = length (23mm), Y = width (12.5mm), Z = height
+- X = length, Y = width, Z = height
 - Output shaft on +Z top, offset toward +X
 - Mounting tabs at ~60% height from bottom
 
@@ -14,12 +13,6 @@ Joints:
 - "bottom": bottom face center (for mounting in pocket)
 - "shaft": output shaft top (for horn/arm attachment)
 - "mount_left", "mount_right": screw hole centers on mounting tabs
-
-Reference dimensions from JX Servo datasheets:
-  1109MG: 23.2 x 12.5 x 25.4mm, ear-to-ear ~32.5mm
-  933MG:  23.0 x 12.2 x 29.0mm, ear-to-ear ~32.0mm
-
-Run via Claude: cd D:/Repos/aeroforge && PYTHONPATH=. python src/cad/hardware/servo.py
 """
 
 from build123d import *
