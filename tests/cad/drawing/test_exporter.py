@@ -1,6 +1,7 @@
 """Tests for the DXF drawing exporter."""
 import os
 import pytest
+build123d = pytest.importorskip("build123d")
 from build123d import Box
 
 

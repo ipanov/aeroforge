@@ -1,5 +1,6 @@
 """Tests for the 2D projection utility."""
 import pytest
+build123d = pytest.importorskip("build123d")
 from build123d import Box
 
 
