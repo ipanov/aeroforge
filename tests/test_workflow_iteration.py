@@ -6,6 +6,7 @@ Uses the new tree-based architecture with DesignStep per node.
 from __future__ import annotations
 
 from pathlib import Path
+from unittest.mock import patch, MagicMock
 
 import pytest
 
@@ -20,9 +21,11 @@ from src.orchestrator.workflow_engine import WorkflowEngine
 
 @pytest.fixture
 def engine(tmp_path: Path) -> WorkflowEngine:
-    """WorkflowEngine with isolated state and a simple project."""
+    """WorkflowEngine with isolated state and a mock n8n client."""
     state_file = tmp_path / "workflow_state.json"
-    e = WorkflowEngine(state_file=state_file)
+    with patch.object(WorkflowEngine, "_init_n8n"):
+        e = WorkflowEngine(state_file=state_file)
+    e._n8n_client = MagicMock()
     e.create_project(
         aircraft_type="SAILPLANE",
         project_name="Test Sailplane",
@@ -163,7 +166,9 @@ class TestNextRecommendedAction:
     def test_returns_recommendation_for_fresh_engine(self) -> None:
         import tempfile
         with tempfile.TemporaryDirectory() as td:
-            e = WorkflowEngine(state_file=Path(td) / "state.json")
+            with patch.object(WorkflowEngine, "_init_n8n"):
+                e = WorkflowEngine(state_file=Path(td) / "state.json")
+            e._n8n_client = MagicMock()
             action = e.get_next_recommended_action()
             assert "action" in action or "step" in action
 

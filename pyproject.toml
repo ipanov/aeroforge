@@ -60,3 +60,6 @@ testpaths = ["tests"]
 python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"
+markers = [
+    "hardware: tests requiring specific hardware (GPU, SU2 binary, FreeCAD)",
+]

@@ -18,7 +18,6 @@ def test_layout_fits_on_a3_sheet():
     assert layout["scale"] <= 1.0  # never scale up
 
     # All view origins must be inside the sheet (with margins)
-    sw, sh = 420, 297
     for view_name in ["top", "front", "right"]:
         ox, oy = layout[view_name]
         assert ox >= 15, f"{view_name} left edge outside margin"

@@ -7,6 +7,7 @@ the hierarchical node tree (DesignStep per node, ProjectPhase at top).
 from __future__ import annotations
 
 from pathlib import Path
+from unittest.mock import patch, MagicMock
 
 import yaml
 
@@ -193,7 +194,9 @@ def test_engine_loads_profile_deliverables(tmp_path: Path) -> None:
     profile_path = tmp_path / "profile.yaml"
     _write_profile(profile_path)
 
-    engine = WorkflowEngine(state_file=state_file)
+    with patch.object(WorkflowEngine, "_init_n8n"):
+        engine = WorkflowEngine(state_file=state_file)
+    engine._n8n_client = MagicMock()
     state = engine.create_project_from_profile_file(profile_path, "Para Wing")
 
     # Profile creates nodes, not sub_assemblies

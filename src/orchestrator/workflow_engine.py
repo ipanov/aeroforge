@@ -37,7 +37,7 @@ class WorkflowEngine:
 
     @property
     def n8n_available(self) -> bool:
-        """Whether n8n is reachable. Always True after __init__ (hard-fail otherwise)."""
+        """Whether n8n is reachable."""
         return self._n8n_client is not None
 
     # ── Project lifecycle ──────────────────────────────────────────
@@ -155,20 +155,20 @@ class WorkflowEngine:
             aircraft_type=profile.aircraft_type,
             project_scope=profile.project_scope,
             round_label=profile.round_label,
-                workflow_profile={
-                    "top_object_name": profile.top_object_name,
-                    "sub_assemblies": [
-                        {
-                            "name": item.name,
-                            "dependencies": item.dependencies,
-                            "analysis_scope": item.analysis_scope,
-                            "deliverables": item.deliverables,
-                            "step_deliverables": item.step_deliverables,
-                        }
-                        for item in profile.sub_assemblies
-                    ],
-                },
-            )
+            workflow_profile={
+                "top_object_name": profile.top_object_name,
+                "sub_assemblies": [
+                    {
+                        "name": item.name,
+                        "dependencies": item.dependencies,
+                        "analysis_scope": item.analysis_scope,
+                        "deliverables": item.deliverables,
+                        "step_deliverables": item.step_deliverables,
+                    }
+                    for item in profile.sub_assemblies
+                ],
+            },
+        )
         return final_state
 
     def create_project_from_profile_file(

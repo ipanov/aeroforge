@@ -77,7 +77,7 @@ def test_rag_config_collection_for_project():
 
 def test_database_add_and_query():
     """Create an in-memory ChromaDB, add chunks, query, verify results."""
-    chromadb = pytest.importorskip("chromadb")
+    pytest.importorskip("chromadb")
 
     from src.rag.chunker import Chunk
     from src.rag.config import RAGConfig
@@ -107,7 +107,7 @@ def test_database_add_and_query():
 
 def test_database_stats():
     """Verify stats reporting after population."""
-    chromadb = pytest.importorskip("chromadb")
+    pytest.importorskip("chromadb")
 
     from src.rag.chunker import Chunk
     from src.rag.config import RAGConfig
@@ -166,7 +166,7 @@ def test_scraper_builds_baseline_queries_from_prompt():
 
 def test_init_rag_database_local_only():
     """Run init_rag_database with skip_web=True, verify local docs are loaded."""
-    chromadb = pytest.importorskip("chromadb")
+    pytest.importorskip("chromadb")
 
     from src.rag import init_rag_database
     from src.rag.config import RAGConfig
